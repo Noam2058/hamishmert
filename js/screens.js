@@ -71,8 +71,7 @@ function greetingFor(ctx) {
       if (day.holiday === 'yom-yerushalayim') return { kind: 'torah', title: 'יום ירושלים שמח', sub: 'ירושלים הבנויה כעיר שחוברה לה יחדיו' };
       if (day.tags.includes('rosh-chodesh')) return { kind: 'torah', title: 'חודש טוב', sub: day.events.join(' · ') };
       if (day.season === 'elul') return { kind: 'yamim-noraim', title: 'חודש אלול', sub: 'ימי רחמים וסליחות' };
-      if (display.greetingDaily) return { kind: 'torah', title: 'ברוכים הבאים', sub: ctx.s.name || '' };
-      return null;
+      return { kind: 'torah', title: 'ברוכים הבאים', sub: `${day.weekday} · ${parsha}` }; // כל יום; לכיבוי – מכבים את מסך הברכה ברשימת המסכים
   }
 }
 

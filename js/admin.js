@@ -225,7 +225,6 @@ function renderDisplay() {
       <label for="d-theme">ערכת עיצוב</label><select id="d-theme" data-d="theme">${THEMES.map(([k, l]) => `<option value="${k}" ${d.theme === k ? 'selected' : ''}>${l}</option>`).join('')}</select>
       <label for="d-scene">רקעים</label><select id="d-scene" data-d="scene">${SCENE_CHOICES.map(([k, l]) => `<option value="${k}" ${(d.scene || 'auto') === k ? 'selected' : ''}>${l}</option>`).join('')}</select>
       <label for="d-hol">עיצוב מיוחד בחגים</label><input id="d-hol" data-d="holidayDesign" type="checkbox" ${d.holidayDesign !== false ? 'checked' : ''}>
-      <label for="d-greet">מסך "ברוכים הבאים" בימי חול</label><input id="d-greet" data-d="greetingDaily" type="checkbox" ${d.greetingDaily ? 'checked' : ''}>
       <label for="d-bg">תמונת רקע משלך (כתובת)</label><input id="d-bg" data-d="bgImage" value="${esc(d.bgImage)}" placeholder="https://… (לא חובה; בחגים יוצג עיצוב החג)">
       <label for="d-sec">זמן ברירת מחדל למסך (שניות)</label><input id="d-sec" data-d="defaultSeconds" type="number" min="4" value="${esc(d.defaultSeconds)}">
       <label for="d-ticker">פס גולל בתחתית</label><input id="d-ticker" data-d="ticker" type="checkbox" ${d.ticker ? 'checked' : ''}>

@@ -46,7 +46,6 @@ export function demoData() {
       theme: 'classic',
       bgImage: '',
       scene: 'auto',
-      greetingDaily: false,
       holidayDesign: true,
       defaultSeconds: 14,
       screens: [

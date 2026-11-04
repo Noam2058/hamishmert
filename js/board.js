@@ -243,6 +243,15 @@ async function start() {
   addEventListener('online', () => document.body.classList.remove('offline'));
   keepAwake();
   scheduleDailyReload();
+  watchVersion();
+}
+
+// עדכון קוד: כל 5 דקות בודק את version.txt, ואם עלתה גרסה חדשה – מרענן את הלוח לבד
+async function watchVersion() {
+  const get = () => fetch('version.txt', { cache: 'no-store' }).then((r) => (r.ok ? r.text() : null)).then((t) => t?.trim() || null).catch(() => null);
+  const mine = await get();
+  if (!mine) return;
+  setInterval(async () => { const v = await get(); if (v && v !== mine) location.reload(); }, 5 * 60 * 1000);
 }
 
 async function keepAwake() {

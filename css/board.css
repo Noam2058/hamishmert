@@ -229,17 +229,7 @@ body.offline .offline-dot { display: block; }
     radial-gradient(1000px 600px at 10% 95%, var(--season-b), transparent 70%),
     linear-gradient(180deg, var(--veil-top, transparent), var(--veil-bottom, transparent)); }
 #stage.has-scene { --veil-top: rgba(5, 12, 28, .38); --veil-bottom: rgba(5, 12, 28, .52); }
-[data-theme="modern"]/* שכבת הרקע – כל שקופית מקבלת רקע משלה, עם מעבר רך */
-#bg { position: absolute; inset: 0; z-index: 0; pointer-events: none; }
-#bg .layer { position: absolute; inset: 0; background: center / cover no-repeat; opacity: 0; transition: opacity 1.2s ease; }
-#bg .layer.on { opacity: 1; }
-#bg .layer.old { opacity: 1; z-index: -1; }
-#bg::after { content: ""; position: absolute; inset: 0;
-  background:
-    radial-gradient(1200px 700px at 85% 10%, var(--season-a), transparent 70%),
-    radial-gradient(1000px 600px at 10% 95%, var(--season-b), transparent 70%),
-    linear-gradient(180deg, var(--veil-top, transparent), var(--veil-bottom, transparent)); }
-#stage.has-scene { --veil-top: rgba(255,255,255,.35); --veil-bottom: rgba(255,255,255,.5); }
+[data-theme="modern"]#stage.has-scene { --veil-top: rgba(255,255,255,.35); --veil-bottom: rgba(255,255,255,.5); }
 #stage.has-scene::before { opacity: 0; }
 #stage.has-scene header.band { background: linear-gradient(180deg, color-mix(in srgb, var(--head-band) 82%, transparent), color-mix(in srgb, var(--head-band) 40%, transparent)); backdrop-filter: blur(2px); }
 #stage.has-scene footer.ticker { background: color-mix(in srgb, var(--head-band) 86%, transparent); }

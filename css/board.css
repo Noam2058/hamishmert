@@ -1,0 +1,243 @@
+/* לוח בית הכנסת – קנבס 1920×1080 שמוקטן/מוגדל לכל מסך */
+/* layout: header band · stage (rotating screens) · ticker; parchment cards on a deep field */
+:root {
+  --field: #0f2346;          /* רקע עמוק */
+  --field-2: #1b3a6b;
+  --parchment: #f6eedb;      /* כרטיס קלף */
+  --parchment-2: #ecdfc0;
+  --ink: #1a2a4a;            /* טקסט על קלף */
+  --ink-soft: #5a6478;
+  --gold: #c9a24a;           /* מסגרות ועיטור */
+  --gold-2: #e6c97a;
+  --on-field: #f4ecd8;       /* טקסט על הרקע העמוק */
+  --head-band: #0b1a36;
+  --chip: #1b3a6b;
+  --chip-ink: #f4ecd8;
+  --season-a: transparent;
+  --season-b: transparent;
+  --display: "Frank Ruhl Libre", "David Libre", "David", "Times New Roman", serif;
+  --body: "Assistant", "Arial Hebrew", "Arial", sans-serif;
+  color-scheme: dark;
+}
+
+/* ערכות לפי נוסח */
+[data-theme="chassidic"] { --field: #3a0f14; --field-2: #5e1a22; --head-band: #2a0a0e; --chip: #5e1a22; --ink: #3a1a12; --gold: #c99a3e; }
+[data-theme="ashkenaz"] { --field: #10291f; --field-2: #1d4434; --head-band: #0a1d15; --chip: #1d4434; --ink: #1d2e26; --gold: #b8955a; --gold-2: #d8bb84; }
+[data-theme="modern"] {
+  --field: #e9edf2; --field-2: #d8dfe8; --head-band: #ffffff; --parchment: #ffffff; --parchment-2: #f2f4f7;
+  --ink: #142033; --ink-soft: #5b6676; --gold: #2f6f8f; --gold-2: #4a90b0; --on-field: #142033;
+  --chip: #142033; --chip-ink: #fff; color-scheme: light;
+}
+
+/* גוון עונתי */
+[data-season="shabbat"] { --season-a: rgba(230, 190, 110, .18); --season-b: rgba(255, 220, 150, .10); }
+[data-season="yamim-noraim"] { --season-a: rgba(255, 255, 255, .20); --season-b: rgba(200, 210, 230, .16); }
+[data-season="sukkot"] { --season-a: rgba(90, 160, 80, .26); --season-b: rgba(220, 190, 90, .14); }
+[data-season="chanuka"] { --season-a: rgba(60, 120, 230, .26); --season-b: rgba(255, 190, 70, .18); }
+[data-season="purim"] { --season-a: rgba(170, 70, 200, .26); --season-b: rgba(255, 120, 160, .16); }
+[data-season="pesach"] { --season-a: rgba(80, 170, 200, .22); --season-b: rgba(140, 200, 110, .16); }
+[data-season="shavuot"] { --season-a: rgba(110, 190, 110, .24); --season-b: rgba(255, 230, 160, .14); }
+[data-season="elul"] { --season-a: rgba(70, 140, 150, .18); --season-b: transparent; }
+[data-season="fast"], [data-season="three-weeks"] { --season-a: rgba(0, 0, 0, .30); --season-b: rgba(120, 120, 120, .10); --gold: #9e9583; --gold-2: #bdb4a0; }
+
+* { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; background: #000; overflow: hidden; }
+body { font-family: var(--body); }
+
+#viewport { position: fixed; inset: 0; background: #000; overflow: hidden; }
+#stage {
+  width: 1920px; height: 1080px; position: absolute; left: 50%; top: 50%; overflow: hidden; direction: rtl;
+  transform-origin: center center; transform: translate(-50%, -50%); color: var(--on-field);
+  background:
+    radial-gradient(1200px 700px at 85% 10%, var(--season-a), transparent 70%),
+    radial-gradient(1000px 600px at 10% 95%, var(--season-b), transparent 70%),
+    linear-gradient(180deg, var(--veil-top, transparent), var(--veil-bottom, transparent)),
+    var(--bg-image, none) center / cover no-repeat,
+    linear-gradient(160deg, var(--field-2), var(--field) 60%);
+  display: grid; grid-template-rows: 172px 1fr 78px;
+}
+#stage::before { /* מוטיב מגן דוד עדין */
+  content: ""; position: absolute; inset: 0; pointer-events: none; opacity: .05;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120' viewBox='0 0 120 120'%3E%3Cg fill='none' stroke='%23e6c97a' stroke-width='1.4'%3E%3Cpath d='M60 22 93 79H27z'/%3E%3Cpath d='M60 98 27 41h66z'/%3E%3C/g%3E%3C/svg%3E");
+}
+[data-theme="modern"] #stage::before { opacity: .05; }
+
+/* ---------- פס עליון ---------- */
+header.band {
+  position: relative; z-index: 2; display: grid; grid-template-columns: 1fr 520px 1fr; align-items: center;
+  padding: 0 56px; background: linear-gradient(180deg, var(--head-band), color-mix(in srgb, var(--head-band) 70%, transparent));
+  border-bottom: 3px solid var(--gold);
+}
+.band .side { display: flex; flex-direction: column; gap: 6px; }
+.band .side.left { align-items: flex-end; text-align: left; }
+.band .day { font: 700 34px/1.1 var(--display); color: var(--gold-2); }
+.band .heb { font: 900 50px/1.05 var(--display); }
+.band .greg { font: 500 26px/1.2 var(--body); opacity: .8; }
+.band .clockbox { text-align: center; display: flex; flex-direction: column; align-items: center; gap: 2px; }
+.band .shul { font: 700 30px/1.15 var(--display); color: var(--gold-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 520px; }
+.band .clock { font: 900 104px/1 var(--display); font-variant-numeric: tabular-nums; letter-spacing: 2px; direction: ltr; }
+.band .clock .sec { font-size: 44px; opacity: .55; margin-inline-start: 6px; vertical-align: 46px; }
+.band .parsha { font: 900 44px/1.1 var(--display); }
+.band .parsha small { font: 600 26px var(--body); color: var(--gold-2); margin-inline-end: 10px; }
+.band .event { font: 700 30px/1.2 var(--body); color: var(--gold-2); }
+.dedication {
+  position: absolute; z-index: 3; top: 172px; left: 50%; transform: translate(-50%, -50%);
+  background: var(--gold); color: var(--head-band); font: 700 24px/1 var(--body);
+  padding: 9px 34px; border-radius: 999px; white-space: nowrap; box-shadow: 0 6px 18px rgba(0,0,0,.25);
+}
+
+/* ---------- אזור המסכים ---------- */
+main#screens { position: relative; z-index: 1; padding: 54px 64px 26px; }
+.screen { position: absolute; inset: 54px 64px 26px; display: flex; flex-direction: column; gap: 26px; opacity: 0; transition: opacity .9s ease; }
+.screen.on { opacity: 1; }
+.screen-title { display: flex; align-items: center; gap: 22px; font: 900 56px/1 var(--display); color: var(--on-field); }
+.screen-title::before, .screen-title::after { content: ""; flex: 1; height: 2px; background: linear-gradient(90deg, transparent, var(--gold), transparent); }
+.screen-title span { padding: 0 6px; }
+
+.card {
+  background: linear-gradient(180deg, var(--parchment), var(--parchment-2)); color: var(--ink);
+  border-radius: 22px; padding: 26px 34px; box-shadow: 0 18px 40px rgba(0,0,0,.28), inset 0 0 0 2px color-mix(in srgb, var(--gold) 70%, transparent), inset 0 0 0 8px var(--parchment), inset 0 0 0 9px color-mix(in srgb, var(--gold) 45%, transparent);
+  display: flex; flex-direction: column; gap: 14px; min-width: 0;
+}
+.card h3 { margin: 0; font: 900 42px/1.1 var(--display); color: var(--ink); display: flex; align-items: center; gap: 14px; }
+.card h3 .tag { font: 700 22px var(--body); background: var(--chip); color: var(--chip-ink); padding: 5px 14px; border-radius: 999px; }
+.rows { display: flex; flex-direction: column; }
+.row { display: flex; justify-content: space-between; align-items: baseline; gap: 18px; padding: 10px 2px; border-bottom: 1px dashed color-mix(in srgb, var(--ink) 22%, transparent); }
+.row:last-child { border-bottom: 0; }
+.row .k { font: 700 36px/1.2 var(--body); min-width: 0; }
+.row .k small { display: block; font: 500 24px/1.2 var(--body); color: var(--ink-soft); }
+.row .v { font: 900 46px/1 var(--display); font-variant-numeric: tabular-nums; direction: ltr; white-space: nowrap; }
+.row.past { opacity: .42; }
+.row.next .k, .row.next .v { color: color-mix(in srgb, var(--gold) 55%, var(--ink)); }
+.row.next .k::after { content: "  ◄ הבא"; font: 700 22px var(--body); }
+.rows.compact .row { padding: 7px 2px; }
+.rows.compact .row .k { font-size: 30px; }
+.rows.compact .row .v { font-size: 38px; }
+.chips { display: flex; flex-wrap: wrap; gap: 10px; }
+.chip { font: 700 28px/1.2 var(--body); background: var(--chip); color: var(--chip-ink); padding: 8px 18px; border-radius: 14px; }
+.muted { color: var(--ink-soft); }
+.grid { display: grid; gap: 30px; flex: 1; min-height: 0; }
+.g2 { grid-template-columns: 1fr 1fr; }
+.g3 { grid-template-columns: 1fr 1fr 1fr; }
+.g-combined { grid-template-columns: 1.05fr 1fr 1fr; }
+.span-all { grid-column: 1 / -1; }
+.empty { font: 600 30px var(--body); color: var(--ink-soft); }
+
+/* שבת / חג */
+.hero { flex: 1; display: grid; grid-template-columns: 1fr 1.25fr 1fr; gap: 34px; align-items: stretch; }
+.hero .center { text-align: center; justify-content: center; align-items: center; gap: 18px; }
+.hero .label { font: 700 30px var(--body); color: var(--ink-soft); }
+.hero .big { font: 900 92px/1.05 var(--display); }
+.hero .mid { font: 900 54px/1.1 var(--display); }
+.hero .time { font: 900 120px/1 var(--display); font-variant-numeric: tabular-nums; direction: ltr; }
+.hero .side { justify-content: center; align-items: center; text-align: center; gap: 10px; }
+.flourish { width: 260px; height: 18px; color: var(--gold); }
+
+/* הודעות */
+.ann-grid { flex: 1; display: grid; gap: 30px; grid-auto-flow: column; grid-auto-columns: 1fr; }
+.ann { justify-content: center; text-align: center; align-items: center; gap: 20px; position: relative; overflow: hidden; }
+.ann .t { font: 900 64px/1.1 var(--display); text-wrap: balance; }
+.ann .b { font: 600 38px/1.45 var(--body); white-space: pre-line; text-wrap: pretty; max-width: 1100px; }
+.ann.simcha { background: radial-gradient(circle at 50% 0%, #fff7dd, var(--parchment-2)); }
+.ann.simcha::before { content: ""; position: absolute; inset: 0; opacity: .5; pointer-events: none;
+  background-image: radial-gradient(circle, var(--gold) 3px, transparent 4px), radial-gradient(circle, #d55 2.5px, transparent 3.5px), radial-gradient(circle, #4a8 2.5px, transparent 3.5px);
+  background-size: 90px 90px, 130px 130px, 110px 110px; background-position: 0 0, 40px 60px, 70px 20px; }
+.ann.memorial { background: linear-gradient(180deg, #2b2f3a, #1d2029); color: #efe7d4; }
+.ann.memorial .t { color: #e6c97a; }
+.ann.urgent { box-shadow: 0 18px 40px rgba(0,0,0,.28), inset 0 0 0 4px #b8443b; }
+
+/* אזכרות */
+.mem-today { display: grid; gap: 26px; grid-auto-flow: column; grid-auto-columns: 1fr; }
+.mem { flex-direction: row; align-items: center; gap: 26px; background: linear-gradient(180deg, #23283a, #171b28); color: #efe7d4; box-shadow: 0 18px 40px rgba(0,0,0,.35), inset 0 0 0 2px #8a7650; }
+.mem .who { font: 900 54px/1.15 var(--display); color: #f1dfaf; }
+.mem .when { font: 600 28px var(--body); opacity: .85; }
+.mem .by { font: 500 24px var(--body); opacity: .7; }
+.candle { width: 54px; height: 120px; flex: none; position: relative; }
+.candle .wax { position: absolute; bottom: 0; left: 12px; width: 30px; height: 80px; border-radius: 6px; background: linear-gradient(90deg, #e9e2d0, #fff9ea 45%, #d9cfb8); }
+.candle .flame { position: absolute; left: 17px; top: 6px; width: 20px; height: 34px; border-radius: 50% 50% 45% 45%; background: radial-gradient(ellipse at 50% 70%, #fff6c8, #ffb733 55%, rgba(255,120,0,.0) 72%); filter: drop-shadow(0 0 14px rgba(255,170,60,.9)); animation: flicker 1.8s infinite ease-in-out; transform-origin: 50% 90%; }
+@keyframes flicker { 0%,100% { transform: scale(1) rotate(-1deg); } 35% { transform: scale(1.06, .94) rotate(2deg); } 70% { transform: scale(.95, 1.05) rotate(-2deg); } }
+.mem-week { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px 30px; }
+.mem-week .row .k { font-size: 32px; }
+.mem-week .row .v { font: 700 28px var(--body); direction: rtl; }
+
+/* פרנס */
+.parnas { flex: 1; justify-content: center; align-items: center; text-align: center; gap: 22px; }
+.parnas .t { font: 900 54px var(--display); color: color-mix(in srgb, var(--gold) 60%, var(--ink)); }
+.parnas .n { font: 900 104px/1.05 var(--display); text-wrap: balance; }
+.parnas .x { font: 600 44px/1.4 var(--body); max-width: 1200px; text-wrap: balance; }
+
+/* שעון נץ */
+.netz { flex: 1; justify-content: center; align-items: center; text-align: center; gap: 8px; }
+.netz .lbl { font: 800 52px var(--display); }
+.netz .count { font: 900 300px/1 var(--display); font-variant-numeric: tabular-nums; direction: ltr; letter-spacing: 6px; color: var(--ink); }
+.netz .sub { font: 700 46px var(--display); color: var(--ink-soft); }
+.netz .sub b { color: var(--ink); font-variant-numeric: tabular-nums; }
+
+/* עומר */
+.omer { flex: 1; justify-content: center; align-items: center; text-align: center; gap: 24px; }
+.omer .n { font: 900 220px/1 var(--display); color: color-mix(in srgb, var(--gold) 55%, var(--ink)); }
+.omer .t { font: 900 64px/1.25 var(--display); text-wrap: balance; max-width: 1500px; }
+.omer .s { font: 700 40px var(--body); color: var(--ink-soft); }
+.omer-bar { display: grid; grid-template-columns: repeat(49, 1fr); gap: 4px; width: 1300px; }
+.omer-bar i { height: 16px; border-radius: 3px; background: color-mix(in srgb, var(--ink) 15%, transparent); }
+.omer-bar i.on { background: var(--gold); }
+.omer-bar i:nth-child(7n) { margin-inline-end: 8px; }
+
+/* הלכה */
+.halacha { flex: 1; justify-content: center; padding: 50px 90px; gap: 26px; }
+.halacha .t { font: 900 64px var(--display); }
+.halacha .x { font: 500 46px/1.6 var(--body); text-wrap: pretty; }
+.halacha .src { font: 600 28px var(--body); color: var(--ink-soft); }
+
+/* פס גולל */
+footer.ticker { position: relative; z-index: 2; display: flex; align-items: center; gap: 28px; padding: 0 40px; background: var(--head-band); border-top: 3px solid var(--gold); overflow: hidden; }
+.ticker .next { flex: none; font: 800 30px var(--body); color: var(--head-band); background: var(--gold-2); padding: 8px 22px; border-radius: 12px; white-space: nowrap; }
+.ticker .next b { font-family: var(--display); font-size: 36px; font-variant-numeric: tabular-nums; }
+.ticker .track { flex: 1; align-self: stretch; position: relative; overflow: hidden; mask-image: linear-gradient(90deg, transparent, #000 6%, #000 94%, transparent); }
+.ticker .run { position: absolute; left: 0; top: 50%; translate: 0 -50%; display: inline-flex; gap: 52px; white-space: nowrap; font: 600 30px var(--body); will-change: transform; }
+.ticker .run b { color: var(--gold-2); font-family: var(--display); font-variant-numeric: tabular-nums; }
+.ticker .dots { flex: none; display: flex; gap: 8px; }
+.ticker .dots i { width: 12px; height: 12px; border-radius: 50%; background: color-mix(in srgb, var(--on-field) 30%, transparent); }
+.ticker .dots i.on { background: var(--gold-2); }
+[data-theme="modern"] .ticker, [data-theme="modern"] header.band { color: var(--on-field); }
+[data-theme="modern"] .ticker .next { color: #fff; background: var(--gold); }
+
+/* מצב לילה */
+#night { position: fixed; inset: 0; background: #000; color: #333; display: none; place-items: center; font: 900 120px var(--display); z-index: 50; direction: ltr; }
+body.night #night { display: grid; }
+
+/* מצב בלי חיבור */
+.offline-dot { position: absolute; top: 14px; left: 18px; z-index: 5; width: 14px; height: 14px; border-radius: 50%; background: #d9534f; display: none; }
+body.offline .offline-dot { display: block; }
+
+/* טעינה */
+#loading { position: fixed; inset: 0; display: grid; place-items: center; color: #c9a24a; font: 700 40px var(--display); background: #0b1a36; z-index: 60; }
+#loading[hidden] { display: none; }
+
+@media (prefers-reduced-motion: reduce) {
+  .ticker .run { position: static; translate: none; }
+  .candle .flame { animation: none; }
+  .screen { transition: none; }
+}
+
+/* ---------- רקע מצויר ---------- */
+#stage.has-scene { --veil-top: rgba(5, 12, 28, .38); --veil-bottom: rgba(5, 12, 28, .52); }
+[data-theme="modern"]#stage.has-scene { --veil-top: rgba(255,255,255,.35); --veil-bottom: rgba(255,255,255,.5); }
+#stage.has-scene::before { opacity: 0; }
+#stage.has-scene header.band { background: linear-gradient(180deg, color-mix(in srgb, var(--head-band) 82%, transparent), color-mix(in srgb, var(--head-band) 40%, transparent)); backdrop-filter: blur(2px); }
+#stage.has-scene footer.ticker { background: color-mix(in srgb, var(--head-band) 86%, transparent); }
+#stage.has-scene .card { background: linear-gradient(180deg, color-mix(in srgb, var(--parchment) 93%, transparent), color-mix(in srgb, var(--parchment-2) 93%, transparent)); }
+#stage.has-scene .card.mem, #stage.has-scene .ann.memorial { background: linear-gradient(180deg, rgba(35,40,58,.93), rgba(23,27,40,.93)); }
+#stage.has-scene .screen-title { text-shadow: 0 3px 12px rgba(0,0,0,.6); }
+
+/* ---------- מסך ברכה ---------- */
+.greet { flex: 1; display: grid; grid-template-columns: 1.05fr 1fr; align-items: center; gap: 40px; }
+.greet .art { width: 100%; max-height: 790px; object-fit: contain; filter: drop-shadow(0 26px 40px rgba(0,0,0,.45)); }
+.greet .words { text-align: center; display: flex; flex-direction: column; align-items: center; gap: 18px; padding: 40px 30px;
+  background: radial-gradient(closest-side, color-mix(in srgb, var(--head-band) 55%, transparent), transparent); }
+.greet .gt { font: 900 128px/1.05 var(--display); color: var(--gold-2); text-shadow: 0 6px 24px rgba(0,0,0,.55); text-wrap: balance; }
+.greet .gs { font: 700 54px/1.25 var(--display); color: var(--on-field); text-shadow: 0 3px 14px rgba(0,0,0,.6); text-wrap: balance; }
+.greet .gn { font: 600 34px var(--body); color: color-mix(in srgb, var(--on-field) 80%, transparent); }
+.greet .flourish { width: 420px; height: 26px; color: var(--gold-2); }
+[data-theme="modern"] .greet .gt { color: var(--gold); text-shadow: none; }
+[data-theme="modern"] .greet .gs, [data-theme="modern"] .greet .gn { text-shadow: none; }

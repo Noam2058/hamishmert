@@ -1,0 +1,49 @@
+/* דף נייד למתפללים וממשק הגבאי – בהיר/כהה לפי המכשיר */
+:root {
+  --bg: #f4f1ea;
+  --surface: #fffdf8;
+  --ink: #1a2a4a;
+  --soft: #5f6a7d;
+  --line: #e2dccd;
+  --accent: #1b3a6b;
+  --gold: #a8842f;
+  --danger: #b0413a;
+  --ok: #2f7a4f;
+  --display: "Frank Ruhl Libre", "David", serif;
+  --body: "Assistant", "Arial Hebrew", Arial, sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0e1626; --surface: #16213a; --ink: #ece4d0; --soft: #a7b0c2; --line: #27324c;
+    --accent: #e6c97a; --gold: #e6c97a; --danger: #e27a72; --ok: #6fc293; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0e1626; --surface: #16213a; --ink: #ece4d0; --soft: #a7b0c2; --line: #27324c;
+  --accent: #e6c97a; --gold: #e6c97a; --danger: #e27a72; --ok: #6fc293; color-scheme: dark;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+body { margin: 0; background: var(--bg); color: var(--ink); font: 500 17px/1.5 var(--body); direction: rtl; }
+.wrap { max-width: 720px; margin: 0 auto; padding-block: 18px 40px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); display: flex; flex-direction: column; gap: 14px; }
+.top { display: flex; flex-direction: column; gap: 2px; padding-block: 6px 4px; border-bottom: 2px solid var(--gold); }
+.top h1 { margin: 0; font: 900 28px/1.15 var(--display); text-wrap: balance; }
+.top .sub { color: var(--soft); font-size: 15px; }
+.top .date { font: 700 20px var(--display); }
+.box { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 14px 16px; display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.box h2 { margin: 0 0 4px; font: 800 20px var(--display); display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.box h2 .tag { font: 700 13px var(--body); background: var(--accent); color: var(--surface); padding: 2px 10px; border-radius: 999px; }
+.line { display: flex; justify-content: space-between; gap: 12px; padding: 5px 0; border-bottom: 1px dashed var(--line); }
+.line:last-child { border-bottom: 0; }
+.line .t { font: 800 19px var(--display); font-variant-numeric: tabular-nums; direction: ltr; white-space: nowrap; }
+.line small { display: block; color: var(--soft); font-size: 14px; }
+.line.past { opacity: .5; }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip { background: color-mix(in srgb, var(--accent) 14%, transparent); color: var(--ink); padding: 3px 10px; border-radius: 999px; font-size: 15px; font-weight: 700; }
+.big { font: 900 30px var(--display); text-align: center; }
+.two { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; text-align: center; }
+.two .t { font: 900 28px var(--display); font-variant-numeric: tabular-nums; }
+.ann h3 { margin: 0; font: 800 18px var(--display); }
+.ann p { margin: 2px 0 0; white-space: pre-line; }
+.foot { color: var(--soft); font-size: 13px; text-align: center; }
+a { color: var(--accent); }

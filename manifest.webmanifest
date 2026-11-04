@@ -1,0 +1,14 @@
+{
+  "name": "לוח בית הכנסת",
+  "short_name": "לוח",
+  "lang": "he",
+  "dir": "rtl",
+  "start_url": "./index.html",
+  "display": "fullscreen",
+  "orientation": "landscape",
+  "background_color": "#0b1a36",
+  "theme_color": "#0b1a36",
+  "icons": [
+    { "src": "icon.svg", "sizes": "any", "type": "image/svg+xml" }
+  ]
+}

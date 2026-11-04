@@ -1,0 +1,44 @@
+.adm { max-width: 980px; margin: 0 auto; padding-block: 0 80px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); display: flex; flex-direction: column; gap: 14px; }
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 10; background: var(--bg); }
+.adm-top { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5; background: var(--bg); display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; padding-block: 14px 10px; border-bottom: 2px solid var(--gold); }
+.adm-top h1 { margin: 0; font: 900 26px var(--display); }
+.adm-top .sub { color: var(--soft); font-size: 14px; }
+.actions { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.actions a { font-weight: 700; font-size: 15px; }
+button, .btn { font: 700 15px var(--body); border-radius: 10px; border: 1px solid var(--line); background: var(--surface); color: var(--ink); padding: 8px 14px; cursor: pointer; }
+button.primary { background: var(--accent); color: var(--surface); border-color: var(--accent); }
+button:disabled { opacity: .45; cursor: default; }
+button.danger { color: var(--danger); }
+button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible, a:focus-visible { outline: 3px solid color-mix(in srgb, var(--gold) 70%, transparent); outline-offset: 1px; }
+.tabs { display: flex; gap: 6px; flex-wrap: wrap; }
+.tabs button { border-radius: 999px; padding: 6px 14px; }
+.tabs button[aria-selected="true"] { background: var(--accent); color: var(--surface); border-color: var(--accent); }
+.msg { padding: 10px 14px; border-radius: 10px; font-weight: 700; background: color-mix(in srgb, var(--ok) 15%, var(--surface)); }
+.msg.err { background: color-mix(in srgb, var(--danger) 15%, var(--surface)); }
+.form { display: grid; grid-template-columns: 170px 1fr; gap: 10px 14px; align-items: center; }
+.form label { font-weight: 700; font-size: 15px; }
+.form .hint { grid-column: 2; color: var(--soft); font-size: 13px; margin-top: -6px; }
+input, select, textarea { font: 500 16px var(--body); color: var(--ink); background: var(--bg); border: 1px solid var(--line); border-radius: 9px; padding: 8px 10px; width: 100%; min-width: 0; }
+input[type="checkbox"] { width: 20px; height: 20px; accent-color: var(--accent); }
+textarea { min-height: 90px; resize: vertical; }
+.row-btns { grid-column: 1 / -1; display: flex; gap: 8px; flex-wrap: wrap; }
+.items { display: flex; flex-direction: column; gap: 10px; }
+.item { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 12px 14px; display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px; align-items: end; }
+.item .f { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.item .f.wide { grid-column: 1 / -1; }
+.item .f > span { font-size: 13px; font-weight: 700; color: var(--soft); }
+.item .tools { grid-column: 1 / -1; display: flex; gap: 6px; justify-content: space-between; align-items: center; flex-wrap: wrap; }
+.item .calc { font: 800 16px var(--display); color: var(--gold); }
+.days { display: flex; gap: 4px; flex-wrap: wrap; }
+.days label { display: flex; align-items: center; gap: 3px; font-size: 14px; font-weight: 700; padding: 4px 8px; border: 1px solid var(--line); border-radius: 8px; }
+.days input { width: 16px; height: 16px; }
+.timebox { display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 6px; }
+.panel-head { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; }
+.panel-head h2 { margin: 0; font: 900 22px var(--display); }
+.panel-head p { margin: 2px 0 0; color: var(--soft); font-size: 14px; }
+.checks { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 6px; }
+.checks label { display: flex; gap: 6px; align-items: center; font-weight: 600; }
+@media (max-width: 560px) {
+  .form { grid-template-columns: 1fr; }
+  .form .hint { grid-column: 1; }
+}

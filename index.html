@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>לוח בית הכנסת</title>
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#0b1a36">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Frank+Ruhl+Libre:wght@500;700;900&family=Assistant:wght@500;600;700;800&display=swap">
+<link rel="stylesheet" href="css/board.css">
+<script src="config.js"></script>
+</head>
+<body>
+<div id="viewport">
+  <div id="stage" data-theme="classic" data-season="weekday">
+    <span class="offline-dot" title="אין חיבור – מוצגים הנתונים האחרונים שנשמרו"></span>
+    <header class="band">
+      <div class="side right">
+        <div class="day" id="day"></div>
+        <div class="heb" id="heb"></div>
+        <div class="greg" id="greg"></div>
+      </div>
+      <div class="clockbox">
+        <div class="shul" id="shul"></div>
+        <div class="clock" id="clock">--:--</div>
+      </div>
+      <div class="side left">
+        <div class="parsha" id="parsha"></div>
+        <div class="event" id="event"></div>
+      </div>
+    </header>
+    <div class="dedication" id="dedication" hidden></div>
+    <main id="screens"></main>
+    <footer class="ticker">
+      <div class="next" id="next"></div>
+      <div class="track" id="track"><div class="run" id="run"></div></div>
+      <div class="dots" id="dots"></div>
+    </footer>
+  </div>
+</div>
+<div id="night"></div>
+<div id="loading">טוען את הלוח…</div>
+<script type="module" src="js/board.js"></script>
+</body>
+</html>

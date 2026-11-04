@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>ניהול הלוח – גבאי</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Frank+Ruhl+Libre:wght@700;900&family=Assistant:wght@500;700;800&display=swap">
+<link rel="stylesheet" href="css/mobile.css">
+<link rel="stylesheet" href="css/admin.css">
+<script src="config.js"></script>
+</head>
+<body>
+<div class="adm">
+  <header class="adm-top">
+    <div><h1>ניהול הלוח</h1><div class="sub" id="who"></div></div>
+    <div class="actions">
+      <a href="index.html" target="_blank" rel="noopener" id="lnk-board">פתח את הלוח</a>
+      <a href="m.html" target="_blank" rel="noopener" id="lnk-mobile">דף למתפללים</a>
+      <button id="btn-save" class="primary" disabled>שמור</button>
+    </div>
+  </header>
+  <div id="msg" class="msg" hidden></div>
+  <section id="login" class="box" hidden>
+    <h2>כניסת גבאי</h2>
+    <form id="login-form" class="form">
+      <label for="email">אימייל</label><input id="email" type="email" autocomplete="username" required>
+      <label for="password">סיסמה</label><input id="password" type="password" autocomplete="current-password" required minlength="6">
+      <div class="row-btns"><button class="primary" type="submit">כניסה</button><button type="button" id="btn-signup">הרשמה ראשונה</button></div>
+    </form>
+  </section>
+  <nav id="tabs" class="tabs" hidden></nav>
+  <main id="panel"></main>
+</div>
+<script type="module" src="js/admin.js"></script>
+</body>
+</html>

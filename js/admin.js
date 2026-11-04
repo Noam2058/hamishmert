@@ -3,7 +3,7 @@ import { load, save, mode, currentUser, signIn, signUp, signOut, exportJson, boa
 import { demoData, normalize, SCREEN_TYPES, SCREEN_LABEL, THEMES, uid } from './defaults.js';
 import { SCHEDULES, ZMAN_BASES, resolveTime, describeTime } from './prayers.js';
 import { ZMANIM, HEB_MONTHS, computeDay, minToHhmm } from './jewish.js';
-import { SCENES } from './art.js';
+import { SCENE_CHOICES } from './scenes.js';
 
 const $ = (s) => document.querySelector(s);
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -223,9 +223,10 @@ function renderDisplay() {
     <div class="panel-head"><div><h2>תצוגה</h2><p>סדר המסכים, כמה זמן כל אחד מוצג, ועיצוב. מסך בלי תוכן (למשל אין אזכרות השבוע) מדולג אוטומטית.</p></div></div>
     <section class="box"><div class="form">
       <label for="d-theme">ערכת עיצוב</label><select id="d-theme" data-d="theme">${THEMES.map(([k, l]) => `<option value="${k}" ${d.theme === k ? 'selected' : ''}>${l}</option>`).join('')}</select>
-      <label for="d-scene">רקע מצויר</label><select id="d-scene" data-d="scene">${SCENES.map(([k, l]) => `<option value="${k}" ${(d.scene || 'auto') === k ? 'selected' : ''}>${l}</option>`).join('')}</select>
+      <label for="d-scene">רקעים</label><select id="d-scene" data-d="scene">${SCENE_CHOICES.map(([k, l]) => `<option value="${k}" ${(d.scene || 'auto') === k ? 'selected' : ''}>${l}</option>`).join('')}</select>
+      <label for="d-hol">עיצוב מיוחד בחגים</label><input id="d-hol" data-d="holidayDesign" type="checkbox" ${d.holidayDesign !== false ? 'checked' : ''}>
       <label for="d-greet">מסך "ברוכים הבאים" בימי חול</label><input id="d-greet" data-d="greetingDaily" type="checkbox" ${d.greetingDaily ? 'checked' : ''}>
-      <label for="d-bg">תמונת רקע משלך (כתובת)</label><input id="d-bg" data-d="bgImage" value="${esc(d.bgImage)}" placeholder="https://… (לא חובה, גובר על הרקע המצויר)">
+      <label for="d-bg">תמונת רקע משלך (כתובת)</label><input id="d-bg" data-d="bgImage" value="${esc(d.bgImage)}" placeholder="https://… (לא חובה; בחגים יוצג עיצוב החג)">
       <label for="d-sec">זמן ברירת מחדל למסך (שניות)</label><input id="d-sec" data-d="defaultSeconds" type="number" min="4" value="${esc(d.defaultSeconds)}">
       <label for="d-ticker">פס גולל בתחתית</label><input id="d-ticker" data-d="ticker" type="checkbox" ${d.ticker ? 'checked' : ''}>
       <label for="d-netz">שעון נץ – דקות לפני הנץ</label><input id="d-netz" data-d="netzWindowMin" type="number" min="5" value="${esc(d.netzWindowMin)}">
@@ -233,6 +234,7 @@ function renderDisplay() {
       <label for="d-from">מהשעה</label><input id="d-from" data-o="from" type="time" value="${esc(d.offHours.from)}">
       <label for="d-to">עד השעה</label><input id="d-to" data-o="to" type="time" value="${esc(d.offHours.to)}">
     </div></section>
+    <p class="sub">במצב "אוטומטי" כל שקופית מקבלת רקע משלה (זמני היום – מסלול השמש, שיעורים – ארון ספרים, אזכרות – נר נשמה…), ובחגים הלוח עובר לעיצוב ולצבעים של החג. <a href="gallery.html" target="_blank">לגלריית הרקעים</a></p>
     <section class="box"><h2>המסכים</h2><div class="items">${d.screens.map((sc, i) => `
       <div class="item" data-i="${i}" style="grid-template-columns:auto 1fr 120px auto;align-items:center">
         <input type="checkbox" data-sc="enabled" ${sc.enabled ? 'checked' : ''} aria-label="הצג ${esc(SCREEN_LABEL[sc.type])}">

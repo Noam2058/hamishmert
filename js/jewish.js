@@ -268,6 +268,34 @@ export function seasonKey(hd, holidays, dow, isAfternoonFriday) {
   return 'weekday';
 }
 
+/** מפתח עיצוב מפורט לפי החג (לרקעים ולערכות הצבע) */
+export function holidayKey(hd, holidays, dow, isAfternoonFriday) {
+  const all = holidays.map((e) => e.getDesc()).join('|');
+  const descs = realDescs(holidays).join('|');
+  const m = hd.getMonth(), d = hd.getDate();
+  if (/Yom Kippur/.test(all)) return 'yom-kippur';
+  if (/Rosh Hashana/.test(all)) return 'rosh-hashana';
+  if (m === 7 && d <= 10) return 'yamim-noraim';
+  if (/Shmini Atzeret|Simchat Torah/.test(all)) return 'simchat-torah';
+  if (/Sukkot/.test(all)) return 'sukkot';
+  if (chanukaDay(hd)) return 'chanuka';
+  if (/Purim/.test(descs) || /Erev Purim/.test(all)) return 'purim';
+  if (/Pesach/.test(all)) return 'pesach';
+  if (/Shavuot/.test(all)) return 'shavuot';
+  if (/Lag BaOmer/.test(all)) return 'lag-baomer';
+  if (/Tu BiShvat/.test(all)) return 'tu-bishvat';
+  if (/Yom HaAtzma/.test(all)) return 'yom-haatzmaut';
+  if (/Yom Yerushalayim/.test(all)) return 'yom-yerushalayim';
+  if (/Yom HaZikaron|Yom HaShoah/.test(all)) return 'yom-hazikaron';
+  if (/Tish'a B'Av/.test(all)) return 'tisha-bav';
+  if (PUBLIC_FAST.test(descs)) return 'fast';
+  if ((m === 4 && d >= 17) || (m === 5 && d < 10)) return 'three-weeks';
+  if (/Rosh Chodesh/.test(all)) return 'rosh-chodesh';
+  if (dow === 6 || isAfternoonFriday) return 'shabbat';
+  if (m === 6) return 'elul';
+  return 'weekday';
+}
+
 // ---------- סוג היום (לבחירת לוח תפילות) ----------
 
 export function dayTags(hd, holidays, dow, holidaysTomorrow = []) {
@@ -413,6 +441,7 @@ function buildDay(civil, s) {
     changes: tefilaChanges(hd, s, holidays),
     tags: dayTags(hd, holidays, dow, holidaysTomorrow),
     season: seasonKey(hd, holidays, dow, isAfternoonFriday),
+    holiday: holidayKey(hd, holidays, dow, isAfternoonFriday),
     learning: dailyLearning(hd, s.learning),
     next: {
       hd: hdNext, hebDate: hdNext.renderGematriya(true),

@@ -65,6 +65,10 @@ function greetingFor(ctx) {
       return { kind: 'yamim-noraim', title: 'שנה טובה ומתוקה', sub: 'כתיבה וחתימה טובה' };
     case 'shabbat': return { kind: 'shabbat', title: day.dow === 6 || day.dow === 5 ? 'שבת שלום ומבורך' : 'שבת שלום', sub: parsha };
     default:
+      if (day.holiday === 'tu-bishvat') return { kind: 'shavuot', title: 'ט"ו בשבט שמח', sub: 'ראש השנה לאילנות' };
+      if (day.holiday === 'lag-baomer') return { kind: 'torah', title: 'ל"ג בעומר שמח', sub: 'הילולא דרבי שמעון בר יוחאי' };
+      if (day.holiday === 'yom-haatzmaut') return { kind: 'torah', title: 'חג עצמאות שמח', sub: 'ראשית צמיחת גאולתנו' };
+      if (day.holiday === 'yom-yerushalayim') return { kind: 'torah', title: 'יום ירושלים שמח', sub: 'ירושלים הבנויה כעיר שחוברה לה יחדיו' };
       if (day.tags.includes('rosh-chodesh')) return { kind: 'torah', title: 'חודש טוב', sub: day.events.join(' · ') };
       if (day.season === 'elul') return { kind: 'yamim-noraim', title: 'חודש אלול', sub: 'ימי רחמים וסליחות' };
       if (display.greetingDaily) return { kind: 'torah', title: 'ברוכים הבאים', sub: ctx.s.name || '' };

@@ -1,9 +1,9 @@
 // מנוע הלוח: שעון, פס עליון, רוטציית מסכים, פס גולל, מצב לילה ועבודה בלי אינטרנט.
-import { computeDay, fmtTime, tzParts, hhmmToMin } from './jewish.js';
+import { computeDay, fmtTime, tzParts, hhmmToMin, chanukaDay } from './jewish.js';
 import { prayersForDay, weeklyPrayers, lessonsForDay } from './prayers.js';
 import { SCREENS, LIVE_SCREENS, tickerItems, nextPrayer } from './screens.js';
 import { load, subscribe } from './store.js';
-import { sceneFor, sceneImage } from './art.js';
+import { sceneForSlide, renderScene, holidayHasDesign } from './scenes.js';
 
 const params = new URLSearchParams(location.search);
 const onlyScreens = params.get('screens')?.split(',').filter(Boolean);
@@ -52,10 +52,7 @@ function renderHeader() {
   const disp = { ...DATA.display, theme: params.get('theme') || DATA.display.theme, scene: params.get('scene') || DATA.display.scene };
   st.dataset.theme = disp.theme || 'classic';
   st.dataset.season = day.season;
-  const custom = DATA.display.bgImage ? `url("${DATA.display.bgImage.replace(/"/g, '')}")` : null;
-  const scene = custom ? null : sceneImage(sceneFor(disp), disp.theme || 'classic');
-  st.style.setProperty('--bg-image', custom || (scene ? `url("${scene}")` : 'none'));
-  st.classList.toggle('has-scene', !!(custom || scene));
+  st.dataset.holiday = DATA.display.holidayDesign === false ? 'none' : (params.get('holiday') || day.holiday);
   $('#shul').textContent = s.name || '';
   const ded = $('#dedication');
   ded.textContent = s.dedication || '';
@@ -151,6 +148,42 @@ function buildQueue() {
   return q;
 }
 
+// ---------- רקע לכל שקופית ----------
+function displayOpts() {
+  return { ...DATA.display, theme: params.get('theme') || DATA.display.theme || 'classic', scene: params.get('scene') || DATA.display.scene || 'auto' };
+}
+/** מחזיר Promise לכתובת הרקע של השקופית (או null) */
+function bgFor(item, index) {
+  const disp = displayOpts();
+  const holiday = params.get('holiday') || ctx.day.holiday;
+  const holidayOn = disp.holidayDesign !== false && holidayHasDesign(holiday);
+  if (disp.bgImage && !holidayOn && item.type !== 'memorials' && !params.get('scene')) return Promise.resolve(disp.bgImage.replace(/"/g, ''));
+  const scene = sceneForSlide({ screen: item.type, index, holiday, theme: disp.theme, display: disp });
+  const day = ctx.day;
+  const lit = (day.afterSunset ? chanukaDay(day.next.hd) : chanukaDay(day.hd)) || 8;
+  return renderScene(scene, disp.theme, scene === 'chanukaWindow' ? { lit } : {});
+}
+let bgSeq = 0;
+function setBg(url) {
+  const host = $('#bg');
+  const cur = host.querySelector('.layer.on');
+  $('#stage').classList.toggle('has-scene', !!url);
+  if ((cur?.dataset.url || '') === (url || '')) return;
+  host.querySelectorAll('.layer:not(.on)').forEach((l) => l.remove());
+  if (cur) { cur.classList.remove('on'); cur.classList.add('old'); setTimeout(() => cur.remove(), 1400); }
+  if (!url) return;
+  const el = document.createElement('div');
+  el.className = 'layer'; el.dataset.url = url; el.style.backgroundImage = `url("${url}")`;
+  host.appendChild(el); void el.offsetWidth; el.classList.add('on');
+}
+function applyBg(item, index) {
+  const seq = ++bgSeq;
+  bgFor(item, index).then((url) => { if (seq === bgSeq) setBg(url); }).catch(() => {});
+  // מכין מראש את הרקע של השקופית הבאה, כדי שהמעבר יהיה חלק
+  const n = queue[(index + 1) % queue.length];
+  if (n) setTimeout(() => bgFor(n, (index + 1) % queue.length).catch(() => {}), 1500);
+}
+
 function show(next) {
   const host = $('#screens');
   const el = document.createElement('div');
@@ -161,6 +194,7 @@ function show(next) {
   el.classList.add('on');
   const prev = current;
   current = { ...next, el };
+  applyBg(next, qi);
   if (prev?.el) {
     prev.el.classList.remove('on');
     setTimeout(() => prev.el.remove(), 1000);

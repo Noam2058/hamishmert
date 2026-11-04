@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>גלריית רקעים</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Frank+Ruhl+Libre:wght@700;900&family=Assistant:wght@500;700&display=swap">
+<style>
+  :root { --bg: #0e1626; --surface: #16213a; --ink: #ece4d0; --soft: #a7b0c2; --gold: #e6c97a; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font: 500 16px/1.5 "Assistant", Arial, sans-serif; }
+  .wrap { max-width: 1400px; margin: 0 auto; padding: 24px 16px 48px; }
+  h1 { font: 900 32px "Frank Ruhl Libre", serif; margin: 0 0 4px; }
+  h2 { font: 900 22px "Frank Ruhl Libre", serif; margin: 28px 0 12px; color: var(--gold); }
+  p { color: var(--soft); margin: 0; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 16px; }
+  figure { margin: 0; background: var(--surface); border-radius: 12px; overflow: hidden; }
+  figure img { display: block; width: 100%; aspect-ratio: 16/9; object-fit: cover; background: #000; }
+  figcaption { padding: 8px 12px; display: flex; justify-content: space-between; gap: 8px; }
+  figcaption code { color: var(--soft); font-size: 13px; direction: ltr; }
+  a { color: var(--gold); }
+</style>
+</head>
+<body>
+<main class="wrap">
+  <h1>גלריית רקעים</h1>
+  <p>כל הרקעים של הלוח. במצב "אוטומטי" כל שקופית מקבלת רקע משלה, ובחגים הלוח עובר לעיצוב החג. <a href="admin.html">לממשק הגבאי</a></p>
+  <h2>ימים רגילים</h2><div class="grid" id="regular"></div>
+  <h2>חגים ומועדים</h2><div class="grid" id="holiday"></div>
+</main>
+<script type="module">
+  import { SCENE_DEFS, renderScene } from './js/scenes.js';
+  const theme = new URLSearchParams(location.search).get('theme') || 'classic';
+  for (const [k, [, label, group]] of Object.entries(SCENE_DEFS)) {
+    const fig = document.createElement('figure');
+    fig.innerHTML = `<img alt=""><figcaption><span>${label}</span><code>${k}</code></figcaption>`;
+    document.getElementById(group).appendChild(fig);
+  }
+  for (const [k] of Object.entries(SCENE_DEFS)) {
+    const url = await renderScene(k, theme, { lit: 8 });
+    const img = [...document.querySelectorAll('figure')].find((f) => f.querySelector('code').textContent === k).querySelector('img');
+    img.src = url || '';
+    await new Promise((r) => setTimeout(r, 0));
+  }
+  document.body.dataset.done = '1';
+</script>
+</body>
+</html>

@@ -1,32 +1,32 @@
 // איורים ורקעים מקוריים בסגנון יודאיקה – מצוירים בקוד (canvas), בלי קבצי תמונה.
 // כל רקע נוצר פעם אחת, נשמר בזיכרון ומוצג כתמונת רקע של הלוח.
 
-const W = 1920, H = 1080;
+export const W = 1920, H = 1080;
 
 // ---------- כלים ----------
-function rng(seed) { // מספרים "אקראיים" קבועים – אותו ציור בכל פעם
+export function rng(seed) { // מספרים "אקראיים" קבועים – אותו ציור בכל פעם
   let a = seed >>> 0;
   return () => { a |= 0; a = (a + 0x6d2b79f5) | 0; let t = Math.imul(a ^ (a >>> 15), 1 | a); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
 }
-function canvas(w = W, h = H) {
+export function canvas(w = W, h = H) {
   const c = document.createElement('canvas'); c.width = w; c.height = h;
   return [c, c.getContext('2d')];
 }
-function rrect(g, x, y, w, h, r) {
+export function rrect(g, x, y, w, h, r) {
   g.beginPath(); g.moveTo(x + r, y); g.arcTo(x + w, y, x + w, y + h, r); g.arcTo(x + w, y + h, x, y + h, r);
   g.arcTo(x, y + h, x, y, r); g.arcTo(x, y, x + w, y, r); g.closePath();
 }
-const hsl = (h, s, l, a = 1) => `hsla(${h},${s}%,${l}%,${a})`;
-function lin(g, x0, y0, x1, y1, stops) { const gr = g.createLinearGradient(x0, y0, x1, y1); stops.forEach(([o, c]) => gr.addColorStop(o, c)); return gr; }
-function rad(g, x, y, r0, r1, stops) { const gr = g.createRadialGradient(x, y, r0, x, y, r1); stops.forEach(([o, c]) => gr.addColorStop(o, c)); return gr; }
-function star(g, cx, cy, r) { // מגן דוד
+export const hsl = (h, s, l, a = 1) => `hsla(${h},${s}%,${l}%,${a})`;
+export function lin(g, x0, y0, x1, y1, stops) { const gr = g.createLinearGradient(x0, y0, x1, y1); stops.forEach(([o, c]) => gr.addColorStop(o, c)); return gr; }
+export function rad(g, x, y, r0, r1, stops) { const gr = g.createRadialGradient(x, y, r0, x, y, r1); stops.forEach(([o, c]) => gr.addColorStop(o, c)); return gr; }
+export function star(g, cx, cy, r) { // מגן דוד
   for (const rot of [0, Math.PI]) {
     g.beginPath();
     for (let i = 0; i < 3; i++) { const a = rot - Math.PI / 2 + i * 2 * Math.PI / 3; g[i ? 'lineTo' : 'moveTo'](cx + r * Math.cos(a), cy + r * Math.sin(a)); }
     g.closePath(); g.stroke();
   }
 }
-function flame(g, x, y, s = 1) {
+export function flame(g, x, y, s = 1) {
   g.save();
   g.fillStyle = rad(g, x, y - 10 * s, 0, 120 * s, [[0, 'rgba(255,214,120,.55)'], [1, 'rgba(255,170,60,0)']]);
   g.beginPath(); g.arc(x, y - 10 * s, 120 * s, 0, 7); g.fill();
@@ -35,7 +35,7 @@ function flame(g, x, y, s = 1) {
   g.bezierCurveTo(x - 13 * s, y + 8 * s, x - 15 * s, y - 15 * s, x, y - 40 * s); g.fill();
   g.restore();
 }
-function grain(g, rand, x, y, w, h, n, alpha = 0.06) {
+export function grain(g, rand, x, y, w, h, n, alpha = 0.06) {
   for (let i = 0; i < n; i++) {
     g.fillStyle = rand() < 0.5 ? `rgba(0,0,0,${alpha})` : `rgba(255,255,255,${alpha})`;
     g.fillRect(x + rand() * w, y + rand() * h, 1 + rand() * 2.5, 1 + rand() * 2.5);
@@ -43,7 +43,7 @@ function grain(g, rand, x, y, w, h, n, alpha = 0.06) {
 }
 
 // אבן ירושלמית עם "מסגרת סיתות" כמו באבני הכותל
-function stone(g, rand, x, y, w, h, base = 40, light = 70, herodian = true) {
+export function stone(g, rand, x, y, w, h, base = 40, light = 70, herodian = true) {
   const hue = base + rand() * 8 - 4, l = light - rand() * 12, s = 26 + rand() * 14;
   g.fillStyle = hsl(hue, s, l - 6); g.fillRect(x, y, w, h);
   if (herodian) {
@@ -61,7 +61,7 @@ function stone(g, rand, x, y, w, h, base = 40, light = 70, herodian = true) {
   g.fillStyle = 'rgba(40,30,20,.55)'; g.fillRect(x, y + h - 3, w, 3); g.fillRect(x + w - 3, y, 3, h); // מישק
 }
 
-function hyssop(g, rand, x, y) { // אזוב שצומח בין האבנים
+export function hyssop(g, rand, x, y) { // אזוב שצומח בין האבנים
   g.save(); g.translate(x, y);
   for (let i = 0; i < 9; i++) {
     const a = Math.PI / 2 + (rand() - 0.5) * 2.2, len = 30 + rand() * 50;
@@ -74,7 +74,7 @@ function hyssop(g, rand, x, y) { // אזוב שצומח בין האבנים
 }
 
 // ---------- רקע: הכותל ----------
-function kotel(g, rand) {
+export function kotel(g, rand) {
   g.fillStyle = lin(g, 0, 0, 0, 260, [[0, '#6f97c4'], [1, '#e7d2a6']]); g.fillRect(0, 0, W, 260);
   let y = 150, row = 0;
   while (y < H) {
@@ -97,7 +97,7 @@ function kotel(g, rand) {
 }
 
 // ---------- רקע: ירושלים העתיקה ----------
-function jerusalem(g, rand) {
+export function jerusalem(g, rand) {
   g.fillStyle = lin(g, 0, 0, 0, 640, [[0, '#1d2d58'], [0.45, '#7a5a86'], [0.8, '#e2a06a'], [1, '#f6d69c']]); g.fillRect(0, 0, W, 660);
   g.fillStyle = rad(g, 1380, 600, 10, 520, [[0, 'rgba(255,236,180,.85)'], [1, 'rgba(255,200,120,0)']]); g.fillRect(0, 0, W, 700);
   for (let i = 0; i < 70; i++) { g.fillStyle = `rgba(255,255,255,${0.2 + rand() * 0.6})`; g.fillRect(rand() * W, rand() * 220, 2, 2); }
@@ -143,7 +143,7 @@ function jerusalem(g, rand) {
 }
 
 // ---------- רקע: היכל עם עמודים ופרוכת ----------
-function heichal(g, rand, palette) {
+export function heichal(g, rand, palette) {
   const { wall, velvet, velvetDark, gold } = palette;
   g.fillStyle = lin(g, 0, 0, 0, H, [[0, wall[0]], [1, wall[1]]]); g.fillRect(0, 0, W, H);
   g.strokeStyle = 'rgba(255,220,150,.07)'; g.lineWidth = 2; // טפט דמשק
@@ -183,7 +183,7 @@ function heichal(g, rand, palette) {
 }
 
 // ---------- רקע: חיתוך נייר בסגנון כתובה ----------
-function papercut(g, rand, palette) {
+export function papercut(g, rand, palette) {
   const { field, paper } = palette;
   g.fillStyle = lin(g, 0, 0, W, H, [[0, field[0]], [1, field[1]]]); g.fillRect(0, 0, W, H);
   const [c, p] = canvas();
@@ -222,7 +222,7 @@ function papercut(g, rand, palette) {
 }
 
 // ---------- איורים לברכות ----------
-function candlestick(g, x, y, s) {
+export function candlestick(g, x, y, s) {
   g.fillStyle = lin(g, x - 40 * s, 0, x + 40 * s, 0, [[0, '#8d8f96'], [0.45, '#f5f6f8'], [1, '#7c7e86']]);
   g.beginPath(); g.ellipse(x, y, 70 * s, 18 * s, 0, 0, 7); g.fill();
   g.beginPath(); g.moveTo(x - 50 * s, y); g.quadraticCurveTo(x - 14 * s, y - 40 * s, x - 12 * s, y - 120 * s); g.lineTo(x + 12 * s, y - 120 * s); g.quadraticCurveTo(x + 14 * s, y - 40 * s, x + 50 * s, y); g.fill();
@@ -234,14 +234,14 @@ function candlestick(g, x, y, s) {
   g.strokeStyle = '#222'; g.lineWidth = 2 * s; g.beginPath(); g.moveTo(x, y - 420 * s); g.lineTo(x, y - 432 * s); g.stroke();
   flame(g, x, y - 446 * s, 1.1 * s);
 }
-function challah(g, x, y, s) {
+export function challah(g, x, y, s) {
   g.fillStyle = 'rgba(0,0,0,.25)'; g.beginPath(); g.ellipse(x, y + 40 * s, 230 * s, 34 * s, 0, 0, 7); g.fill();
   g.fillStyle = lin(g, 0, y - 60 * s, 0, y + 40 * s, [[0, '#4b1d2b'], [1, '#2a0f18']]); // כיסוי חלה
   g.beginPath(); g.moveTo(x - 240 * s, y + 30 * s); g.quadraticCurveTo(x - 220 * s, y - 120 * s, x, y - 110 * s); g.quadraticCurveTo(x + 220 * s, y - 120 * s, x + 240 * s, y + 30 * s); g.closePath(); g.fill();
   g.strokeStyle = '#e6c97a'; g.lineWidth = 6 * s; g.stroke(); g.lineWidth = 4 * s; star(g, x, y - 40 * s, 40 * s);
   g.fillStyle = '#e6c97a'; g.font = `700 ${34 * s}px "Frank Ruhl Libre", serif`; g.textAlign = 'center'; g.fillText('שבת קודש', x, y + 18 * s);
 }
-function kiddush(g, x, y, s) {
+export function kiddush(g, x, y, s) {
   g.fillStyle = lin(g, x - 60 * s, 0, x + 60 * s, 0, [[0, '#8a8c93'], [0.4, '#f7f8fa'], [1, '#76787f']]);
   g.beginPath(); g.ellipse(x, y, 60 * s, 14 * s, 0, 0, 7); g.fill();
   g.fillRect(x - 9 * s, y - 120 * s, 18 * s, 120 * s);
@@ -250,7 +250,7 @@ function kiddush(g, x, y, s) {
   g.strokeStyle = 'rgba(90,90,100,.5)'; g.lineWidth = 3 * s; star(g, x, y - 180 * s, 26 * s);
 }
 
-function chanukiah(g, x, y, s, lit) {
+export function chanukiah(g, x, y, s, lit) {
   const gold = lin(g, x - 400 * s, 0, x + 400 * s, 0, [[0, '#9c7322'], [0.5, '#f6dc8a'], [1, '#9c7322']]);
   g.strokeStyle = gold; g.fillStyle = gold; g.lineCap = 'round';
   // בסיס וגבעול
@@ -282,7 +282,7 @@ function chanukiah(g, x, y, s, lit) {
   g.fillStyle = '#f2f2f2'; g.fillRect(x - 10 * s, y - 570 * s, 20 * s, 100 * s); flame(g, x, y - 586 * s, 0.8 * s);
 }
 
-function lulavEtrog(g, x, y, s) {
+export function lulavEtrog(g, x, y, s) {
   g.save(); g.translate(x, y); g.rotate(-0.18);
   g.fillStyle = lin(g, -22 * s, 0, 22 * s, 0, [[0, '#5a7a2c'], [0.5, '#9bbf55'], [1, '#4f6b25']]);
   g.beginPath(); g.moveTo(-30 * s, 0); g.lineTo(-16 * s, -640 * s); g.quadraticCurveTo(0, -690 * s, 16 * s, -640 * s); g.lineTo(30 * s, 0); g.fill();
@@ -299,7 +299,7 @@ function lulavEtrog(g, x, y, s) {
   g.fillStyle = '#6e5320'; g.beginPath(); g.arc(x + 300 * s, y - 104 * s, 8 * s, 0, 7); g.fill(); // פיטם
 }
 
-function shofarApples(g, x, y, s) {
+export function shofarApples(g, x, y, s) {
   g.save(); g.translate(x, y);
   g.fillStyle = lin(g, -300 * s, 0, 300 * s, 0, [[0, '#4a3420'], [0.5, '#d9b27a'], [1, '#f2e2c0']]);
   g.beginPath(); g.moveTo(-330 * s, -40 * s); g.bezierCurveTo(-200 * s, -260 * s, 120 * s, -260 * s, 290 * s, -110 * s);
@@ -316,7 +316,7 @@ function shofarApples(g, x, y, s) {
   g.restore();
 }
 
-function purimMasks(g, x, y, s, rand) {
+export function purimMasks(g, x, y, s, rand) {
   for (let i = 0; i < 120; i++) { g.fillStyle = hsl(rand() * 360, 80, 60, 0.85); g.save(); g.translate(x + (rand() - 0.5) * 900 * s, y - rand() * 560 * s); g.rotate(rand() * 3); g.fillRect(-6, -3, 12, 6); g.restore(); }
   const mask = (mx, my, col, flip) => {
     g.save(); g.translate(mx, my); if (flip) g.scale(-1, 1); g.rotate(-0.12);
@@ -334,7 +334,7 @@ function purimMasks(g, x, y, s, rand) {
   }
 }
 
-function seder(g, x, y, s) {
+export function seder(g, x, y, s) {
   for (let i = 0; i < 3; i++) { // מצות
     g.fillStyle = lin(g, 0, y - 20 * s, 0, y + 20 * s, [[0, '#f1dfae'], [1, '#c99e5c']]);
     rrect(g, x - 420 * s + i * 10 * s, y - 40 * s - i * 26 * s, 300 * s, 260 * s, 18 * s); g.fill();
@@ -353,7 +353,7 @@ function seder(g, x, y, s) {
   kiddush(g, x + 470 * s, y + 80 * s, 0.9 * s);
 }
 
-function wheat(g, x, y, s, rand) {
+export function wheat(g, x, y, s, rand) {
   for (let i = 0; i < 15; i++) {
     const a = -Math.PI / 2 + (i - 7) * 0.09, len = 520 * s + rand() * 60 * s;
     const ex = x + Math.cos(a) * len, ey = y + Math.sin(a) * len;
@@ -372,7 +372,7 @@ function wheat(g, x, y, s, rand) {
   }
 }
 
-function torahScroll(g, x, y, s) {
+export function torahScroll(g, x, y, s) {
   const roll = (rx) => {
     g.fillStyle = lin(g, rx - 40 * s, 0, rx + 40 * s, 0, [[0, '#cdb88a'], [0.5, '#fbf3dc'], [1, '#b9a274']]);
     g.fillRect(rx - 40 * s, y - 360 * s, 80 * s, 480 * s);
@@ -386,7 +386,7 @@ function torahScroll(g, x, y, s) {
 }
 
 // ---------- ממשק ----------
-const PALETTES = {
+export const PALETTES = {
   classic: { wall: ['#13284d', '#0b1830'], velvet: '#24477f', velvetDark: '#0f2347', gold: ['#f2d78a', '#9c7322'], field: ['#16305c', '#0c1c38'], paper: '#f3e7c8' },
   chassidic: { wall: ['#3e1218', '#240a0e'], velvet: '#8e1c2a', velvetDark: '#4c0d16', gold: ['#f2d78a', '#9c7322'], field: ['#5a1820', '#2a0a0e'], paper: '#f3e7c8' },
   ashkenaz: { wall: ['#173a2c', '#0b2018'], velvet: '#2a6a4c', velvetDark: '#123826', gold: ['#e9cf8e', '#8f6f2a'], field: ['#1d4434', '#0b1d15'], paper: '#efe3c2' },

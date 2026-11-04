@@ -1,5 +1,5 @@
 // Service Worker: שומר את קוד הלוח, הספריות והגופנים כדי שהלוח יעבוד גם בלי אינטרנט.
-const VERSION = 'shulboard-v2';
+const VERSION = 'shulboard-v3';
 const SHELL = [
   './', './index.html', './m.html', './config.js', './manifest.webmanifest',
   './css/board.css', './css/mobile.css',

@@ -194,7 +194,9 @@ footer.ticker { position: relative; z-index: 2; display: flex; align-items: cent
 .ticker .next { flex: none; font: 800 30px var(--body); color: var(--head-band); background: var(--gold-2); padding: 8px 22px; border-radius: 12px; white-space: nowrap; }
 .ticker .next b { font-family: var(--display); font-size: 36px; font-variant-numeric: tabular-nums; }
 .ticker .track { flex: 1; align-self: stretch; position: relative; overflow: hidden; mask-image: linear-gradient(90deg, transparent, #000 6%, #000 94%, transparent); }
-.ticker .run { position: absolute; left: 0; top: 50%; translate: 0 -50%; display: inline-flex; gap: 52px; white-space: nowrap; font: 600 30px var(--body); will-change: transform; }
+.ticker .run { position: absolute; right: 0; top: 50%; translate: 0 -50%; display: flex; flex-wrap: nowrap; white-space: nowrap; font: 600 30px var(--body); will-change: transform; }
+.ticker .copy { flex: none; display: flex; gap: 52px; padding-inline-end: 52px; }
+.ticker .run span { flex: none; }
 .ticker .run b { color: var(--gold-2); font-family: var(--display); font-variant-numeric: tabular-nums; }
 .ticker .dots { flex: none; display: flex; gap: 8px; }
 .ticker .dots i { width: 12px; height: 12px; border-radius: 50%; background: color-mix(in srgb, var(--on-field) 30%, transparent); }
@@ -215,7 +217,6 @@ body.offline .offline-dot { display: block; }
 #loading[hidden] { display: none; }
 
 @media (prefers-reduced-motion: reduce) {
-  .ticker .run { position: static; translate: none; }
   .candle .flame { animation: none; }
   .screen { transition: none; }
 }

@@ -102,20 +102,40 @@ function renderTicker() {
   $('#next').innerHTML = np ? `${escapeHtml(np.name)} <b>${np.time}</b>` : (ctx.day.shabbat.candles ? `${ctx.day.shabbat.candlesLabel} <b>${fmtTime(ctx.day.shabbat.candles, ctx.s.tz, 'floor')}</b>` : '');
   $('#next').hidden = !np && !ctx.day.shabbat.candles;
   const run = $('#run');
-  const html = tickerItems(ctx).map((t) => `<span>${t}</span>`).join('<span aria-hidden="true">✦</span>');
-  if (run.dataset.html === html) return;
-  run.dataset.html = html;
-  run.innerHTML = html;
+  const html = tickerItems(ctx).map((t) => `<span>${t}</span>`).join(SEP);
   if (!DATA.display.ticker) { $('#track').hidden = true; return; }
   $('#track').hidden = false;
-  if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  if (tickerHtml === html) return;
+  tickerHtml = html;
+  layoutTicker();
+}
+
+// לולאה רציפה: כמה עותקים ברצף, והפס זז בדיוק ברוחב עותק אחד – כך אין קפיצה ואין חיתוך.
+// במכוון לא מכבדים את "הפחתת תנועה" של המכשיר: בסטרימרים זה לרוב דלוק בלי כוונה, והטקסט היה נחתך.
+const SEP = '<span class="sep" aria-hidden="true">✦</span>';
+let tickerHtml = null;
+function layoutTicker() {
+  const run = $('#run'), track = $('#track');
+  if (!tickerHtml || track.hidden) return;
   tickerAnim?.cancel();
-  const runW = run.scrollWidth, trackW = $('#track').clientWidth;
+  run.innerHTML = `<span class="copy">${tickerHtml}${SEP}</span>`;
+  const copyW = run.firstElementChild.getBoundingClientRect().width / stageScale();
+  const trackW = track.clientWidth;
+  if (!copyW || !trackW) return;
+  const copies = Math.ceil(trackW / copyW) + 1;
+  run.innerHTML = Array.from({ length: copies }, (_, i) => `<span class="copy"${i ? ' aria-hidden="true"' : ''}>${tickerHtml}${SEP}</span>`).join('');
   const pxPerSec = 90;
-  tickerAnim = run.animate([{ transform: `translateX(${-runW}px)` }, { transform: `translateX(${trackW}px)` }], {
-    duration: ((runW + trackW) / pxPerSec) * 1000, iterations: Infinity, iterationStart: 0.4,
+  tickerAnim = run.animate([{ transform: 'translateX(0)' }, { transform: `translateX(${copyW}px)` }], {
+    duration: (copyW / pxPerSec) * 1000, iterations: Infinity,
   });
 }
+function stageScale() {
+  const st = $('#stage');
+  return st.getBoundingClientRect().width / (st.offsetWidth || 1) || 1;
+}
+document.fonts?.ready.then(layoutTicker);
+document.fonts?.addEventListener?.('loadingdone', layoutTicker);
+addEventListener('resize', () => { clearTimeout(layoutTicker.t); layoutTicker.t = setTimeout(layoutTicker, 300); });
 
 // ---------- רוטציה ----------
 function buildQueue() {

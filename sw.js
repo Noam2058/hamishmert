@@ -1,5 +1,5 @@
 // Service Worker: שומר את קוד הלוח, הספריות והגופנים כדי שהלוח יעבוד גם בלי אינטרנט.
-const VERSION = 'shulboard-v3';
+const VERSION = 'shulboard-v4';
 const SHELL = [
   './', './index.html', './m.html', './config.js', './manifest.webmanifest',
   './css/board.css', './css/mobile.css',
@@ -8,7 +8,7 @@ const SHELL = [
 ];
 
 self.addEventListener('install', (e) => {
-  e.waitUntil(caches.open(VERSION).then((c) => c.addAll(SHELL)).then(() => self.skipWaiting()));
+  e.waitUntil(caches.open(VERSION).then((c) => c.addAll(SHELL.map((u) => new Request(u, { cache: 'reload' })))).then(() => self.skipWaiting()));
 });
 
 self.addEventListener('activate', (e) => {
@@ -33,7 +33,8 @@ self.addEventListener('fetch', (e) => {
     return;
   }
   // קבצי האתר והגדרות הגופנים: מהרשת קודם, ומהמטמון כשאין חיבור
-  e.respondWith(fetch(e.request).then((res) => {
+  // cache: 'no-cache' – בודק מול השרת אם יש גרסה חדשה (בקשה קטנה), כדי שעדכון קוד יגיע ללוח מיד
+  e.respondWith(fetch(e.request, { cache: 'no-cache' }).then((res) => {
     const copy = res.clone();
     caches.open(VERSION).then((c) => c.put(e.request, copy));
     return res;

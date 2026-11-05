@@ -3,6 +3,7 @@ import { load, save, mode, currentUser, signIn, signUp, signOut, exportJson, boa
 import { demoData, normalize, SCREEN_TYPES, SCREEN_LABEL, THEMES, uid } from './defaults.js';
 import { SCHEDULES, ZMAN_BASES, resolveTime, describeTime } from './prayers.js';
 import { ZMANIM, HEB_MONTHS, computeDay, minToHhmm } from './jewish.js';
+import { refForDate, heNum, DEFAULT_START } from './halacha-sa.js';
 import { SCENE_CHOICES } from './scenes.js';
 
 const $ = (s) => document.querySelector(s);
@@ -60,7 +61,20 @@ const LISTS = {
     fields: [['name', 'שם הצדיק', 'text'], ['hebDay', 'יום', 'number'], ['hebMonth', 'חודש', 'select', HEB_MONTHS], ['note', 'הערה', 'text']],
   },
   halachot: {
-    label: 'הלכות', help: 'הלכה אחת ביום, ברוטציה לפי סדר הרשימה.',
+    label: 'הלכות', help: 'ברירת המחדל: סעיף אחד מהשולחן ערוך בכל יום. אפשר לבחור במקום זה בהלכות שתכתוב כאן.',
+    head: () => {
+      const src = DATA.halachaSource || 'sa', start = DATA.halachaStart || DEFAULT_START;
+      const today = new Date().toLocaleDateString('en-CA', { timeZone: DATA.synagogue.tz || 'Asia/Jerusalem' });
+      const r = refForDate(today, start);
+      return `<section class="box"><div class="form">
+        <label for="h-src">מקור ההלכה היומית</label><select id="h-src"><option value="sa" ${src === 'sa' ? 'selected' : ''}>שולחן ערוך – סעיף בכל יום, לפי הסדר</option><option value="custom" ${src === 'custom' ? 'selected' : ''}>ההלכות שברשימה למטה</option></select>
+        <label for="h-start">התחלת המחזור (סימן א׳ סעיף א׳)</label><input id="h-start" type="date" value="${esc(start)}">
+      </div><p class="sub">היום: שולחן ערוך ${r.book.he}, סימן ${heNum(r.siman)} סעיף ${heNum(r.seif)}. הסדר: אורח חיים סימנים א׳–רמ״א, ואחריו יורה דעה סימנים א׳–קי״א (כמו בכרכים), ואז מתחילים מחדש. ההלכות שברשימה מוצגות רק כשאין חיבור והטקסט עוד לא נטען.</p></section>`;
+    },
+    bindHead: (rerender) => {
+      $('#h-src').onchange = (e) => { DATA.halachaSource = e.target.value; setDirty(); };
+      $('#h-start').onchange = (e) => { DATA.halachaStart = e.target.value || DEFAULT_START; setDirty(); rerender(); };
+    },
     blank: () => ({ id: uid(), title: '', text: '', source: '' }),
     fields: [['title', 'כותרת', 'text'], ['source', 'מקור', 'text'], ['text', 'תוכן', 'textarea']],
   },
@@ -134,6 +148,7 @@ function renderList(key) {
   const arr = DATA[key];
   $('#panel').innerHTML = `
     <div class="panel-head"><div><h2>${def.label}</h2><p>${esc(def.help)}</p></div><button class="primary" id="add">הוסף</button></div>
+    ${def.head ? def.head() : ''}
     <div class="items">${arr.length ? arr.map((it, i) => `
       <div class="item" data-i="${i}">
         ${def.fields.map((f) => fieldHtml(it, f, `${key}-${i}`)).join('')}
@@ -141,6 +156,7 @@ function renderList(key) {
           <span><button data-act="up" aria-label="העלה">▲</button> <button data-act="down" aria-label="הורד">▼</button> <button data-act="del" class="danger">מחק</button></span></div>
       </div>`).join('') : '<div class="box">הרשימה ריקה. לחץ "הוסף".</div>'}</div>`;
   $('#add').onclick = () => { arr.push(def.blank()); setDirty(); renderList(key); $('#panel .item:last-child input')?.focus(); };
+  def.bindHead?.(() => renderList(key));
   $('#panel').querySelectorAll('.item').forEach((row) => {
     const i = +row.dataset.i;
     const commit = (e) => {

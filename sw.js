@@ -1,10 +1,10 @@
 // Service Worker: שומר את קוד הלוח, הספריות והגופנים כדי שהלוח יעבוד גם בלי אינטרנט.
-const VERSION = 'shulboard-v5';
+const VERSION = 'shulboard-v6';
 const SHELL = [
   './', './index.html', './m.html', './config.js', './manifest.webmanifest',
   './css/board.css', './css/mobile.css',
   './js/board.js', './js/mobile.js', './js/jewish.js', './js/prayers.js', './js/screens.js',
-  './js/store.js', './js/defaults.js', './js/lib.js', './js/art.js', './js/scenes.js',
+  './js/store.js', './js/defaults.js', './js/lib.js', './js/art.js', './js/scenes.js', './js/halacha-sa.js',
 ];
 
 self.addEventListener('install', (e) => {
@@ -21,6 +21,8 @@ self.addEventListener('fetch', (e) => {
   if (e.request.method !== 'GET') return;
   // נתוני Supabase – תמיד מהרשת (הלוח שומר עותק משלו)
   if (url.hostname.endsWith('supabase.co')) return;
+  // טקסט השולחן ערוך – הלוח שומר אותו בעצמו (localStorage)
+  if (url.hostname.endsWith('sefaria.org')) return;
 
   const immutable = url.hostname === 'cdn.jsdelivr.net' || url.hostname === 'fonts.gstatic.com';
   if (immutable) {

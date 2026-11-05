@@ -1,4 +1,5 @@
 // המסכים של הלוח. כל מסך מחזיר HTML, מערך של שקפים, או null כשאין מה להציג.
+import { cachedHalacha, DEFAULT_START } from './halacha-sa.js';
 import { fmtTime, minutesOf, ZMAN_LABEL, ZMANIM, inHebrewRange, yahrzeitIn, birthdayIn, renderHeb, hhmmToMin } from './jewish.js';
 import { HDate } from './lib.js';
 import { daysLabel } from './prayers.js';
@@ -219,6 +220,24 @@ export const SCREENS = {
   },
 
   halacha(ctx) {
+    if ((ctx.data.halachaSource || 'sa') === 'sa') {
+      const h = cachedHalacha(ctx.todayIso, ctx.data.halachaStart || DEFAULT_START);
+      if (h) {
+        // סעיף ארוך במיוחד – מקצרים בסוף משפט ומפנים לספר
+        let left = 1500, cut = false;
+        const parts = [];
+        for (const p of h.parts) {
+          if (left <= 0) { cut = true; break; }
+          let t = p.text;
+          if (t.length > left) { const m = t.slice(0, left).match(/^[\s\S]*[.:]/); t = (m ? m[0] : t.slice(0, left)) + ' …'; cut = true; }
+          left -= t.length; parts.push({ ...p, text: t });
+        }
+        const len = parts.reduce((a, p) => a + p.text.length, 0);
+        const size = len > 1100 ? 'xl' : len > 700 ? 'l' : len > 380 ? 'm' : 's';
+        const body = parts.map((p) => (p.rema ? `<span class="rema"><b>הגה:</b> ${esc(p.text)}</span>` : esc(p.text))).join(' ');
+        return `${title('הלכה יומית')}<section class="card halacha sa len-${size}">${h.title ? `<div class="t">${esc(h.title)}</div>` : ''}<div class="x">${body}</div><div class="src">${esc(h.source)}${cut ? ' · ההמשך בספר' : ''}</div></section>`;
+      }
+    }
     const list = ctx.data.halachot || [];
     if (!list.length) return null;
     const idx = Math.floor(ctx.day.civil.getTime() / 86400000) % list.length;

@@ -44,15 +44,16 @@ export function clean(html) {
   const parts = [];
   html.split(/(\u0001[^\u0002]*\u0002?)/).forEach((p) => {
     if (!p.trim()) return;
-    if (p.startsWith('\u0001')) parts.push({ rema: true, text: p.replace(/[\u0001\u0002]/g, '').replace(/^\s*הגה\s*:?\s*/, '').trim() });
+    // כמה הגהות רצופות בתוך אותו קטע – מפרידים לכל "הגה" בנפרד
+    if (p.startsWith('\u0001')) p.replace(/[\u0001\u0002]/g, '').split(/(?:^|\s)הגה\s*:?\s+/).forEach((t) => { if (t.trim()) parts.push({ rema: true, text: t.trim() }); });
     else parts.push({ rema: false, text: p.trim() });
   });
   return { title: strip(title), parts };
 }
 
 // ---------- מטמון במכשיר ----------
-const KEY = (r) => `sa:${r.book.key}.${r.siman}.${r.seif}`;
-const TITLE_KEY = (b, s) => `sa:t:${b.key}.${s}`;
+const KEY = (r) => `sa2:${r.book.key}.${r.siman}.${r.seif}`;
+const TITLE_KEY = (b, s) => `sa2:t:${b.key}.${s}`;
 const ls = {
   get(k) { try { return JSON.parse(localStorage.getItem(k)); } catch { return null; } },
   set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} },
@@ -78,7 +79,7 @@ async function fetchSiman(book, siman) {
     arr.forEach((html, i) => {
       const c = clean(String(html || ''));
       if (i === 0) ls.set(TITLE_KEY(book, siman), c.title || '');
-      ls.set(`sa:${book.key}.${siman}.${i + 1}`, { parts: c.parts });
+      ls.set(`sa2:${book.key}.${siman}.${i + 1}`, { parts: c.parts });
     });
   })().finally(() => inflight.delete(id));
   inflight.set(id, p);

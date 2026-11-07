@@ -45,3 +45,16 @@ exception when duplicate_object then null; end $$;
 -- update public.boards
 --   set editors = array_append(editors, (select id from auth.users where email = 'gabai2@example.com'))
 --   where id = 'my-shul';
+
+-- ---------- אחסון תמונות לשקופיות (תיקייה לכל לוח: media/<board-id>/...) ----------
+insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
+values ('media', 'media', true, 5242880, array['image/jpeg','image/png','image/webp','image/gif'])
+on conflict (id) do update set public = true, file_size_limit = 5242880, allowed_mime_types = excluded.allowed_mime_types;
+drop policy if exists "media public read" on storage.objects;
+create policy "media public read" on storage.objects for select using (bucket_id = 'media');
+drop policy if exists "media editors upload" on storage.objects;
+create policy "media editors upload" on storage.objects for insert to authenticated
+  with check (bucket_id = 'media' and exists (select 1 from public.boards b where b.id = (storage.foldername(name))[1] and (b.owner = auth.uid() or auth.uid() = any(b.editors))));
+drop policy if exists "media editors delete" on storage.objects;
+create policy "media editors delete" on storage.objects for delete to authenticated
+  using (bucket_id = 'media' and exists (select 1 from public.boards b where b.id = (storage.foldername(name))[1] and (b.owner = auth.uid() or auth.uid() = any(b.editors))));

@@ -85,6 +85,24 @@ export function subscribe(onChange) {
   }
 }
 
+// ---------- תמונות לשקופיות ----------
+const blobToDataUrl = (b) => new Promise((res, rej) => { const fr = new FileReader(); fr.onload = () => res(fr.result); fr.onerror = rej; fr.readAsDataURL(b); });
+/** מעלה תמונה ל-Supabase Storage (תיקיית הלוח) ומחזיר כתובת ציבורית. במצב מקומי – נשמרת בתוך הנתונים */
+export async function uploadMedia(blob, ext = 'jpg') {
+  if (mode === 'local') return { url: await blobToDataUrl(blob), path: null };
+  const c = await sb();
+  const path = `${boardId}/${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 7)}.${ext}`;
+  const { error } = await c.storage.from('media').upload(path, blob, { contentType: blob.type, cacheControl: '31536000', upsert: false });
+  if (error) throw new Error(/row-level|security|Unauthorized/i.test(error.message) ? 'אין לך הרשאה להעלות תמונות ללוח הזה' : error.message);
+  return { url: c.storage.from('media').getPublicUrl(path).data.publicUrl, path };
+}
+export async function deleteMedia(paths) {
+  const list = (paths || []).filter(Boolean);
+  if (mode === 'local' || !list.length) return;
+  const c = await sb();
+  await c.storage.from('media').remove(list);
+}
+
 // ---------- התחברות (ממשק גבאי) ----------
 
 export async function currentUser() {

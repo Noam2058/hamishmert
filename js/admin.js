@@ -1,5 +1,5 @@
 // ממשק הגבאי: עריכת כל הנתונים של הלוח.
-import { load, save, mode, currentUser, signIn, signUp, signOut, exportJson, boardId } from './store.js';
+import { load, save, mode, currentUser, signIn, signUp, signOut, exportJson, boardId, uploadMedia, deleteMedia } from './store.js';
 import { demoData, normalize, SCREEN_LABEL, THEMES, uid } from './defaults.js';
 import { SCHEDULES, ZMAN_BASES, resolveTime, describeTime, prayersForDay, lessonsForDay } from './prayers.js';
 import { ZMANIM, HEB_MONTHS, computeDay, minToHhmm, fmtTime, yahrzeitIn, birthdayIn, inHebrewRange, renderHeb } from './jewish.js';
@@ -14,6 +14,7 @@ let dirty = false;
 let tab = 'home';
 const openIds = new Set(); // פריטים פתוחים ברשימות (נשמר בין רינדורים)
 const filters = {};
+let pendingDeletes = []; // קבצים שיימחקו מהאחסון אחרי שמירה
 
 // ---------- אייקונים ----------
 const I = {
@@ -29,6 +30,8 @@ const I = {
   shul: '<path d="M3 21h18M5 21V10l7-5 7 5v11"/><path d="M10 21v-5h4v5M12 8.5l1 1.7h2l-1 1.7 1 1.7h-2l-1 1.7-1-1.7H9l1-1.7-1-1.7h2z"/>',
   display: '<rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4"/>',
   backup: '<path d="M12 3v12M7 10l5 5 5-5"/><path d="M4 17v3h16v-3"/>',
+  slides: '<rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="10" r="2"/><path d="M21 16l-5-5-9 9"/>',
+  upload: '<path d="M12 16V4M7 9l5-5 5 5"/><path d="M4 16v4h16v-4"/>',
   plus: '<path d="M12 5v14M5 12h14"/>',
   chev: '<path d="M6 9l6 6 6-6"/>',
   up: '<path d="M6 15l6-6 6 6"/>', down: '<path d="M6 9l6 6 6-6"/>',
@@ -75,6 +78,20 @@ function hebDateOf(item, fn) {
     if (d && d.deltaDays(hd) < 0) d = fn(hd.getFullYear() + 1, item);
     return d ? renderHeb(d) : '';
   } catch { return ''; }
+}
+
+// ---------- הקטנת תמונה לפני העלאה ----------
+async function shrinkImage(file) {
+  const MAXW = 1920, MAXH = 1080;
+  if (file.type === 'image/gif') { if (file.size > 5e6) throw new Error('קובץ GIF גדול מ-5MB'); return { blob: file, ext: 'gif' }; }
+  const bmp = await new Promise((res, rej) => { const im = new Image(); im.onload = () => res(im); im.onerror = () => rej(new Error('לא הצלחתי לקרוא את התמונה')); im.src = URL.createObjectURL(file); });
+  const k = Math.min(1, MAXW / bmp.naturalWidth, MAXH / bmp.naturalHeight);
+  const w = Math.round(bmp.naturalWidth * k), h = Math.round(bmp.naturalHeight * k);
+  const c = document.createElement('canvas'); c.width = w; c.height = h;
+  const g = c.getContext('2d'); g.fillStyle = '#fff'; g.fillRect(0, 0, w, h); g.drawImage(bmp, 0, 0, w, h);
+  URL.revokeObjectURL(bmp.src);
+  const blob = await new Promise((res) => c.toBlob(res, 'image/jpeg', 0.86));
+  return { blob, ext: 'jpg', w, h };
 }
 
 // ---------- הגדרות שדות לכל רשימה ----------
@@ -130,6 +147,43 @@ const LISTS = {
     fields: [['name', 'שם הצדיק', 'text'], ['note', 'הערה', 'text'], ['hebDay', 'יום בחודש', 'number'], ['hebMonth', 'חודש', 'select', HEB_MONTHS]],
     sum: (it) => ({ title: it.name, meta: `${it.hebDay ? heNum(+it.hebDay) : ''} ${MONTH_HE[it.hebMonth] || ''}`.trim() }),
   },
+  slides: {
+    label: 'תמונות שלי', single: 'תמונה', noAdd: true,
+    help: 'תמונה שתעלה הופכת לשקופית בלוח – מודעה, הזמנה לשמחה, צילום מאירוע. כל תמונה מוצגת כשקופית נפרדת, ואפשר להגביל אותה לתאריכים.',
+    head: () => `<section class="card drop" id="drop">
+        <div class="drop-in">${icon('upload')}<div><b>גרור לכאן תמונות</b> או <label class="link" for="up">בחר מהמכשיר</label><input id="up" type="file" accept="image/*" multiple hidden></div>
+        <small class="muted">JPG, PNG או GIF. תמונה גדולה מוקטנת אוטומטית לגודל המסך. הכי טוב: תמונה לרוחב (16:9).</small></div>
+        <div class="progress" id="upprog" hidden></div></section>`,
+    bindHead: (rerender) => {
+      const go = async (files) => {
+        const list = [...files].filter((f) => f.type.startsWith('image/'));
+        if (!list.length) return flash('אפשר להעלות רק קבצי תמונה', true);
+        const prog = $('#upprog'); prog.hidden = false;
+        let ok = 0;
+        for (const [n, f] of list.entries()) {
+          prog.textContent = `מעלה ${n + 1} מתוך ${list.length}: ${f.name}…`;
+          try {
+            const { blob, ext, w, h } = await shrinkImage(f);
+            const { url, path } = await uploadMedia(blob, ext);
+            const it = { id: uid(), url, path, title: '', caption: '', seconds: DATA.display.defaultSeconds || 12, fit: 'contain', enabled: true, from: '', to: '', w, h, name: f.name };
+            DATA.slides.push(it); ok++;
+          } catch (e) { flash(`ההעלאה של ${f.name} נכשלה: ${e.message}`, true); }
+        }
+        prog.hidden = true;
+        const sc = DATA.display.screens.find((x) => x.type === 'images'); if (sc && !sc.enabled) sc.enabled = true;
+        if (ok) { setDirty(); updateCounts(); rerender(); await doSave(); }
+      };
+      $('#up').onchange = (e) => go(e.target.files);
+      const d = $('#drop');
+      ['dragenter', 'dragover'].forEach((ev) => d.addEventListener(ev, (e) => { e.preventDefault(); d.classList.add('over'); }));
+      ['dragleave', 'drop'].forEach((ev) => d.addEventListener(ev, (e) => { e.preventDefault(); d.classList.remove('over'); }));
+      d.addEventListener('drop', (e) => go(e.dataTransfer.files));
+    },
+    onDelete: (it) => { if (it.path) pendingDeletes.push(it.path); },
+    blank: () => ({ id: uid(), url: '', title: '', caption: '', seconds: 12, fit: 'contain', enabled: true }),
+    fields: [['title', 'כותרת מעל התמונה (לא חובה)', 'text'], ['caption', 'כיתוב על התמונה (לא חובה)', 'text'], ['seconds', 'כמה שניות להציג', 'number'], ['fit', 'התאמה למסך', 'select', [['contain', 'כל התמונה (עם שוליים)'], ['cover', 'מילוי כל המסך (חיתוך)']]], ['from', 'מתאריך', 'date'], ['to', 'עד תאריך', 'date'], ['enabled', 'מוצגת בלוח', 'check']],
+    sum: (it) => ({ thumb: it.url, title: it.title || it.caption || it.name || 'תמונה', meta: [`${it.seconds || 12} שניות`, it.from || it.to ? `${fmtDate(it.from) || '…'} – ${fmtDate(it.to) || '…'}` : 'מוצגת תמיד'].join(' · '), badge: it.enabled === false ? ['off', 'מוסתרת'] : activeRange(it) ? ['on', 'מוצגת'] : ['off', 'לא בתוקף'] }),
+  },
   halachot: {
     label: 'הלכות', single: 'הלכה',
     help: 'ברירת המחדל: סעיף אחד מהשולחן ערוך בכל יום. אפשר לבחור במקום זה בהלכות שתכתוב כאן.',
@@ -153,7 +207,7 @@ const LISTS = {
 
 const NAV = [
   ['', [['home', 'סקירה']]],
-  ['זמנים ותוכן', [['prayers', 'תפילות'], ['lessons', 'שיעורים'], ['announcements', 'הודעות'], ['halachot', 'הלכה יומית']]],
+  ['זמנים ותוכן', [['prayers', 'תפילות'], ['lessons', 'שיעורים'], ['announcements', 'הודעות'], ['slides', 'תמונות שלי'], ['halachot', 'הלכה יומית']]],
   ['אנשים ומועדים', [['memorials', 'אזכרות'], ['parnasim', 'פרנסים'], ['birthdays', 'ימי הולדת'], ['hilulot', 'הילולות']]],
   ['הגדרות', [['shul', 'בית הכנסת'], ['display', 'תצוגה ועיצוב'], ['backup', 'גיבוי']]],
 ];
@@ -217,7 +271,7 @@ function calcText(item) {
 // ---------- רשימות ----------
 function summaryHtml(def, it) {
   const s = def.sum ? def.sum(it) : { title: it.name || it.title };
-  return `<span class="sum-main"><div class="sum-title${s.title ? '' : ' empty'}">${esc(s.title || `${def.single} חדשה – לחץ לעריכה`)}</div>${s.meta ? `<div class="sum-meta">${esc(s.meta)}</div>` : ''}</span>
+  return `${s.thumb ? `<img class="thumb" src="${esc(s.thumb)}" alt="" loading="lazy">` : ''}<span class="sum-main"><div class="sum-title${s.title ? '' : ' empty'}">${esc(s.title || `${def.single} חדשה – לחץ לעריכה`)}</div>${s.meta ? `<div class="sum-meta">${esc(s.meta)}</div>` : ''}</span>
     ${s.badge ? `<span class="badge ${s.badge[0]}">${esc(s.badge[1])}</span>` : ''}${s.time ? `<span class="sum-time">${esc(s.time)}</span>` : ''}<span class="chev">${icon('chev')}</span>`;
 }
 
@@ -237,7 +291,7 @@ function renderList(key, focusNew = false) {
       </div>
     </details>`;
   let listHtml;
-  if (!arr.length) listHtml = `<div class="empty-state">${icon(key)}<div>עוד אין ${def.label}.</div><button class="btn primary" data-add>${icon('plus')}הוסף ${def.single}</button></div>`;
+  if (!arr.length) listHtml = def.noAdd ? '' : `<div class="empty-state">${icon(key)}<div>עוד אין ${def.label}.</div><button class="btn primary" data-add>${icon('plus')}הוסף ${def.single}</button></div>`;
   else if (!visible.length) listHtml = `<div class="empty-state">לא נמצא "${esc(f)}"</div>`;
   else if (def.group) {
     const groups = new Map(SCHEDULES.map(([k]) => [k, []]));
@@ -246,7 +300,7 @@ function renderList(key, focusNew = false) {
   } else listHtml = visible.map(itemHtml).join('');
 
   $('#panel').innerHTML = `
-    ${head(def.label, esc(def.help), `<button class="btn primary" data-add>${icon('plus')}הוסף ${def.single}</button>`)}
+    ${head(def.label, esc(def.help), def.noAdd ? '' : `<button class="btn primary" data-add>${icon('plus')}הוסף ${def.single}</button>`)}
     ${def.head ? def.head() : ''}
     ${def.search && arr.length > 5 ? `<label class="search">${icon('search')}<input id="flt" type="search" placeholder="חיפוש…" value="${esc(f)}"></label>` : ''}
     <div class="list">${listHtml}</div>`;
@@ -277,10 +331,11 @@ function renderList(key, focusNew = false) {
     row.querySelectorAll('[data-act]').forEach((b) => b.onclick = () => {
       const act = b.dataset.act;
       if (act === 'del') {
-        if (b.dataset.confirm) { openIds.delete(arr[i].id); arr.splice(i, 1); setDirty(); renderList(key); updateCounts(); }
+        if (b.dataset.confirm) { def.onDelete?.(arr[i]); openIds.delete(arr[i].id); arr.splice(i, 1); setDirty(); renderList(key); updateCounts(); }
         else { b.dataset.confirm = '1'; b.innerHTML = 'בטוח? לחץ שוב'; setTimeout(() => { if (b.isConnected) { delete b.dataset.confirm; b.innerHTML = `${icon('trash')}<span>מחק</span>`; } }, 4000); }
         return;
       }
+      if (act === 'dup' && key === 'slides') { const c = { ...structuredClone(arr[i]), id: uid(), path: null }; arr.splice(i + 1, 0, c); openIds.add(c.id); setDirty(); renderList(key); updateCounts(); return; }
       if (act === 'dup') { const c = { ...structuredClone(arr[i]), id: uid() }; arr.splice(i + 1, 0, c); openIds.add(c.id); setDirty(); renderList(key); updateCounts(); return; }
       // הזזה – בתוך אותה קבוצה (בתפילות: אותו לוח)
       const same = (j) => !def.group || (arr[j][def.group] || 'weekday') === (arr[i][def.group] || 'weekday');
@@ -500,7 +555,9 @@ async function doSave() {
   const b = $('#btn-save');
   b.disabled = true; b.textContent = 'שומר…'; $('#btn-save2').disabled = true;
   try {
-    await save(DATA); SAVED = structuredClone(DATA); setDirty(false); flash('נשמר ✓ הלוח יתעדכן תוך כמה שניות');
+    await save(DATA); SAVED = structuredClone(DATA); setDirty(false);
+    const still = new Set((DATA.slides || []).map((x) => x.path)); const del = pendingDeletes.filter((p) => !still.has(p)); pendingDeletes = [];
+    deleteMedia(del).catch(() => {}); flash('נשמר ✓ הלוח יתעדכן תוך כמה שניות');
     const f = $('#pv iframe'); if (f) setTimeout(() => f.contentWindow?.location.reload(), 1500);
   } catch (e) { setDirty(true); flash('השמירה נכשלה: ' + e.message, true); }
   finally { $('#btn-save2').disabled = false; }
@@ -527,7 +584,7 @@ async function enter() {
 
 $('#btn-save').onclick = doSave;
 $('#btn-save2').onclick = doSave;
-$('#btn-undo').onclick = () => { DATA = structuredClone(SAVED); setDirty(false); renderNav(); renderPanel(); flash('השינויים בוטלו'); };
+$('#btn-undo').onclick = () => { pendingDeletes = []; DATA = structuredClone(SAVED); setDirty(false); renderNav(); renderPanel(); flash('השינויים בוטלו'); };
 $('#login-form').onsubmit = async (e) => {
   e.preventDefault();
   try { await signIn($('#email').value, $('#password').value); enter(); }

@@ -151,7 +151,11 @@ function buildQueue() {
     try { out = SCREENS[item.type](ctx); } catch (e) { console.warn('screen failed', item.type, e); }
     if (!out) continue;
     const slides = Array.isArray(out) ? out : [out];
-    slides.forEach((html, i) => q.push({ type: item.type, html, seconds: +(params.get('sec') || item.seconds || DATA.display.defaultSeconds || 12), key: `${item.type}:${i}` }));
+    slides.forEach((sl, i) => {
+      const html = typeof sl === 'string' ? sl : sl.html;
+      const secs = (typeof sl === 'object' && sl.seconds) || item.seconds || DATA.display.defaultSeconds || 12;
+      q.push({ type: item.type, html, seconds: +(params.get('sec') || secs), key: `${item.type}:${typeof sl === 'object' && sl.key ? sl.key : i}` });
+    });
   }
   return q;
 }
@@ -162,6 +166,7 @@ function displayOpts() {
 }
 /** מחזיר Promise לכתובת הרקע של השקופית (או null) */
 function bgFor(item, index) {
+  if (item.type === 'images') return Promise.resolve(null); // לתמונה יש רקע משלה (טשטוש של עצמה)
   const disp = displayOpts();
   const holiday = params.get('holiday') || ctx.day.holiday;
   const holidayOn = disp.holidayDesign !== false && holidayHasDesign(holiday);

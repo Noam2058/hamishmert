@@ -14,6 +14,7 @@ export const SCREEN_TYPES = [
   ['learning', 'לימוד יומי'],
   ['birthdays', 'ימי הולדת'],
   ['hilula', 'הילולא דצדיקיא'],
+  ['images', 'תמונות שהעליתי'],
 ];
 export const SCREEN_LABEL = Object.fromEntries(SCREEN_TYPES);
 
@@ -63,6 +64,7 @@ export function demoData() {
         { type: 'halacha', enabled: true, seconds: 14 },
         { type: 'birthdays', enabled: true, seconds: 10 },
         { type: 'hilula', enabled: true, seconds: 10 },
+        { type: 'images', enabled: true, seconds: 12 },
       ],
       ticker: true,
       netzWindowMin: 60,
@@ -83,6 +85,7 @@ export function demoData() {
     memorials: [],
     parnasim: [],
     birthdays: [],
+    slides: [],
     hilulot: [
       { id: id(), name: 'רבי שמעון בר יוחאי', hebDay: 18, hebMonth: 'Iyyar' },
       { id: id(), name: 'הרמב"ם', hebDay: 20, hebMonth: 'Tevet' },
@@ -111,8 +114,8 @@ export function normalize(data) {
   out.display = { ...d.display, ...(data?.display || {}) };
   out.display.offHours = { ...d.display.offHours, ...(data?.display?.offHours || {}) };
   const have = new Set((out.display.screens || []).map((s) => s.type));
-  for (const s of d.display.screens) if (!have.has(s.type)) out.display.screens.unshift({ ...s });
-  for (const k of ['prayers', 'lessons', 'announcements', 'memorials', 'parnasim', 'birthdays', 'hilulot', 'halachot']) {
+  d.display.screens.forEach((s, i) => { if (!have.has(s.type)) out.display.screens.splice(s.type === 'greeting' ? 0 : Math.min(i, out.display.screens.length), 0, { ...s }); });
+  for (const k of ['prayers', 'lessons', 'announcements', 'memorials', 'parnasim', 'birthdays', 'hilulot', 'halachot', 'slides']) {
     if (!Array.isArray(out[k])) out[k] = [];
   }
   return out;

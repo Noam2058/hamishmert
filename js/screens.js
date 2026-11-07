@@ -218,6 +218,19 @@ export const SCREENS = {
       <div class="omer-bar">${Array.from({ length: 49 }, (_, i) => `<i class="${i < o.day ? 'on' : ''}"></i>`).join('')}</div></section>`;
   },
 
+  images(ctx) {
+    const t = ctx.todayIso;
+    const list = (ctx.data.slides || []).filter((x) => x.url && x.enabled !== false && (!x.from || x.from <= t) && (!x.to || x.to >= t));
+    if (!list.length) return null;
+    return list.map((x) => {
+      const u = String(x.url).replace(/"/g, '%22');
+      return {
+        key: x.id, seconds: +x.seconds || 0,
+        html: `${x.title ? title(x.title) : ''}<section class="img-slide${x.fit === 'cover' ? ' cover' : ''}"><div class="blur" style="background-image:url(&quot;${esc(u)}&quot;)"></div><img src="${esc(u)}" alt="${esc(x.title || x.caption || '')}">${x.caption ? `<div class="cap">${esc(x.caption)}</div>` : ''}</section>`,
+      };
+    });
+  },
+
   halacha(ctx) {
     if ((ctx.data.halachaSource || 'sa') === 'sa') {
       const h = cachedHalacha(ctx.todayIso, ctx.data.halachaStart || DEFAULT_START);

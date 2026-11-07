@@ -24,9 +24,11 @@ const I = {
 };
 const icon = (k) => `<svg viewBox="0 0 24 24" aria-hidden="true">${I[k]}</svg>`;
 const row = (k, v, sub = '', cls = '') => `<div class="row ${cls}"><div class="k">${esc(k)}${sub ? `<small>${esc(sub)}</small>` : ''}</div><div class="v">${v}</div></div>`;
-const inText = (mins) => (mins <= 0 ? 'עכשיו' : mins < 60 ? `בעוד ${mins} דק׳` : `בעוד ${Math.floor(mins / 60)} שע׳${mins % 60 ? ` ו-${mins % 60} דק׳` : ''}`);
+const inText = (m) => { const mins = Math.max(0, Math.ceil(m)); return mins <= 0 ? 'עכשיו' : mins < 60 ? `בעוד ${mins} דק׳` : `בעוד ${Math.floor(mins / 60)} שע׳${mins % 60 ? ` ו-${mins % 60} דק׳` : ''}`; };
 const isoOf = (d, tz) => d.toLocaleDateString('en-CA', { timeZone: tz });
 
+const WD = ['ראשון', 'שני', 'שלישי', 'רביעי', 'חמישי', 'שישי', 'שבת'];
+const dayLabel = (day) => (!day.afterSunset ? day.weekday : day.dow === 6 ? 'מוצאי שבת קודש' : day.dow === 5 ? 'ליל שבת קודש' : `ליל יום ${WD[(day.dow + 1) % 7]}`);
 let DATA = null;
 let sceneSet = '';
 
@@ -78,7 +80,7 @@ function render() {
       <div class="shul">${esc(s.name || 'בית הכנסת')}</div>
       ${s.dedication ? `<span class="ded">${esc(s.dedication)}</span>` : ''}
       <div class="hd">${esc(day.afterSunset ? `אור ל${day.next.hebDate}` : day.hebDate)}</div>
-      <div class="sub">${esc(day.weekday)} · ${esc(day.gregDate)}${sh.parsha ? ` · ${sh.parshaIsChag ? esc(sh.parsha) : `פרשת ${esc(sh.parsha)}`}` : ''}</div>
+      <div class="sub">${esc(dayLabel(day))} · ${esc(day.gregDate)}${sh.parsha ? ` · ${sh.parshaIsChag ? esc(sh.parsha) : `פרשת ${esc(sh.parsha)}`}` : ''}</div>
       ${day.events.length ? `<div class="tags">${day.events.map((e) => `<span class="tag">${esc(e)}</span>`).join('')}</div>` : ''}
     </div></header>
     <nav class="quick" aria-label="קיצורים"><div class="quick-in">${nav.map(([id, l]) => `<a href="#${id}">${l}</a>`).join('')}</div></nav>

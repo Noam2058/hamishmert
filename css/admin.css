@@ -22,7 +22,7 @@ svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width:
 code { background: var(--surface-2); padding: 1px 6px; border-radius: 6px; direction: ltr; display: inline-block; }
 
 /* ---------- מבנה ---------- */
-.app { min-height: 100vh; display: grid; grid-template-columns: 236px 1fr; grid-template-rows: auto 1fr; grid-template-areas: "top top" "nav main"; }
+.app { min-height: 100vh; display: grid; grid-template-columns: 236px minmax(0, 1fr); grid-template-rows: auto 1fr; grid-template-areas: "top top" "nav main"; }
 .topbar { grid-area: top; position: sticky; top: 0; z-index: 20; display: flex; align-items: center; justify-content: space-between; gap: 12px;
   padding: max(10px, env(safe-area-inset-top)) max(18px, env(safe-area-inset-right)) 10px max(18px, env(safe-area-inset-left));
   background: var(--nav); color: var(--nav-ink); border-bottom: 3px solid var(--gold); }
@@ -140,9 +140,9 @@ textarea { min-height: 96px; resize: vertical; line-height: 1.5; }
 .preview { position: relative; width: 100%; aspect-ratio: 16 / 9; border-radius: 12px; overflow: hidden; background: #000; box-shadow: inset 0 0 0 1px var(--line); }
 .preview iframe { position: absolute; top: 0; left: 0; width: 1920px; height: 1080px; border: 0; transform-origin: 0 0; pointer-events: none; }
 .screen-list { display: flex; flex-direction: column; gap: 8px; }
-.screen-row { display: grid; grid-template-columns: auto auto 1fr 110px auto; align-items: center; gap: 12px; padding: 10px 14px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); }
+.screen-row { display: grid; grid-template-columns: auto auto minmax(0, 1fr) 110px auto; align-items: center; gap: 12px; padding: 10px 14px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); }
 .screen-row.off { opacity: .55; }
-.screen-row strong { font-weight: 800; }
+.screen-row strong { font-weight: 800; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
 /* ---------- פס שמירה וכניסה ---------- */
 .savebar { position: fixed; z-index: 30; bottom: max(16px, env(safe-area-inset-bottom)); left: 50%; transform: translateX(-50%); width: min(720px, calc(100% - 24px));
@@ -162,7 +162,7 @@ textarea { min-height: 96px; resize: vertical; line-height: 1.5; }
 
 /* ---------- מובייל ---------- */
 @media (max-width: 860px) {
-  .app { grid-template-columns: 1fr; grid-template-areas: "top" "nav" "main"; }
+  .app { grid-template-columns: minmax(0, 1fr); grid-template-areas: "top" "nav" "main"; }
   .nav { position: sticky; top: 61px; z-index: 15; height: auto; flex-direction: row; overflow-x: auto; overflow-y: hidden; padding: 8px 12px; gap: 6px; border: 0; border-bottom: 1px solid var(--line); scrollbar-width: none; }
   .nav::-webkit-scrollbar { display: none; }
   .nav .group { display: none; }
@@ -177,7 +177,7 @@ textarea { min-height: 96px; resize: vertical; line-height: 1.5; }
   .brand-name { font-size: 19px; }
   .topbar .btn span { display: none; }
   .topbar .btn.primary span, .topbar #btn-save { font-size: 14px; }
-  .screen-row { grid-template-columns: auto auto 1fr 76px; gap: 8px; padding: 8px 10px; }
+  .screen-row { grid-template-columns: auto auto minmax(0, 1fr) 76px; gap: 8px; padding: 8px 10px; }
   .screen-row .btns { display: none !important; } /* בטלפון – גוררים */
   .item > summary { padding: 12px 14px; gap: 10px; }
   .item-body { padding: 4px 14px 14px; }
@@ -200,3 +200,5 @@ textarea { min-height: 96px; resize: vertical; line-height: 1.5; }
 .dragging { position: relative; z-index: 5; box-shadow: 0 14px 34px rgba(0,0,0,.25) !important; border-color: var(--gold) !important; transform: scale(1.015); background: var(--surface); }
 .dragging .grip { cursor: grabbing; color: var(--gold); }
 body.is-dragging { user-select: none; -webkit-user-select: none; cursor: grabbing; }
+
+html, body { overflow-x: hidden; }

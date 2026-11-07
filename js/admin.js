@@ -138,6 +138,26 @@ function makeSortable(container, itemSel, onDone, canSwap = () => true) {
     });
   });
 }
+// תצוגה מקדימה חיה של תמונה – הלוח עצמו בקטן, עם ההגדרות שנבחרו (גם לפני שמירה)
+function slidePreviewSrc(it) {
+  const q = location.search;
+  const data = { url: it.url, fit: it.fit || 'contain', size: it.size || 100, bg: it.bg || 'board', title: it.title || '', caption: it.caption || '', seconds: +it.seconds || 12 };
+  return `index.html${q ? q + '&' : '?'}preview&screens=images&slidepreview#${encodeURIComponent(JSON.stringify(data))}`;
+}
+function mountSlidePreview(row, it) {
+  const box = row.querySelector('.slide-pv');
+  if (!box) return;
+  let f = box.querySelector('iframe');
+  if (!f) {
+    f = document.createElement('iframe');
+    f.title = 'תצוגה מקדימה'; f.tabIndex = -1; f.src = slidePreviewSrc(it);
+    box.appendChild(f);
+    const fit = () => { f.style.transform = `scale(${box.clientWidth / 1920})`; };
+    fit(); new ResizeObserver(fit).observe(box);
+  } else {
+    const u = slidePreviewSrc(it); f.contentWindow?.location.replace(u);
+  }
+}
 const reorder = (arr, order) => { const copy = order.map((i) => arr[i]); arr.splice(0, arr.length, ...copy); };
 
 // ---------- בחירת מצב תצוגה לתמונה ----------
@@ -351,6 +371,7 @@ function renderList(key, focusNew = false) {
     <details class="item" data-i="${i}" ${openIds.has(it.id) ? 'open' : ''}>
       <summary><span class="grip" title="גרור לשינוי הסדר" aria-label="גרור לשינוי הסדר">${icon('grip')}</span>${summaryHtml(def, it)}</summary>
       <div class="item-body">
+        ${key === 'slides' ? `<div class="pv-wrap"><div class="preview slide-pv"></div><small class="muted">כך זה ייראה בלוח. הבחירות למטה מתעדכנות כאן מיד – וכשמרוצים, לוחצים "שמור".</small></div>` : ''}
         <div class="form-grid">${def.fields.map((fd) => fieldHtml(it, fd, `${key}-${i}`)).join('')}</div>
         <div class="item-tools"><span class="calc">${def.calc ? esc(calcText(it)) : ''}</span>
           <span class="btns"><button class="icon" data-act="up" title="הזז למעלה" aria-label="הזז למעלה">${icon('up')}</button><button class="icon" data-act="down" title="הזז למטה" aria-label="הזז למטה">${icon('down')}</button><button class="icon" data-act="dup" title="שכפל" aria-label="שכפל">${icon('copy')}</button><button class="sm danger" data-act="del">${icon('trash')}<span>מחק</span></button></span></div>
@@ -381,7 +402,8 @@ function renderList(key, focusNew = false) {
 
   p.querySelectorAll('.item').forEach((row) => {
     const i = +row.dataset.i;
-    row.addEventListener('toggle', () => { if (row.open) openIds.add(arr[i].id); else openIds.delete(arr[i].id); });
+    row.addEventListener('toggle', () => { if (row.open) { openIds.add(arr[i].id); if (key === 'slides') mountSlidePreview(row, arr[i]); } else openIds.delete(arr[i].id); });
+    if (key === 'slides' && row.open) mountSlidePreview(row, arr[i]);
     const commit = (e) => {
       const el = e.target.closest('[data-k]');
       if (!el) return;
@@ -390,6 +412,7 @@ function renderList(key, focusNew = false) {
       if (el.dataset.type === 'time' && e.target.dataset.t === 'type') return renderList(key);
       if (def.group && el.dataset.k === def.group) return renderList(key);
       if (def.calc) row.querySelector('.calc').textContent = calcText(arr[i]);
+      if (key === 'slides') { clearTimeout(row.pvT); row.pvT = setTimeout(() => mountSlidePreview(row, arr[i]), 350); }
       const sm = row.querySelector('summary'); [...sm.children].slice(1).forEach((n) => n.remove()); sm.insertAdjacentHTML('beforeend', summaryHtml(def, arr[i]));
     };
     row.addEventListener('change', commit);

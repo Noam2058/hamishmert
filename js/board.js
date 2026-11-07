@@ -251,10 +251,26 @@ function advance() {
 }
 
 // ---------- הפעלה ----------
+// תצוגה מקדימה של תמונה אחת מממשק הגבאי: ?slidepreview#<JSON> – לפני שמירה
+const SLIDE_PREVIEW = params.has('slidepreview');
+let pvCount = 0;
+function applySlidePreview() {
+  if (!SLIDE_PREVIEW || !DATA) return;
+  try {
+    const s = JSON.parse(decodeURIComponent(location.hash.slice(1)));
+    DATA.slides = [{ ...s, id: `pv${++pvCount}`, enabled: true, from: '', to: '' }];
+    DATA.display.offHours = { ...DATA.display.offHours, enabled: false };
+    const sc = DATA.display.screens.find((x) => x.type === 'images');
+    if (sc) sc.enabled = true; else DATA.display.screens.push({ type: 'images', enabled: true, seconds: 12 });
+  } catch { /* אין נתונים */ }
+}
+addEventListener('hashchange', () => { if (SLIDE_PREVIEW) { applySlidePreview(); advance(); } });
+
 async function start() {
   fit();
   const r = await load();
   DATA = r.data;
+  applySlidePreview();
   applyPerf();
   document.body.classList.toggle('offline', r.source === 'cache');
   document.getElementById('loading').hidden = true;
@@ -263,6 +279,7 @@ async function start() {
   tickClock();
   subscribe((data, info) => {
     DATA = data;
+    applySlidePreview();
     applyPerf();
     document.body.classList.toggle('offline', info?.source === 'cache');
     advance();

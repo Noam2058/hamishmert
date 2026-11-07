@@ -331,7 +331,7 @@ function renderHome() {
         ${prayers.length ? `<div class="mini-rows">${prayers.map((p) => `<div class="mini-row ${p.min != null && p.min < nowMin ? 'past' : ''}"><span>${esc(p.name)}</span><b>${esc(p.time)}</b></div>`).join('')}</div>` : '<p class="note">אין תפילות מוגדרות להיום.</p>'}
         ${lessons.length ? `<div class="mini-rows">${lessons.map((l) => `<div class="mini-row"><span>${esc(l.title)}${l.teacher ? ` · ${esc(l.teacher)}` : ''}</span><b>${esc(l.timeStr)}</b></div>`).join('')}</div>` : ''}
         <button class="btn sm" data-go="prayers">עריכת תפילות</button></section>
-      <section class="card"><h2>${icon('display')}כך נראה הלוח עכשיו <span class="tag">חי</span></h2>
+      <section class="card span2"><h2>${icon('display')}כך נראה הלוח עכשיו <span class="tag">חי</span></h2>
         <div class="preview" id="pv"><iframe title="תצוגה מקדימה של הלוח" src="index.html${q ? q + '&' : '?'}preview" loading="lazy" tabindex="-1"></iframe></div>
         <p class="note">שינויים מופיעים כאן אחרי שמירה. <a href="index.html${esc(q)}" target="_blank" rel="noopener">פתח במסך מלא</a></p></section>
       <section class="card"><h2>${icon('memorials')}השבוע</h2>

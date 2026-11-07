@@ -1,75 +1,145 @@
 // ממשק הגבאי: עריכת כל הנתונים של הלוח.
 import { load, save, mode, currentUser, signIn, signUp, signOut, exportJson, boardId } from './store.js';
-import { demoData, normalize, SCREEN_TYPES, SCREEN_LABEL, THEMES, uid } from './defaults.js';
-import { SCHEDULES, ZMAN_BASES, resolveTime, describeTime } from './prayers.js';
-import { ZMANIM, HEB_MONTHS, computeDay, minToHhmm } from './jewish.js';
+import { demoData, normalize, SCREEN_LABEL, THEMES, uid } from './defaults.js';
+import { SCHEDULES, ZMAN_BASES, resolveTime, describeTime, prayersForDay, lessonsForDay } from './prayers.js';
+import { ZMANIM, HEB_MONTHS, computeDay, minToHhmm, fmtTime, yahrzeitIn, birthdayIn, inHebrewRange, renderHeb } from './jewish.js';
 import { refForDate, heNum, DEFAULT_START } from './halacha-sa.js';
 import { SCENE_CHOICES } from './scenes.js';
 
 const $ = (s) => document.querySelector(s);
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 let DATA = null;
+let SAVED = null;      // עותק של מה ששמור בשרת – ל"בטל שינויים"
 let dirty = false;
-let tab = 'prayers';
+let tab = 'home';
+const openIds = new Set(); // פריטים פתוחים ברשימות (נשמר בין רינדורים)
+const filters = {};
 
-function setDirty(v = true) { dirty = v; $('#btn-save').disabled = !v; $('#btn-save').textContent = v ? 'שמור שינויים' : 'נשמר'; }
+// ---------- אייקונים ----------
+const I = {
+  home: '<path d="M3 11l9-7 9 7"/><path d="M5 10v10h14V10"/><path d="M10 20v-6h4v6"/>',
+  prayers: '<path d="M12 3v4M8 5l4-2 4 2"/><rect x="5" y="7" width="14" height="14" rx="2"/><path d="M9 12h6M9 16h6"/>',
+  lessons: '<path d="M4 5a2 2 0 012-2h13v16H6a2 2 0 00-2 2z"/><path d="M4 19V5M8 7h7"/>',
+  announcements: '<path d="M4 10v4a1 1 0 001 1h2l5 4V5L7 9H5a1 1 0 00-1 1z"/><path d="M16 8.5a5 5 0 010 7M18.5 6a8.5 8.5 0 010 12"/>',
+  memorials: '<path d="M12 3c2 3 2 4.5 0 6.5C10 7.5 10 6 12 3z"/><rect x="9" y="10" width="6" height="11" rx="1.5"/>',
+  parnasim: '<path d="M12 21s-7-4.4-7-10a4 4 0 017-2.6A4 4 0 0119 11c0 5.6-7 10-7 10z"/>',
+  birthdays: '<rect x="4" y="11" width="16" height="10" rx="2"/><path d="M4 15c2 1.5 4 1.5 5.3 0 1.4 1.5 4 1.5 5.4 0 1.3 1.5 3.3 1.5 5.3 0M12 11V7"/><path d="M12 3.5c.9 1 .9 2 0 3-.9-1-.9-2 0-3z"/>',
+  hilulot: '<path d="M12 2.5l2.4 5 5.6.7-4.1 3.8 1.1 5.5L12 14.8 7 17.5l1.1-5.5L4 8.2l5.6-.7z"/>',
+  halachot: '<path d="M6 3h9l3 3v15H6z"/><path d="M15 3v3h3M9 11h6M9 15h6"/>',
+  shul: '<path d="M3 21h18M5 21V10l7-5 7 5v11"/><path d="M10 21v-5h4v5M12 8.5l1 1.7h2l-1 1.7 1 1.7h-2l-1 1.7-1-1.7H9l1-1.7-1-1.7h2z"/>',
+  display: '<rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4"/>',
+  backup: '<path d="M12 3v12M7 10l5 5 5-5"/><path d="M4 17v3h16v-3"/>',
+  plus: '<path d="M12 5v14M5 12h14"/>',
+  chev: '<path d="M6 9l6 6 6-6"/>',
+  up: '<path d="M6 15l6-6 6 6"/>', down: '<path d="M6 9l6 6 6-6"/>',
+  trash: '<path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/>',
+  copy: '<rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V5a1 1 0 00-1-1H5a1 1 0 00-1 1v10a1 1 0 001 1h3"/>',
+  search: '<circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/>',
+  ext: '<path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 01-1 1H5a1 1 0 01-1-1V7a1 1 0 011-1h5"/>',
+};
+const icon = (k) => `<svg viewBox="0 0 24 24" aria-hidden="true">${I[k] || ''}</svg>`;
+
+// ---------- מצב שמירה ----------
+function setDirty(v = true) {
+  dirty = v;
+  $('#btn-save').disabled = !v;
+  $('#btn-save').textContent = v ? 'שמור' : 'נשמר ✓';
+  $('#savebar').hidden = !v;
+  const st = $('#status'); st.hidden = !v; st.textContent = 'לא נשמר'; st.classList.toggle('dirty', v);
+}
 function flash(text, err = false) {
-  const m = $('#msg'); m.textContent = text; m.className = 'msg' + (err ? ' err' : ''); m.hidden = false;
-  clearTimeout(flash.t); flash.t = setTimeout(() => { m.hidden = true; }, err ? 8000 : 3500);
+  const m = $('#msg'); m.textContent = text; m.className = 'toast' + (err ? ' err' : ''); m.hidden = false;
+  clearTimeout(flash.t); flash.t = setTimeout(() => { m.hidden = true; }, err ? 8000 : 3200);
 }
 addEventListener('beforeunload', (e) => { if (dirty) { e.preventDefault(); e.returnValue = ''; } });
+addEventListener('keydown', (e) => { if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') { e.preventDefault(); if (dirty) doSave(); } });
 
-// ---------- הגדרות שדות לכל רשימה ----------
+// ---------- עזרי תאריכים ----------
+const todayDay = () => computeDay(new Date(), DATA.synagogue);
 const WEEKDAY_OPTS = ['א', 'ב', 'ג', 'ד', 'ה', 'ו', 'ש'];
 const MONTH_OPTS = [['', '—'], ...HEB_MONTHS];
+const MONTH_HE = Object.fromEntries(HEB_MONTHS);
+const SCHED_HE = Object.fromEntries(SCHEDULES);
+const fmtDate = (iso) => { if (!iso) return ''; const [y, m, d] = iso.split('-'); return `${+d}.${+m}.${y.slice(2)}`; };
+const isoToday = () => new Date().toLocaleDateString('en-CA', { timeZone: DATA.synagogue.tz || 'Asia/Jerusalem' });
+const activeRange = (it) => { const t = isoToday(); return (!it.from || it.from <= t) && (!it.to || it.to >= t); };
+const daysText = (w) => (!w || !w.length || w.length === 7 ? '' : w.length === 5 && [0, 1, 2, 3, 4].every((d) => w.includes(d)) ? 'א׳–ה׳' : w.map((d) => WEEKDAY_OPTS[d] + '׳').join(' '));
+function timeOf(item) {
+  if (!item.time) return '';
+  if (item.time.type !== 'zman') return item.time.value || '';
+  try { const day = todayDay(); const m = resolveTime(item.time, day.civil, DATA.synagogue, { candles: day.shabbat.candles, havdalah: day.shabbat.havdalah }); return m == null ? '' : minToHhmm(m); } catch { return ''; }
+}
+function hebDateOf(item, fn) {
+  try {
+    const hd = todayDay().hd; let d = fn(hd.getFullYear(), item);
+    if (d && d.deltaDays(hd) < 0) d = fn(hd.getFullYear() + 1, item);
+    return d ? renderHeb(d) : '';
+  } catch { return ''; }
+}
+
+// ---------- הגדרות שדות לכל רשימה ----------
 const LISTS = {
   prayers: {
-    label: 'תפילות', help: 'לכל תפילה: לאיזה לוח היא שייכת ומתי. תפילה בלוח מיוחד (ראש חודש, חג…) מחליפה תפילה באותו שם מלוח החול/שבת.',
+    label: 'תפילות', single: 'תפילה', group: 'schedule',
+    help: 'כל תפילה שייכת ללוח: חול, ערב שבת, שבת, ראש חודש, חג… תפילה בלוח מיוחד מחליפה תפילה באותו שם מלוח החול או השבת.',
     blank: () => ({ id: uid(), name: '', schedule: 'weekday', time: { type: 'fixed', value: '07:00' } }),
-    fields: [['name', 'שם התפילה', 'text'], ['schedule', 'לוח', 'select', SCHEDULES], ['time', 'שעה', 'time'], ['weekdays', 'רק בימים (ריק = כולם)', 'weekdays'], ['note', 'הערה', 'text']],
+    fields: [['name', 'שם התפילה', 'text'], ['schedule', 'לוח', 'select', SCHEDULES], ['weekdays', 'רק בימים (ריק = כל הימים)', 'weekdays'], ['note', 'הערה (מוצגת מתחת לשם)', 'text'], ['time', 'שעה', 'time']],
+    sum: (it) => ({ title: it.name, meta: [it.time?.type === 'zman' ? describeTime(it.time) : 'שעה קבועה', daysText(it.weekdays), it.note].filter(Boolean).join(' · '), time: timeOf(it) }),
     calc: true,
   },
   lessons: {
-    label: 'שיעורים', help: 'שיעורים קבועים. מופיעים במסך המשולב ביום שלהם ובפס הגולל.',
+    label: 'שיעורים', single: 'שיעור',
+    help: 'שיעורים קבועים. מופיעים במסך המשולב ביום שלהם ובפס הגולל.',
     blank: () => ({ id: uid(), title: '', teacher: '', weekdays: [0, 1, 2, 3, 4], time: { type: 'fixed', value: '20:00' } }),
-    fields: [['title', 'שם השיעור', 'text'], ['teacher', 'מעביר', 'text'], ['weekdays', 'ימים', 'weekdays'], ['time', 'שעה', 'time'], ['note', 'הערה', 'text']],
+    fields: [['title', 'שם השיעור', 'text'], ['teacher', 'מעביר השיעור', 'text'], ['weekdays', 'ימים', 'weekdays'], ['note', 'הערה', 'text'], ['time', 'שעה', 'time']],
+    sum: (it) => ({ title: it.title, meta: [it.teacher, daysText(it.weekdays) || 'כל יום'].filter(Boolean).join(' · '), time: timeOf(it) }),
     calc: true,
   },
   announcements: {
-    label: 'הודעות', help: 'בלי תאריכים – ההודעה מוצגת תמיד. שורה חדשה בטקסט = שורה חדשה בלוח.',
+    label: 'הודעות', single: 'הודעה',
+    help: 'בלי תאריכים – ההודעה מוצגת תמיד. שורה חדשה בטקסט = שורה חדשה בלוח.',
     blank: () => ({ id: uid(), style: 'general', title: '', body: '', from: '', to: '' }),
-    fields: [['style', 'סגנון', 'select', [['general', 'רגיל'], ['simcha', 'שמחה'], ['memorial', 'אבל / אזכרה'], ['urgent', 'חשוב']]], ['title', 'כותרת', 'text'], ['from', 'מתאריך', 'date'], ['to', 'עד תאריך', 'date'], ['body', 'תוכן', 'textarea']],
+    fields: [['title', 'כותרת', 'text'], ['style', 'סגנון', 'select', [['general', 'רגיל'], ['simcha', 'שמחה'], ['memorial', 'אבל / אזכרה'], ['urgent', 'חשוב']]], ['from', 'מתאריך', 'date'], ['to', 'עד תאריך', 'date'], ['body', 'תוכן ההודעה', 'textarea']],
+    sum: (it) => ({ title: it.title || (it.body || '').split('\n')[0], meta: it.from || it.to ? `${fmtDate(it.from) || '…'} – ${fmtDate(it.to) || '…'}` : 'מוצגת תמיד', badge: activeRange(it) ? ['on', 'מוצגת'] : ['off', 'לא בתוקף'] }),
   },
   memorials: {
-    label: 'אזכרות', help: 'אפשר להזין תאריך פטירה לועזי (והאם אחרי השקיעה), או יום וחודש עבריים. הלוח מחשב את יום האזכרה בכל שנה.',
+    label: 'אזכרות', single: 'אזכרה', search: true,
+    help: 'אפשר להזין תאריך פטירה לועזי (ולסמן אם אחרי השקיעה), או יום וחודש עבריים. הלוח מחשב את יום האזכרה בכל שנה.',
     blank: () => ({ id: uid(), name: '', date: '', afterSunset: false, hebDay: '', hebMonth: '', by: '' }),
-    fields: [['name', 'שם (פלוני בן פלונית)', 'text'], ['date', 'תאריך פטירה לועזי', 'date'], ['afterSunset', 'אחרי השקיעה', 'check'], ['hebDay', 'או: יום עברי', 'number'], ['hebMonth', 'חודש עברי', 'select', MONTH_OPTS], ['by', 'הונצח ע"י', 'text']],
+    fields: [['name', 'שם (פלוני בן פלונית)', 'text'], ['by', 'הונצח ע"י', 'text'], ['date', 'תאריך פטירה לועזי', 'date'], ['afterSunset', 'נפטר אחרי השקיעה', 'check'], ['hebDay', 'או: יום עברי', 'number'], ['hebMonth', 'חודש עברי', 'select', MONTH_OPTS]],
+    sum: (it) => { const d = hebDateOf(it, yahrzeitIn); return { title: it.name, meta: [d ? `האזכרה הקרובה: ${d}` : 'חסר תאריך', it.by].filter(Boolean).join(' · ') }; },
   },
   parnasim: {
-    label: 'פרנסים', help: 'פרנס היום / השבוע / החודש / השנה. אפשר להגביל לתאריכים.',
+    label: 'פרנסים', single: 'פרנס',
+    help: 'פרנס היום / השבוע / החודש / השנה. אפשר להגביל לתאריכים.',
     blank: () => ({ id: uid(), period: 'week', title: 'פרנס השבוע', name: '', text: '', from: '', to: '' }),
-    fields: [['period', 'סוג', 'select', [['day', 'יום'], ['week', 'שבוע'], ['month', 'חודש'], ['year', 'שנה']]], ['title', 'כותרת', 'text'], ['name', 'שם', 'text'], ['text', 'הקדשה', 'text'], ['from', 'מתאריך', 'date'], ['to', 'עד תאריך', 'date']],
+    fields: [['title', 'כותרת', 'text'], ['period', 'סוג', 'select', [['day', 'יום'], ['week', 'שבוע'], ['month', 'חודש'], ['year', 'שנה']]], ['name', 'שם', 'text'], ['text', 'הקדשה', 'text'], ['from', 'מתאריך', 'date'], ['to', 'עד תאריך', 'date']],
+    sum: (it) => ({ title: it.name ? `${it.title || 'פרנס'}: ${it.name}` : it.title, meta: [it.text, it.from || it.to ? `${fmtDate(it.from) || '…'} – ${fmtDate(it.to) || '…'}` : ''].filter(Boolean).join(' · '), badge: activeRange(it) ? ['on', 'פעיל'] : ['off', 'לא בתוקף'] }),
   },
   birthdays: {
-    label: 'ימי הולדת', help: 'מוצגים בשבוע של יום ההולדת העברי.',
+    label: 'ימי הולדת', single: 'יום הולדת', search: true,
+    help: 'מוצגים בשבוע של יום ההולדת העברי.',
     blank: () => ({ id: uid(), name: '', date: '', afterSunset: false, hebDay: '', hebMonth: '' }),
-    fields: [['name', 'שם', 'text'], ['date', 'תאריך לידה לועזי', 'date'], ['afterSunset', 'אחרי השקיעה', 'check'], ['hebDay', 'או: יום עברי', 'number'], ['hebMonth', 'חודש עברי', 'select', MONTH_OPTS], ['note', 'הערה', 'text']],
+    fields: [['name', 'שם', 'text'], ['note', 'הערה', 'text'], ['date', 'תאריך לידה לועזי', 'date'], ['afterSunset', 'נולד אחרי השקיעה', 'check'], ['hebDay', 'או: יום עברי', 'number'], ['hebMonth', 'חודש עברי', 'select', MONTH_OPTS]],
+    sum: (it) => { const d = hebDateOf(it, birthdayIn); return { title: it.name, meta: d ? `יום ההולדת הקרוב: ${d}` : 'חסר תאריך' }; },
   },
   hilulot: {
-    label: 'הילולות', help: 'יום פטירת צדיקים. מוצגים בשבוע שבו הם חלים.',
+    label: 'הילולות', single: 'הילולא', search: true,
+    help: 'יום פטירת צדיקים. מוצגים בשבוע שבו הם חלים.',
     blank: () => ({ id: uid(), name: '', hebDay: 1, hebMonth: 'Tishrei' }),
-    fields: [['name', 'שם הצדיק', 'text'], ['hebDay', 'יום', 'number'], ['hebMonth', 'חודש', 'select', HEB_MONTHS], ['note', 'הערה', 'text']],
+    fields: [['name', 'שם הצדיק', 'text'], ['note', 'הערה', 'text'], ['hebDay', 'יום בחודש', 'number'], ['hebMonth', 'חודש', 'select', HEB_MONTHS]],
+    sum: (it) => ({ title: it.name, meta: `${it.hebDay ? heNum(+it.hebDay) : ''} ${MONTH_HE[it.hebMonth] || ''}`.trim() }),
   },
   halachot: {
-    label: 'הלכות', help: 'ברירת המחדל: סעיף אחד מהשולחן ערוך בכל יום. אפשר לבחור במקום זה בהלכות שתכתוב כאן.',
+    label: 'הלכות', single: 'הלכה',
+    help: 'ברירת המחדל: סעיף אחד מהשולחן ערוך בכל יום. אפשר לבחור במקום זה בהלכות שתכתוב כאן.',
     head: () => {
       const src = DATA.halachaSource || 'sa', start = DATA.halachaStart || DEFAULT_START;
-      const today = new Date().toLocaleDateString('en-CA', { timeZone: DATA.synagogue.tz || 'Asia/Jerusalem' });
-      const r = refForDate(today, start);
-      return `<section class="box"><div class="form">
-        <label for="h-src">מקור ההלכה היומית</label><select id="h-src"><option value="sa" ${src === 'sa' ? 'selected' : ''}>שולחן ערוך – סעיף בכל יום, לפי הסדר</option><option value="custom" ${src === 'custom' ? 'selected' : ''}>ההלכות שברשימה למטה</option></select>
-        <label for="h-start">התחלת המחזור (סימן א׳ סעיף א׳)</label><input id="h-start" type="date" value="${esc(start)}">
-      </div><p class="sub">היום: שולחן ערוך ${r.book.he}, סימן ${heNum(r.siman)} סעיף ${heNum(r.seif)}. הסדר: אורח חיים סימנים א׳–רמ״א, ואחריו יורה דעה סימנים א׳–קי״א (כמו בכרכים), ואז מתחילים מחדש. ההלכות שברשימה מוצגות רק כשאין חיבור והטקסט עוד לא נטען.</p></section>`;
+      const r = refForDate(isoToday(), start);
+      return `<section class="card"><h2>מקור ההלכה היומית</h2><div class="form-grid">
+        <label class="fld"><span>מקור</span><select id="h-src"><option value="sa" ${src === 'sa' ? 'selected' : ''}>שולחן ערוך – סעיף בכל יום, לפי הסדר</option><option value="custom" ${src === 'custom' ? 'selected' : ''}>ההלכות שברשימה למטה</option></select></label>
+        <label class="fld"><span>התחלת המחזור (סימן א׳ סעיף א׳)</span><input id="h-start" type="date" value="${esc(start)}"></label>
+      </div><p class="note">היום: <b>שולחן ערוך ${r.book.he}, סימן ${heNum(r.siman)} סעיף ${heNum(r.seif)}</b>. הסדר: אורח חיים א׳–רמ״א, ואחריו יורה דעה א׳–קי״א, ואז מתחילים מחדש. ההלכות שברשימה מוצגות כשבחרת בהן, או כגיבוי כשאין חיבור.</p></section>`;
     },
     bindHead: (rerender) => {
       $('#h-src').onchange = (e) => { DATA.halachaSource = e.target.value; setDirty(); };
@@ -77,10 +147,16 @@ const LISTS = {
     },
     blank: () => ({ id: uid(), title: '', text: '', source: '' }),
     fields: [['title', 'כותרת', 'text'], ['source', 'מקור', 'text'], ['text', 'תוכן', 'textarea']],
+    sum: (it) => ({ title: it.title, meta: it.source }),
   },
 };
-const TABS = [['prayers', 'תפילות'], ['lessons', 'שיעורים'], ['announcements', 'הודעות'], ['memorials', 'אזכרות'], ['parnasim', 'פרנסים'],
-  ['birthdays', 'ימי הולדת'], ['hilulot', 'הילולות'], ['halachot', 'הלכות'], ['shul', 'בית הכנסת'], ['display', 'תצוגה'], ['backup', 'גיבוי']];
+
+const NAV = [
+  ['', [['home', 'סקירה']]],
+  ['זמנים ותוכן', [['prayers', 'תפילות'], ['lessons', 'שיעורים'], ['announcements', 'הודעות'], ['halachot', 'הלכה יומית']]],
+  ['אנשים ומועדים', [['memorials', 'אזכרות'], ['parnasim', 'פרנסים'], ['birthdays', 'ימי הולדת'], ['hilulot', 'הילולות']]],
+  ['הגדרות', [['shul', 'בית הכנסת'], ['display', 'תצוגה ועיצוב'], ['backup', 'גיבוי']]],
+];
 
 // ---------- רכיבי טופס ----------
 function fieldHtml(item, [key, label, type, opts], path) {
@@ -88,26 +164,26 @@ function fieldHtml(item, [key, label, type, opts], path) {
   const v = item[key];
   let input = '';
   if (type === 'text') input = `<input id="${id}" data-k="${key}" value="${esc(v)}">`;
-  else if (type === 'number') input = `<input id="${id}" data-k="${key}" type="number" value="${esc(v)}">`;
+  else if (type === 'number') input = `<input id="${id}" data-k="${key}" type="number" inputmode="numeric" value="${esc(v)}">`;
   else if (type === 'date') input = `<input id="${id}" data-k="${key}" type="date" value="${esc(v)}">`;
   else if (type === 'textarea') input = `<textarea id="${id}" data-k="${key}">${esc(v)}</textarea>`;
-  else if (type === 'check') input = `<input id="${id}" data-k="${key}" type="checkbox" ${v ? 'checked' : ''}>`;
+  else if (type === 'check') return `<label class="fld check"><input id="${id}" data-k="${key}" type="checkbox" ${v ? 'checked' : ''}><span>${esc(label)}</span></label>`;
   else if (type === 'select') input = `<select id="${id}" data-k="${key}">${opts.map(([val, lab]) => `<option value="${esc(val)}" ${String(v ?? '') === String(val) ? 'selected' : ''}>${esc(lab)}</option>`).join('')}</select>`;
-  else if (type === 'weekdays') input = `<div class="days" data-k="${key}" data-type="weekdays">${WEEKDAY_OPTS.map((d, i) => `<label><input type="checkbox" value="${i}" ${(v || []).includes(i) ? 'checked' : ''}>${d}</label>`).join('')}</div>`;
+  else if (type === 'weekdays') input = `<div class="days" data-k="${key}" data-type="weekdays">${WEEKDAY_OPTS.map((d, i) => `<label><input type="checkbox" value="${i}" ${(v || []).includes(i) ? 'checked' : ''}>${d}׳</label>`).join('')}</div>`;
   else if (type === 'time') {
     const t = v || { type: 'fixed', value: '07:00' };
     input = `<div class="timebox" data-k="${key}" data-type="time">
-      <select data-t="type"><option value="fixed" ${t.type !== 'zman' ? 'selected' : ''}>שעה קבועה</option><option value="zman" ${t.type === 'zman' ? 'selected' : ''}>יחסית לזמן</option></select>
-      ${t.type !== 'zman' ? `<input data-t="value" type="time" value="${esc(t.value || '')}">` : `
-      <select data-t="zman">${ZMAN_BASES.map(([k, l]) => `<option value="${k}" ${t.zman === k ? 'selected' : ''}>${l}</option>`).join('')}</select>
-      <input data-t="offset" type="number" step="1" value="${esc(t.offset ?? 0)}" title="דקות: מינוס = לפני, פלוס = אחרי" aria-label="הפרש בדקות (מינוס = לפני)">
-      <select data-t="round" aria-label="עיגול">${[[0, 'בלי עיגול'], [5, 'עיגול ל-5 דק\''], [10, 'עיגול ל-10 דק\''], [15, 'עיגול לרבע שעה']].map(([n, l]) => `<option value="${n}" ${+(t.round || 0) === n ? 'selected' : ''}>${l}</option>`).join('')}</select>
+      <select data-t="type" aria-label="סוג השעה"><option value="fixed" ${t.type !== 'zman' ? 'selected' : ''}>שעה קבועה</option><option value="zman" ${t.type === 'zman' ? 'selected' : ''}>יחסית לזמן היום</option></select>
+      ${t.type !== 'zman' ? `<input data-t="value" type="time" value="${esc(t.value || '')}" aria-label="שעה">` : `
+      <select data-t="zman" aria-label="הזמן">${ZMAN_BASES.map(([k, l]) => `<option value="${k}" ${t.zman === k ? 'selected' : ''}>${l}</option>`).join('')}</select>
+      <input data-t="offset" type="number" step="1" value="${esc(t.offset ?? 0)}" title="דקות: מינוס = לפני, פלוס = אחרי" aria-label="הפרש בדקות (מינוס = לפני)" placeholder="דקות (מינוס = לפני)">
+      <select data-t="round" aria-label="עיגול">${[[0, 'בלי עיגול'], [5, 'עיגול ל-5 דק׳'], [10, 'עיגול ל-10 דק׳'], [15, 'עיגול לרבע שעה']].map(([n, l]) => `<option value="${n}" ${+(t.round || 0) === n ? 'selected' : ''}>${l}</option>`).join('')}</select>
       <select data-t="dir" aria-label="כיוון העיגול">${[['down', 'כלפי מטה'], ['up', 'כלפי מעלה'], ['nearest', 'לקרוב']].map(([k, l]) => `<option value="${k}" ${(t.dir || 'down') === k ? 'selected' : ''}>${l}</option>`).join('')}</select>
       <select data-t="basis" aria-label="בסיס החישוב">${[['day', 'לפי כל יום'], ['week-min', 'קבוע לשבוע (מוקדם)'], ['week-max', 'קבוע לשבוע (מאוחר)']].map(([k, l]) => `<option value="${k}" ${(t.basis || 'day') === k ? 'selected' : ''}>${l}</option>`).join('')}</select>`}
     </div>`;
   }
-  const wide = type === 'textarea' || type === 'time' ? ' wide' : '';
-  return `<div class="f${wide}"><span>${esc(label)}</span>${input}</div>`;
+  const full = type === 'textarea' || type === 'time' || type === 'weekdays' ? ' full' : '';
+  return `<div class="fld${full}"><span>${esc(label)}</span>${input}</div>`;
 }
 
 function readField(el) {
@@ -124,63 +200,161 @@ function readField(el) {
 }
 
 function freshPanel() {
-  // החלפת האלמנט מנקה מאזינים ישנים מלשוניות קודמות
   const old = document.getElementById('panel');
   const n = old.cloneNode(false);
   old.replaceWith(n);
+  scrollTo({ top: 0 });
   return n;
+}
+const head = (h, p, btns = '') => `<div class="page-head"><div><h1>${h}</h1>${p ? `<p>${p}</p>` : ''}</div>${btns ? `<div class="head-btns">${btns}</div>` : ''}</div>`;
+
+function calcText(item) {
+  if (item.time?.type !== 'zman') return '';
+  const t = timeOf(item);
+  return `${describeTime(item.time)} · היום: ${t || '—'}`;
 }
 
 // ---------- רשימות ----------
-function calcText(item) {
-  try {
-    const s = DATA.synagogue;
-    const day = computeDay(new Date(), s);
-    const min = resolveTime(item.time, day.civil, s, { candles: day.shabbat.candles, havdalah: day.shabbat.havdalah });
-    if (item.time?.type !== 'zman') return '';
-    return `${describeTime(item.time)} · היום: ${min == null ? '—' : minToHhmm(min)}`;
-  } catch { return ''; }
+function summaryHtml(def, it) {
+  const s = def.sum ? def.sum(it) : { title: it.name || it.title };
+  return `<span class="sum-main"><div class="sum-title${s.title ? '' : ' empty'}">${esc(s.title || `${def.single} חדשה – לחץ לעריכה`)}</div>${s.meta ? `<div class="sum-meta">${esc(s.meta)}</div>` : ''}</span>
+    ${s.badge ? `<span class="badge ${s.badge[0]}">${esc(s.badge[1])}</span>` : ''}${s.time ? `<span class="sum-time">${esc(s.time)}</span>` : ''}<span class="chev">${icon('chev')}</span>`;
 }
 
-function renderList(key) {
+function renderList(key, focusNew = false) {
   freshPanel();
   const def = LISTS[key];
   const arr = DATA[key];
+  const f = (filters[key] || '').trim();
+  const visible = arr.map((it, i) => [it, i]).filter(([it]) => !f || JSON.stringify(it).includes(f));
+  const itemHtml = ([it, i]) => `
+    <details class="item" data-i="${i}" ${openIds.has(it.id) ? 'open' : ''}>
+      <summary>${summaryHtml(def, it)}</summary>
+      <div class="item-body">
+        <div class="form-grid">${def.fields.map((fd) => fieldHtml(it, fd, `${key}-${i}`)).join('')}</div>
+        <div class="item-tools"><span class="calc">${def.calc ? esc(calcText(it)) : ''}</span>
+          <span class="btns"><button class="icon" data-act="up" title="הזז למעלה" aria-label="הזז למעלה">${icon('up')}</button><button class="icon" data-act="down" title="הזז למטה" aria-label="הזז למטה">${icon('down')}</button><button class="icon" data-act="dup" title="שכפל" aria-label="שכפל">${icon('copy')}</button><button class="sm danger" data-act="del">${icon('trash')}<span>מחק</span></button></span></div>
+      </div>
+    </details>`;
+  let listHtml;
+  if (!arr.length) listHtml = `<div class="empty-state">${icon(key)}<div>עוד אין ${def.label}.</div><button class="btn primary" data-add>${icon('plus')}הוסף ${def.single}</button></div>`;
+  else if (!visible.length) listHtml = `<div class="empty-state">לא נמצא "${esc(f)}"</div>`;
+  else if (def.group) {
+    const groups = new Map(SCHEDULES.map(([k]) => [k, []]));
+    visible.forEach((x) => { const g = x[0][def.group] || 'weekday'; if (!groups.has(g)) groups.set(g, []); groups.get(g).push(x); });
+    listHtml = [...groups].filter(([, xs]) => xs.length).map(([g, xs]) => `<div class="group-title">${esc(SCHED_HE[g] || g)}</div>${xs.map(itemHtml).join('')}`).join('');
+  } else listHtml = visible.map(itemHtml).join('');
+
   $('#panel').innerHTML = `
-    <div class="panel-head"><div><h2>${def.label}</h2><p>${esc(def.help)}</p></div><button class="primary" id="add">הוסף</button></div>
+    ${head(def.label, esc(def.help), `<button class="btn primary" data-add>${icon('plus')}הוסף ${def.single}</button>`)}
     ${def.head ? def.head() : ''}
-    <div class="items">${arr.length ? arr.map((it, i) => `
-      <div class="item" data-i="${i}">
-        ${def.fields.map((f) => fieldHtml(it, f, `${key}-${i}`)).join('')}
-        <div class="tools"><span class="calc">${def.calc ? esc(calcText(it)) : ''}</span>
-          <span><button data-act="up" aria-label="העלה">▲</button> <button data-act="down" aria-label="הורד">▼</button> <button data-act="del" class="danger">מחק</button></span></div>
-      </div>`).join('') : '<div class="box">הרשימה ריקה. לחץ "הוסף".</div>'}</div>`;
-  $('#add').onclick = () => { arr.push(def.blank()); setDirty(); renderList(key); $('#panel .item:last-child input')?.focus(); };
+    ${def.search && arr.length > 5 ? `<label class="search">${icon('search')}<input id="flt" type="search" placeholder="חיפוש…" value="${esc(f)}"></label>` : ''}
+    <div class="list">${listHtml}</div>`;
+
+  const p = $('#panel');
+  p.querySelectorAll('[data-add]').forEach((b) => b.onclick = () => {
+    const it = def.blank(); arr.push(it); openIds.add(it.id); filters[key] = ''; setDirty(); renderList(key, true); updateCounts();
+  });
   def.bindHead?.(() => renderList(key));
-  $('#panel').querySelectorAll('.item').forEach((row) => {
+  const flt = $('#flt');
+  if (flt) flt.oninput = () => { filters[key] = flt.value; clearTimeout(flt.t); flt.t = setTimeout(() => { renderList(key); const n = $('#flt'); n.focus(); n.setSelectionRange(n.value.length, n.value.length); }, 250); };
+
+  p.querySelectorAll('.item').forEach((row) => {
     const i = +row.dataset.i;
+    row.addEventListener('toggle', () => { if (row.open) openIds.add(arr[i].id); else openIds.delete(arr[i].id); });
     const commit = (e) => {
       const el = e.target.closest('[data-k]');
       if (!el) return;
       arr[i][el.dataset.k] = readField(el);
       setDirty();
-      if (el.dataset.type === 'time' && e.target.dataset.t === 'type') renderList(key);
-      else if (def.calc) row.querySelector('.calc').textContent = calcText(arr[i]);
+      if (el.dataset.type === 'time' && e.target.dataset.t === 'type') return renderList(key);
+      if (def.group && el.dataset.k === def.group) return renderList(key);
+      if (def.calc) row.querySelector('.calc').textContent = calcText(arr[i]);
+      row.querySelector('summary').innerHTML = summaryHtml(def, arr[i]);
     };
     row.addEventListener('change', commit);
     row.addEventListener('input', (e) => { if (e.target.matches('input[type=text],input:not([type]),textarea')) commit(e); });
     row.querySelectorAll('[data-act]').forEach((b) => b.onclick = () => {
       const act = b.dataset.act;
       if (act === 'del') {
-        if (b.dataset.confirm) { arr.splice(i, 1); setDirty(); renderList(key); }
-        else { b.dataset.confirm = '1'; b.textContent = 'בטוח? לחץ שוב'; setTimeout(() => { if (b.isConnected) { delete b.dataset.confirm; b.textContent = 'מחק'; } }, 4000); }
+        if (b.dataset.confirm) { openIds.delete(arr[i].id); arr.splice(i, 1); setDirty(); renderList(key); updateCounts(); }
+        else { b.dataset.confirm = '1'; b.innerHTML = 'בטוח? לחץ שוב'; setTimeout(() => { if (b.isConnected) { delete b.dataset.confirm; b.innerHTML = `${icon('trash')}<span>מחק</span>`; } }, 4000); }
         return;
       }
-      const j = act === 'up' ? i - 1 : i + 1;
+      if (act === 'dup') { const c = { ...structuredClone(arr[i]), id: uid() }; arr.splice(i + 1, 0, c); openIds.add(c.id); setDirty(); renderList(key); updateCounts(); return; }
+      // הזזה – בתוך אותה קבוצה (בתפילות: אותו לוח)
+      const same = (j) => !def.group || (arr[j][def.group] || 'weekday') === (arr[i][def.group] || 'weekday');
+      let j = i;
+      do { j += act === 'up' ? -1 : 1; } while (j >= 0 && j < arr.length && !same(j));
       if (j < 0 || j >= arr.length) return;
       [arr[i], arr[j]] = [arr[j], arr[i]];
       setDirty(); renderList(key);
     });
+  });
+  if (focusNew) { const last = [...p.querySelectorAll('.item[open]')].pop(); last?.scrollIntoView({ block: 'center', behavior: 'smooth' }); last?.querySelector('input,textarea')?.focus({ preventScroll: true }); }
+}
+
+// ---------- סקירה ----------
+function renderHome() {
+  freshPanel();
+  const s = DATA.synagogue;
+  let day, prayers = [], lessons = [], mem = [], bdays = [], hil = [];
+  try {
+    day = todayDay();
+    const lctx = { candles: day.shabbat.candles, havdalah: day.shabbat.havdalah };
+    prayers = prayersForDay(day, DATA, s);
+    lessons = lessonsForDay(DATA, s, day.civil, lctx);
+    mem = inHebrewRange(DATA.memorials || [], day.hd, day.hd.add(7), yahrzeitIn);
+    bdays = inHebrewRange(DATA.birthdays || [], day.hd, day.hd.add(7), birthdayIn);
+    hil = inHebrewRange(DATA.hilulot || [], day.hd, day.hd.add(7), yahrzeitIn);
+  } catch (e) { console.warn(e); }
+  const nowMin = (() => { const d = new Date(); return d.getHours() * 60 + d.getMinutes(); })();
+  const anns = (DATA.announcements || []).filter(activeRange);
+  const r = refForDate(isoToday(), DATA.halachaStart || DEFAULT_START);
+  const tz = s.tz;
+  const sh = day?.shabbat || {};
+  const zrow = (k, l) => { const v = day?.zmanim?.[k]; return v ? `<div class="pill"><small>${l}</small><b>${fmtTime(v, tz, k === 'sunrise' ? 'ceil' : 'nearest')}</b></div>` : ''; };
+  const q = location.search;
+  $('#panel').innerHTML = `
+    ${head('סקירה', '', `<button class="btn" data-go="announcements" data-new>${icon('plus')}הודעה</button><button class="btn" data-go="memorials" data-new>${icon('plus')}אזכרה</button><button class="btn" data-go="lessons" data-new>${icon('plus')}שיעור</button>`)}
+    <section class="card hero-today">
+      <div><div class="sub">${esc(day ? day.weekday : '')}</div><div class="hd">${esc(day ? day.hebDate : '')}</div>
+      <div class="sub">${esc(day?.gregDate || '')}${sh.parsha ? ` · פרשת ${esc(sh.parsha)}` : ''}${day?.events?.length ? ` · ${esc(day.events.join(' · '))}` : ''}</div></div>
+      <div class="pills">
+        ${zrow('sunrise', 'הנץ')}${zrow('sunset', 'שקיעה')}
+        ${sh.candles ? `<div class="pill"><small>${esc(sh.candlesLabel || 'הדלקת נרות')}</small><b>${fmtTime(sh.candles, tz, 'floor')}</b></div>` : ''}
+        ${sh.havdalah ? `<div class="pill"><small>צאת השבת</small><b>${fmtTime(sh.havdalah, tz, 'ceil')}</b></div>` : ''}
+      </div>
+    </section>
+    <div class="dash">
+      <section class="card"><h2>${icon('prayers')}תפילות היום</h2>
+        ${prayers.length ? `<div class="mini-rows">${prayers.map((p) => `<div class="mini-row ${p.min != null && p.min < nowMin ? 'past' : ''}"><span>${esc(p.name)}</span><b>${esc(p.time)}</b></div>`).join('')}</div>` : '<p class="note">אין תפילות מוגדרות להיום.</p>'}
+        ${lessons.length ? `<div class="mini-rows">${lessons.map((l) => `<div class="mini-row"><span>${esc(l.title)}${l.teacher ? ` · ${esc(l.teacher)}` : ''}</span><b>${esc(l.timeStr)}</b></div>`).join('')}</div>` : ''}
+        <button class="btn sm" data-go="prayers">עריכת תפילות</button></section>
+      <section class="card"><h2>${icon('display')}כך נראה הלוח עכשיו <span class="tag">חי</span></h2>
+        <div class="preview" id="pv"><iframe title="תצוגה מקדימה של הלוח" src="index.html${q ? q + '&' : '?'}preview" loading="lazy" tabindex="-1"></iframe></div>
+        <p class="note">שינויים מופיעים כאן אחרי שמירה. <a href="index.html${esc(q)}" target="_blank" rel="noopener">פתח במסך מלא</a></p></section>
+      <section class="card"><h2>${icon('memorials')}השבוע</h2>
+        ${mem.length || bdays.length || hil.length ? `<div class="mini-rows">
+          ${mem.map((m) => `<div class="mini-row"><span>אזכרה: ${esc(m.name)} ז״ל</span><span class="muted">${esc(renderHeb(m.hdate))}</span></div>`).join('')}
+          ${bdays.map((m) => `<div class="mini-row"><span>יום הולדת: ${esc(m.name)}</span><span class="muted">${esc(renderHeb(m.hdate))}</span></div>`).join('')}
+          ${hil.map((m) => `<div class="mini-row"><span>הילולא: ${esc(m.name)}</span><span class="muted">${esc(renderHeb(m.hdate))}</span></div>`).join('')}
+        </div>` : '<p class="note">אין אזכרות, ימי הולדת או הילולות בשבוע הקרוב.</p>'}
+        <div class="quick"><button class="btn sm" data-go="memorials">אזכרות</button><button class="btn sm" data-go="birthdays">ימי הולדת</button></div></section>
+      <section class="card"><h2>${icon('announcements')}הודעות מוצגות <span class="tag">${anns.length}</span></h2>
+        ${anns.length ? `<div class="mini-rows">${anns.slice(0, 6).map((a) => `<div class="mini-row"><span>${esc(a.title || (a.body || '').split('\n')[0])}</span><span class="muted">${a.to ? `עד ${fmtDate(a.to)}` : 'תמיד'}</span></div>`).join('')}</div>` : '<p class="note">אין הודעות פעילות כרגע.</p>'}
+        <button class="btn sm" data-go="announcements">ניהול הודעות</button></section>
+      <section class="card"><h2>${icon('halachot')}הלכה יומית</h2>
+        <p class="note">${(DATA.halachaSource || 'sa') === 'sa' ? `היום: שולחן ערוך ${r.book.he}, סימן ${heNum(r.siman)} סעיף ${heNum(r.seif)}` : 'מוצגות ההלכות שכתבת'}</p>
+        <button class="btn sm" data-go="halachot">הגדרות</button></section>
+    </div>`;
+  const pv = $('#pv');
+  const fit = () => { const f = pv?.querySelector('iframe'); if (f) f.style.transform = `scale(${pv.clientWidth / 1920})`; };
+  fit(); new ResizeObserver(fit).observe(pv);
+  $('#panel').querySelectorAll('[data-go]').forEach((b) => b.onclick = () => {
+    tab = b.dataset.go; renderNav();
+    if (b.hasAttribute('data-new') && LISTS[tab]) { const it = LISTS[tab].blank(); DATA[tab].push(it); openIds.add(it.id); setDirty(); renderList(tab, true); updateCounts(); }
+    else renderPanel();
   });
 }
 
@@ -188,39 +362,34 @@ function renderList(key) {
 function renderShul() {
   freshPanel();
   const s = DATA.synagogue;
-  const f = (k, label, type = 'text', extra = '') => `<label for="s-${k}">${label}</label><input id="s-${k}" data-s="${k}" type="${type}" value="${esc(s[k])}" ${extra}>`;
+  const f = (k, label, type = 'text', extra = '', hint = '') => `<label class="fld"><span>${label}</span><input data-s="${k}" type="${type}" value="${esc(s[k])}" ${extra}>${hint ? `<small class="muted">${hint}</small>` : ''}</label>`;
+  const c = (k, label) => `<label class="fld check"><input data-s="${k}" type="checkbox" ${s[k] ? 'checked' : ''}><span>${label}</span></label>`;
   $('#panel').innerHTML = `
-    <div class="panel-head"><div><h2>פרטי בית הכנסת</h2><p>המיקום קובע את כל הזמנים. אפשר לקחת אותו מהטלפון כשאתה בבית הכנסת.</p></div></div>
-    <section class="box"><div class="form">
-      ${f('name', 'שם בית הכנסת')}
-      ${f('dedication', 'שורת הקדשה')}
-      ${f('city', 'עיר')}
-      ${f('lat', 'קו רוחב', 'number', 'step="0.0001"')}
-      ${f('lon', 'קו אורך', 'number', 'step="0.0001"')}
-      <span></span><div class="row-btns" style="grid-column:auto"><button type="button" id="geo">קח מיקום מהמכשיר</button></div>
-      ${f('elevation', 'גובה (מטרים)', 'number')}
-      <label for="s-useElevation">חישוב לפי גובה</label><input id="s-useElevation" data-s="useElevation" type="checkbox" ${s.useElevation ? 'checked' : ''}>
-      <label for="s-il">בארץ ישראל</label><input id="s-il" data-s="il" type="checkbox" ${s.il ? 'checked' : ''}>
-      <label for="s-nusach">נוסח</label><select id="s-nusach" data-s="nusach">${[['sefard', 'ספרד'], ['ashkenaz', 'אשכנז'], ['edot', 'עדות המזרח'], ['chabad', 'חב"ד']].map(([k, l]) => `<option value="${k}" ${s.nusach === k ? 'selected' : ''}>${l}</option>`).join('')}</select>
-      ${f('candleMins', 'הדלקת נרות – דקות לפני השקיעה', 'number')}
-      <div class="hint">חיפה 30, תל אביב 22, ירושלים 40 – לפי מנהג המקום</div>
-      ${f('havdalahMins', 'צאת שבת – דקות אחרי השקיעה', 'number')}
-      <div class="hint">0 = לפי צאת הכוכבים (8.5 מעלות). לר"ת למשל 72.</div>
-      ${f('tz', 'אזור זמן')}
+    ${head('בית הכנסת', 'הפרטים שמופיעים בראש הלוח, והמיקום שלפיו מחושבים כל הזמנים.')}
+    <section class="card"><h2>${icon('shul')}פרטים</h2><div class="form-grid">
+      ${f('name', 'שם בית הכנסת')}${f('dedication', 'שורת הקדשה (מתחת לשעון)', 'text', 'placeholder="לעילוי נשמת…"')}
+      <label class="fld"><span>נוסח</span><select data-s="nusach">${[['sefard', 'ספרד'], ['ashkenaz', 'אשכנז'], ['edot', 'עדות המזרח'], ['chabad', 'חב"ד']].map(([k, l]) => `<option value="${k}" ${s.nusach === k ? 'selected' : ''}>${l}</option>`).join('')}</select></label>
     </div></section>
-    <section class="box"><h2>זמני היום שיוצגו</h2><div class="checks">${ZMANIM.map((z) => `<label><input type="checkbox" data-z="${z.key}" ${(s.zmanimShown || []).includes(z.key) ? 'checked' : ''}>${z.label}</label>`).join('')}</div></section>
-    <section class="box"><h2>לימוד יומי</h2><div class="checks">${[['dafYomi', 'דף יומי'], ['mishnaYomi', 'משנה יומית'], ['nachYomi', 'נ"ך יומי'], ['rambam1', 'רמב"ם יומי'], ['chofetzChaim', 'חפץ חיים'], ['psalms', 'תהלים']].map(([k, l]) => `<label><input type="checkbox" data-l="${k}" ${s.learning?.[k] ? 'checked' : ''}>${l}</label>`).join('')}</div></section>`;
+    <section class="card"><h2>${icon('home')}מיקום</h2><div class="form-grid">
+      ${f('city', 'עיר')}${f('lat', 'קו רוחב', 'number', 'step="0.0001"')}${f('lon', 'קו אורך', 'number', 'step="0.0001"')}
+      ${f('elevation', 'גובה (מטרים)', 'number')}${c('useElevation', 'חישוב הנץ והשקיעה לפי גובה')}${c('il', 'בארץ ישראל')}
+      ${f('tz', 'אזור זמן')}
+      <div class="fld" style="justify-content:end"><button type="button" class="btn" id="geo">קח מיקום מהמכשיר</button></div>
+    </div><p class="note">כדאי ללחוץ "קח מיקום" כשאתה בתוך בית הכנסת. אפשר גם להעתיק קו רוחב ואורך מ-Google Maps.</p></section>
+    <section class="card"><h2>${icon('memorials')}שבת</h2><div class="form-grid">
+      ${f('candleMins', 'הדלקת נרות – דקות לפני השקיעה', 'number', '', 'חיפה 30, תל אביב 22, ירושלים 40 – לפי מנהג המקום')}
+      ${f('havdalahMins', 'צאת שבת – דקות אחרי השקיעה', 'number', '', '0 = לפי צאת הכוכבים (8.5°). לר"ת למשל 72')}
+    </div></section>
+    <section class="card"><h2>זמני היום שיוצגו</h2><div class="form-grid">${ZMANIM.map((z) => `<label class="fld check" style="padding-top:0"><input type="checkbox" data-z="${z.key}" ${(s.zmanimShown || []).includes(z.key) ? 'checked' : ''}><span>${z.label}</span></label>`).join('')}</div></section>
+    <section class="card"><h2>${icon('lessons')}לימוד יומי</h2><div class="form-grid">${[['dafYomi', 'דף יומי'], ['mishnaYomi', 'משנה יומית'], ['nachYomi', 'נ"ך יומי'], ['rambam1', 'רמב"ם יומי'], ['chofetzChaim', 'חפץ חיים'], ['psalms', 'תהלים']].map(([k, l]) => `<label class="fld check" style="padding-top:0"><input type="checkbox" data-l="${k}" ${s.learning?.[k] ? 'checked' : ''}><span>${l}</span></label>`).join('')}</div></section>`;
   const p = $('#panel');
-  p.addEventListener('input', (e) => {
+  const upd = (e) => {
     const el = e.target;
-    if (el.dataset.s) { s[el.dataset.s] = el.type === 'checkbox' ? el.checked : el.type === 'number' ? (el.value === '' ? '' : +el.value) : el.value; setDirty(); }
-  });
-  p.addEventListener('change', (e) => {
-    const el = e.target;
-    if (el.dataset.s) { s[el.dataset.s] = el.type === 'checkbox' ? el.checked : el.type === 'number' ? (el.value === '' ? '' : +el.value) : el.value; setDirty(); }
+    if (el.dataset.s) { s[el.dataset.s] = el.type === 'checkbox' ? el.checked : el.type === 'number' ? (el.value === '' ? '' : +el.value) : el.value; setDirty(); if (el.dataset.s === 'name') $('#shul-name').textContent = el.value || 'ניהול הלוח'; }
     if (el.dataset.z) { s.zmanimShown = ZMANIM.map((z) => z.key).filter((k) => p.querySelector(`[data-z="${k}"]`).checked); setDirty(); }
     if (el.dataset.l) { s.learning = { ...(s.learning || {}), [el.dataset.l]: el.checked }; setDirty(); }
-  });
+  };
+  p.addEventListener('input', upd); p.addEventListener('change', upd);
   $('#geo').onclick = () => {
     if (!navigator.geolocation) return flash('המכשיר לא מאפשר לקחת מיקום', true);
     navigator.geolocation.getCurrentPosition((pos) => {
@@ -235,43 +404,45 @@ function renderShul() {
 function renderDisplay() {
   freshPanel();
   const d = DATA.display;
+  const sel = (k, opts, val) => `<select data-d="${k}">${opts.map(([v, l]) => `<option value="${v}" ${val === v ? 'selected' : ''}>${l}</option>`).join('')}</select>`;
   $('#panel').innerHTML = `
-    <div class="panel-head"><div><h2>תצוגה</h2><p>סדר המסכים, כמה זמן כל אחד מוצג, ועיצוב. מסך בלי תוכן (למשל אין אזכרות השבוע) מדולג אוטומטית.</p></div></div>
-    <section class="box"><div class="form">
-      <label for="d-theme">ערכת עיצוב</label><select id="d-theme" data-d="theme">${THEMES.map(([k, l]) => `<option value="${k}" ${d.theme === k ? 'selected' : ''}>${l}</option>`).join('')}</select>
-      <label for="d-scene">רקעים</label><select id="d-scene" data-d="scene">${SCENE_CHOICES.map(([k, l]) => `<option value="${k}" ${(d.scene || 'auto') === k ? 'selected' : ''}>${l}</option>`).join('')}</select>
-      <label for="d-hol">עיצוב מיוחד בחגים</label><input id="d-hol" data-d="holidayDesign" type="checkbox" ${d.holidayDesign !== false ? 'checked' : ''}>
-      <label for="d-bg">תמונת רקע משלך (כתובת)</label><input id="d-bg" data-d="bgImage" value="${esc(d.bgImage)}" placeholder="https://… (לא חובה; בחגים יוצג עיצוב החג)">
-      <label for="d-sec">זמן ברירת מחדל למסך (שניות)</label><input id="d-sec" data-d="defaultSeconds" type="number" min="4" value="${esc(d.defaultSeconds)}">
-      <label for="d-ticker">פס גולל בתחתית</label><input id="d-ticker" data-d="ticker" type="checkbox" ${d.ticker ? 'checked' : ''}>
-      <label for="d-netz">שעון נץ – דקות לפני הנץ</label><input id="d-netz" data-d="netzWindowMin" type="number" min="5" value="${esc(d.netzWindowMin)}">
-      <label for="d-off">כיבוי מסך בלילה</label><input id="d-off" data-o="enabled" type="checkbox" ${d.offHours.enabled ? 'checked' : ''}>
-      <label for="d-from">מהשעה</label><input id="d-from" data-o="from" type="time" value="${esc(d.offHours.from)}">
-      <label for="d-to">עד השעה</label><input id="d-to" data-o="to" type="time" value="${esc(d.offHours.to)}">
-    </div></section>
-    <p class="sub">במצב "אוטומטי" כל שקופית מקבלת רקע משלה (זמני היום – מסלול השמש, שיעורים – ארון ספרים, אזכרות – נר נשמה…), ובחגים הלוח עובר לעיצוב ולצבעים של החג. <a href="gallery.html" target="_blank">לגלריית הרקעים</a></p>
-    <section class="box"><h2>המסכים</h2><div class="items">${d.screens.map((sc, i) => `
-      <div class="item" data-i="${i}" style="grid-template-columns:auto 1fr 120px auto;align-items:center">
-        <input type="checkbox" data-sc="enabled" ${sc.enabled ? 'checked' : ''} aria-label="הצג ${esc(SCREEN_LABEL[sc.type])}">
-        <strong>${esc(SCREEN_LABEL[sc.type] || sc.type)}</strong>
-        <input type="number" min="4" data-sc="seconds" value="${esc(sc.seconds)}" aria-label="שניות">
-        <span><button data-act="up" aria-label="העלה">▲</button> <button data-act="down" aria-label="הורד">▼</button></span>
-      </div>`).join('')}</div>
-      <p class="sub">טיפ: למסך שני עם תוכן אחר, פתח את הלוח עם <code>?screens=memorials,parnas</code> בסוף הכתובת.</p></section>`;
+    ${head('תצוגה ועיצוב', 'סדר המסכים, כמה זמן כל אחד מוצג, ועיצוב הלוח. מסך בלי תוכן (למשל אין אזכרות השבוע) מדולג אוטומטית.')}
+    <section class="card"><h2>${icon('display')}עיצוב</h2><div class="form-grid">
+      <label class="fld"><span>ערכת צבעים</span>${sel('theme', THEMES, d.theme)}</label>
+      <label class="fld"><span>רקעים</span>${sel('scene', SCENE_CHOICES, d.scene || 'auto')}</label>
+      <label class="fld check"><input data-d="holidayDesign" type="checkbox" ${d.holidayDesign !== false ? 'checked' : ''}><span>עיצוב מיוחד בחגים</span></label>
+      <label class="fld full"><span>תמונת רקע משלך (כתובת, לא חובה)</span><input data-d="bgImage" value="${esc(d.bgImage)}" placeholder="https://…" dir="ltr"></label>
+    </div><p class="note">ב"אוטומטי" כל שקופית מקבלת רקע משלה, ובחגים הלוח עובר לעיצוב ולצבעים של החג. <a href="gallery.html" target="_blank" rel="noopener">לגלריית הרקעים</a></p></section>
+    <section class="card"><h2>${icon('prayers')}המסכים <span class="tag">${d.screens.filter((x) => x.enabled).length} פעילים</span></h2>
+      <div class="screen-list">${d.screens.map((sc, i) => `
+        <div class="screen-row ${sc.enabled ? '' : 'off'}" data-i="${i}">
+          <input type="checkbox" data-sc="enabled" ${sc.enabled ? 'checked' : ''} aria-label="הצג ${esc(SCREEN_LABEL[sc.type])}">
+          <strong>${esc(SCREEN_LABEL[sc.type] || sc.type)}</strong>
+          <label class="fld" style="flex-direction:row;align-items:center;gap:6px"><input type="number" min="4" data-sc="seconds" value="${esc(sc.seconds)}" aria-label="שניות"><span class="muted" style="font-weight:600">שנ׳</span></label>
+          <span class="btns" style="display:flex;gap:4px"><button class="icon" data-act="up" aria-label="הזז למעלה">${icon('up')}</button><button class="icon" data-act="down" aria-label="הזז למטה">${icon('down')}</button></span>
+        </div>`).join('')}</div>
+      <p class="note">למסך שני עם תוכן אחר: הוסף לכתובת הלוח <code>?screens=memorials,parnas</code></p></section>
+    <section class="card"><h2>הגדרות נוספות</h2><div class="form-grid">
+      <label class="fld"><span>זמן ברירת מחדל למסך (שניות)</span><input data-d="defaultSeconds" type="number" min="4" value="${esc(d.defaultSeconds)}"></label>
+      <label class="fld"><span>שעון נץ – כמה דקות לפני הנץ</span><input data-d="netzWindowMin" type="number" min="5" value="${esc(d.netzWindowMin)}"></label>
+      <label class="fld check"><input data-d="ticker" type="checkbox" ${d.ticker ? 'checked' : ''}><span>פס גולל בתחתית</span></label>
+      <label class="fld check"><input data-o="enabled" type="checkbox" ${d.offHours.enabled ? 'checked' : ''}><span>כיבוי המסך בלילה</span></label>
+      <label class="fld"><span>כיבוי מהשעה</span><input data-o="from" type="time" value="${esc(d.offHours.from)}"></label>
+      <label class="fld"><span>עד השעה</span><input data-o="to" type="time" value="${esc(d.offHours.to)}"></label>
+    </div></section>`;
   const p = $('#panel');
   const upd = (e) => {
     const el = e.target;
     const val = el.type === 'checkbox' ? el.checked : el.type === 'number' ? +el.value : el.value;
     if (el.dataset.d) d[el.dataset.d] = val;
     else if (el.dataset.o) d.offHours[el.dataset.o] = val;
-    else if (el.dataset.sc) d.screens[+el.closest('.item').dataset.i][el.dataset.sc] = val;
+    else if (el.dataset.sc) { const row = el.closest('.screen-row'); d.screens[+row.dataset.i][el.dataset.sc] = val; if (el.dataset.sc === 'enabled') row.classList.toggle('off', !val); }
     else return;
     setDirty();
   };
-  p.addEventListener('change', upd);
-  p.addEventListener('input', upd);
+  p.addEventListener('change', upd); p.addEventListener('input', upd);
   p.querySelectorAll('[data-act]').forEach((b) => b.onclick = () => {
-    const i = +b.closest('.item').dataset.i, j = b.dataset.act === 'up' ? i - 1 : i + 1;
+    const i = +b.closest('.screen-row').dataset.i, j = b.dataset.act === 'up' ? i - 1 : i + 1;
     if (j < 0 || j >= d.screens.length) return;
     [d.screens[i], d.screens[j]] = [d.screens[j], d.screens[i]];
     setDirty(); renderDisplay();
@@ -282,37 +453,44 @@ function renderDisplay() {
 function renderBackup() {
   freshPanel();
   $('#panel').innerHTML = `
-    <div class="panel-head"><div><h2>גיבוי ושחזור</h2><p>כדאי להוריד גיבוי אחרי כל עדכון גדול.</p></div></div>
-    <section class="box"><div class="row-btns">
-      <a class="btn" id="dl" download="shul-board-${esc(boardId)}.json">הורד גיבוי</a>
-      <label class="btn" for="imp">טען מקובץ</label><input id="imp" type="file" accept="application/json" hidden>
-      <button class="danger" id="reset">אפס לנתוני הדגמה</button>
+    ${head('גיבוי ושחזור', 'כדאי להוריד גיבוי אחרי כל עדכון גדול.')}
+    <section class="card"><h2>${icon('backup')}קובץ גיבוי</h2><div class="quick">
+      <a class="btn primary" id="dl" download="shul-board-${esc(boardId)}-${isoToday()}.json">${icon('backup')}הורד גיבוי</a>
+      <label class="btn" for="imp">טען מקובץ…</label><input id="imp" type="file" accept="application/json" hidden>
     </div></section>
-    <section class="box"><h2>מצב החיבור</h2><div>${mode === 'supabase' ? `מחובר ל-Supabase · לוח: <b>${esc(boardId)}</b>` : 'מצב מקומי: הנתונים נשמרים בדפדפן הזה בלבד. כדי לעדכן מהטלפון את הלוח שבבית הכנסת, חבר Supabase (הוראות ב-README).'}</div></section>`;
-  const url = URL.createObjectURL(exportJson(DATA));
-  $('#dl').href = url;
+    <section class="card"><h2>מצב החיבור</h2><p class="note">${mode === 'supabase' ? `מחובר לענן (Supabase) · לוח: <b>${esc(boardId)}</b>. כל שמירה מגיעה ללוח בבית הכנסת תוך שניות.` : 'מצב מקומי: הנתונים נשמרים בדפדפן הזה בלבד.'}</p></section>
+    <section class="card"><h2 style="color:var(--danger)">איפוס</h2><p class="note">מחליף את כל הנתונים בנתוני ההדגמה. אפשר לבטל עד שלוחצים "שמור".</p><div><button class="danger" id="reset">אפס לנתוני הדגמה</button></div></section>`;
+  $('#dl').href = URL.createObjectURL(exportJson(DATA));
   $('#imp').onchange = async (e) => {
     const file = e.target.files[0]; if (!file) return;
-    try { DATA = normalize(JSON.parse(await file.text())); setDirty(); flash('הקובץ נטען. לחץ "שמור" כדי להחיל.'); }
+    try { DATA = normalize(JSON.parse(await file.text())); setDirty(); updateCounts(); flash('הקובץ נטען. לחץ "שמור" כדי להחיל.'); }
     catch { flash('הקובץ לא תקין', true); }
   };
   $('#reset').onclick = (e) => {
     const b = e.currentTarget;
     if (!b.dataset.confirm) { b.dataset.confirm = '1'; b.textContent = 'בטוח? כל הנתונים יוחלפו. לחץ שוב'; return; }
-    DATA = normalize(demoData()); setDirty(); flash('נטענו נתוני הדגמה. לחץ "שמור" כדי להחיל.'); renderBackup();
+    DATA = normalize(demoData()); setDirty(); updateCounts(); flash('נטענו נתוני הדגמה. לחץ "שמור" כדי להחיל, או "בטל שינויים".'); renderBackup();
   };
 }
 
 // ---------- ניווט ----------
-function renderTabs() {
+function countOf(k) { return Array.isArray(DATA?.[k]) ? DATA[k].length : null; }
+function renderNav() {
   const nav = $('#tabs');
   nav.hidden = false;
   nav.setAttribute('role', 'tablist');
-  nav.innerHTML = TABS.map(([k, l]) => `<button role="tab" aria-selected="${k === tab}" data-tab="${k}">${l}</button>`).join('');
-  nav.querySelectorAll('button').forEach((b) => b.onclick = () => { tab = b.dataset.tab; renderTabs(); renderPanel(); });
+  nav.setAttribute('aria-label', 'אזורי ניהול');
+  nav.innerHTML = NAV.map(([g, items]) => `${g ? `<div class="group">${g}</div>` : ''}${items.map(([k, l]) => {
+    const n = LISTS[k] ? countOf(k) : null;
+    return `<button role="tab" aria-selected="${k === tab}" data-tab="${k}">${icon(k)}<span>${l}</span>${n ? `<span class="count" data-count="${k}">${n}</span>` : ''}</button>`;
+  }).join('')}`).join('');
+  nav.querySelectorAll('button').forEach((b) => b.onclick = () => { tab = b.dataset.tab; renderNav(); renderPanel(); b.scrollIntoView({ inline: 'center', block: 'nearest' }); });
+  try { history.replaceState(null, '', `#${tab}`); } catch {}
 }
+function updateCounts() { renderNav(); }
 function renderPanel() {
-  if (LISTS[tab]) renderList(tab);
+  if (tab === 'home') renderHome();
+  else if (LISTS[tab]) renderList(tab);
   else if (tab === 'shul') renderShul();
   else if (tab === 'display') renderDisplay();
   else renderBackup();
@@ -320,34 +498,40 @@ function renderPanel() {
 
 async function doSave() {
   const b = $('#btn-save');
-  b.disabled = true; b.textContent = 'שומר…';
-  try { await save(DATA); setDirty(false); flash('נשמר. הלוח יתעדכן תוך כמה שניות.'); }
-  catch (e) { setDirty(true); flash('השמירה נכשלה: ' + e.message, true); }
+  b.disabled = true; b.textContent = 'שומר…'; $('#btn-save2').disabled = true;
+  try {
+    await save(DATA); SAVED = structuredClone(DATA); setDirty(false); flash('נשמר ✓ הלוח יתעדכן תוך כמה שניות');
+    const f = $('#pv iframe'); if (f) setTimeout(() => f.contentWindow?.location.reload(), 1500);
+  } catch (e) { setDirty(true); flash('השמירה נכשלה: ' + e.message, true); }
+  finally { $('#btn-save2').disabled = false; }
 }
 
 async function enter() {
   const user = await currentUser();
   if (mode === 'supabase' && !user) {
-    $('#login').hidden = false; $('#tabs').hidden = true; $('#panel').innerHTML = '';
-    $('#who').textContent = `לוח: ${boardId}`;
+    $('#login').hidden = false; $('#tabs').hidden = true; $('#panel').hidden = true;
+    $('#who').textContent = '';
     return;
   }
-  $('#login').hidden = true;
-  $('#who').innerHTML = mode === 'supabase'
-    ? `${esc(user.email)} · לוח ${esc(boardId)} · <a href="#" id="out">התנתק</a>`
-    : 'מצב מקומי (בלי ענן) – הנתונים נשמרים בדפדפן הזה';
+  $('#login').hidden = true; $('#panel').hidden = false;
+  $('#who').innerHTML = mode === 'supabase' ? `${esc(user.email)} · <a href="#" id="out">התנתק</a>` : 'מצב מקומי – הנתונים נשמרים בדפדפן הזה';
   $('#out')?.addEventListener('click', async (e) => { e.preventDefault(); await signOut(); location.reload(); });
   const r = await load();
-  DATA = r.data;
+  DATA = r.data; SAVED = structuredClone(DATA);
+  $('#shul-name').textContent = DATA.synagogue.name || 'ניהול הלוח';
+  const h = location.hash.slice(1);
+  if (h && (LISTS[h] || ['home', 'shul', 'display', 'backup'].includes(h))) tab = h;
   if (r.source === 'missing') flash('הלוח עוד לא קיים בשרת. נטענו נתוני הדגמה – ערוך ולחץ "שמור" כדי ליצור אותו.');
-  renderTabs(); renderPanel(); setDirty(r.source === 'missing');
+  renderNav(); renderPanel(); setDirty(r.source === 'missing');
 }
 
 $('#btn-save').onclick = doSave;
+$('#btn-save2').onclick = doSave;
+$('#btn-undo').onclick = () => { DATA = structuredClone(SAVED); setDirty(false); renderNav(); renderPanel(); flash('השינויים בוטלו'); };
 $('#login-form').onsubmit = async (e) => {
   e.preventDefault();
   try { await signIn($('#email').value, $('#password').value); enter(); }
-  catch (err) { flash(err.message, true); }
+  catch (err) { flash(err.message === 'Invalid login credentials' ? 'אימייל או סיסמה שגויים' : err.message, true); }
 };
 $('#btn-signup').onclick = async () => {
   try { await signUp($('#email').value, $('#password').value); flash('נרשמת. אם נשלח אליך מייל אימות – אשר אותו ואז היכנס.'); }

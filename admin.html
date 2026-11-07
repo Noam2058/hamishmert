@@ -3,33 +3,49 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#14213d">
 <title>ניהול הלוח – גבאי</title>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Frank+Ruhl+Libre:wght@700;900&family=Assistant:wght@500;700;800&display=swap">
-<link rel="stylesheet" href="css/mobile.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Frank+Ruhl+Libre:wght@700;900&family=Assistant:wght@500;600;700;800&display=swap">
 <link rel="stylesheet" href="css/admin.css">
 <script src="config.js"></script>
 </head>
 <body>
-<div class="adm">
-  <header class="adm-top">
-    <div><h1>ניהול הלוח</h1><div class="sub" id="who"></div></div>
-    <div class="actions">
-      <a href="index.html" target="_blank" rel="noopener" id="lnk-board">פתח את הלוח</a>
-      <a href="m.html" target="_blank" rel="noopener" id="lnk-mobile">דף למתפללים</a>
-      <button id="btn-save" class="primary" disabled>שמור</button>
+<div class="app" id="app">
+  <header class="topbar">
+    <div class="brand">
+      <span class="logo" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 2.5l3 5.2h6l-3 5.3 3 5.3h-6l-3 5.2-3-5.2H3l3-5.3-3-5.3h6z"/></svg></span>
+      <div><div class="brand-name" id="shul-name">ניהול הלוח</div><div class="brand-sub" id="who"></div></div>
+    </div>
+    <div class="top-actions">
+      <span class="status" id="status" hidden></span>
+      <a class="btn ghost" href="index.html" target="_blank" rel="noopener" id="lnk-board"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4"/></svg><span>הלוח</span></a>
+      <a class="btn ghost hide-sm" href="m.html" target="_blank" rel="noopener" id="lnk-mobile"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="7" y="2.5" width="10" height="19" rx="2"/><path d="M11 18h2"/></svg><span>דף למתפללים</span></a>
+      <button class="btn primary" id="btn-save" disabled>נשמר</button>
     </div>
   </header>
-  <div id="msg" class="msg" hidden></div>
-  <section id="login" class="box" hidden>
-    <h2>כניסת גבאי</h2>
-    <form id="login-form" class="form">
-      <label for="email">אימייל</label><input id="email" type="email" autocomplete="username" required>
-      <label for="password">סיסמה</label><input id="password" type="password" autocomplete="current-password" required minlength="6">
-      <div class="row-btns"><button class="primary" type="submit">כניסה</button><button type="button" id="btn-signup" hidden>הרשמה ראשונה</button></div>
-    </form>
+
+  <section id="login" class="login" hidden>
+    <div class="login-card">
+      <span class="logo big" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 2.5l3 5.2h6l-3 5.3 3 5.3h-6l-3 5.2-3-5.2H3l3-5.3-3-5.3h6z"/></svg></span>
+      <h1>כניסת גבאי</h1>
+      <p class="muted" id="login-sub">ניהול הלוח הדיגיטלי של בית הכנסת</p>
+      <form id="login-form" class="stack">
+        <label class="fld"><span>אימייל</span><input id="email" type="email" autocomplete="username" required></label>
+        <label class="fld"><span>סיסמה</span><input id="password" type="password" autocomplete="current-password" required minlength="6"></label>
+        <button class="btn primary wide" type="submit">כניסה</button>
+        <button type="button" class="btn ghost" id="btn-signup" hidden>הרשמה ראשונה</button>
+      </form>
+    </div>
   </section>
-  <nav id="tabs" class="tabs" hidden></nav>
-  <main id="panel"></main>
+
+  <nav id="tabs" class="nav" hidden></nav>
+  <main id="panel" class="main"></main>
+
+  <div class="savebar" id="savebar" hidden>
+    <span><b>יש שינויים שלא נשמרו</b><span class="hide-sm"> · Ctrl+S לשמירה</span></span>
+    <span class="savebar-btns"><button class="btn ghost" id="btn-undo">בטל שינויים</button><button class="btn primary" id="btn-save2">שמור</button></span>
+  </div>
+  <div id="msg" class="toast" role="status" hidden></div>
 </div>
 <script type="module" src="js/admin.js"></script>
 </body>

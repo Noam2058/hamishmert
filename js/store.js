@@ -3,10 +3,12 @@ import { loadSupabase } from './lib.js';
 import { demoData, normalize } from './defaults.js';
 
 const cfg = window.SHUL_CONFIG || {};
-const boardId = new URLSearchParams(location.search).get('board') || cfg.boardId || 'my-shul';
-const CACHE_KEY = `shulboard:data:${boardId}`;
+const qs = new URLSearchParams(location.search);
+const demo = qs.has('demo'); // ?demo – הדגמה מקומית בלי ענן (לבדיקות), לא נוגע בנתונים האמיתיים
+const boardId = qs.get('board') || cfg.boardId || 'my-shul';
+const CACHE_KEY = demo ? 'shulboard:demo' : `shulboard:data:${boardId}`;
 
-export const mode = cfg.supabaseUrl && cfg.supabaseAnonKey ? 'supabase' : 'local';
+export const mode = !demo && cfg.supabaseUrl && cfg.supabaseAnonKey ? 'supabase' : 'local';
 export { boardId };
 
 let client = null;

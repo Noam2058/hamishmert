@@ -96,9 +96,16 @@ function tickClock() {
 // ---------- פס גולל ----------
 let tickerAnim = null;
 function renderTicker() {
+  // בשבת/חג (מהדלקת הנרות עד הצאת): צאת השבת. בשאר הזמן: התפילה הבאה, ואם אין – הדלקת הנרות הקרובה
+  const sh = ctx.day.shabbat, now = ctx.now;
+  const inShabbat = sh.candles && sh.havdalah && now >= sh.candles && now < sh.havdalah;
   const np = nextPrayer(ctx);
-  $('#next').innerHTML = np ? `${escapeHtml(np.name)} <b>${np.time}</b>` : (ctx.day.shabbat.candles ? `${ctx.day.shabbat.candlesLabel} <b>${fmtTime(ctx.day.shabbat.candles, ctx.s.tz, 'floor')}</b>` : '');
-  $('#next').hidden = !np && !ctx.day.shabbat.candles;
+  let pill = '';
+  if (inShabbat) pill = `צאת ${sh.candlesDate?.getDay() === 5 ? 'השבת' : 'החג'} <b>${fmtTime(sh.havdalah, ctx.s.tz, 'ceil')}</b>`;
+  else if (np) pill = `${escapeHtml(np.name)} <b>${np.time}</b>`;
+  else if (sh.candles && now < sh.candles) pill = `${sh.candlesLabel} <b>${fmtTime(sh.candles, ctx.s.tz, 'floor')}</b>`;
+  $('#next').innerHTML = pill;
+  $('#next').hidden = !pill;
   const run = $('#run');
   const html = tickerItems(ctx).map((t) => `<span>${t}</span>`).join(SEP);
   if (!DATA.display.ticker) { $('#track').hidden = true; return; }

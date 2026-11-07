@@ -225,7 +225,7 @@ const LISTS = {
             const { url, path } = await uploadMedia(blob, ext);
             const tall = w && h && h > w * 1.15; // מסמך לאורך – גלילה איטית כדי שאפשר יהיה לקרוא
             const it = { id: uid(), url, path, title: '', caption: '', seconds: tall ? 30 : (DATA.display.defaultSeconds || 12), fit: tall ? 'scroll' : 'contain', enabled: true, from: '', to: '', w, h, name: f.name };
-            DATA.slides.push(it); ok++;
+            DATA.slides.push(it); openIds.add(it.id); ok++; // נפתחת מיד – כדי לבחור איך להציג
           } catch (e) { flash(`ההעלאה של ${f.name} נכשלה: ${e.message}`, true); }
         }
         prog.hidden = true;

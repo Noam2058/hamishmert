@@ -1,14 +1,14 @@
 // הלכה יומית מתוך שולחן ערוך – סעיף אחד בכל יום, לפי הסדר.
 // ההיקף תואם לכרכים: אורח חיים סימנים א–רמא, ואחריו יורה דעה סימנים א–קיא. בסוף – מתחילים מחדש.
-// הטקסט: מהדורת "מגיני ארץ", למברג תרנ"ג (ספריא), נטען מהרשת ונשמר במכשיר לשבוע קדימה – עובד גם בלי אינטרנט.
+// הטקסט: מנוקד (מהדורת "תורת אמת", ספריא); כותרות הסימנים ממהדורת למברג, נטען מהרשת ונשמר במכשיר לשבוע קדימה – עובד גם בלי אינטרנט.
 
 // מספר הסעיפים בכל סימן (מתוך ספריא)
 const OC = [9,6,17,23,1,4,4,17,6,12,15,3,3,5,6,1,3,3,2,2,4,1,4,6,13,2,11,3,1,5,2,52,5,4,1,3,3,13,10,8,1,3,9,1,2,9,14,1,1,1,9,1,26,3,22,5,2,7,5,5,26,5,9,4,3,10,1,1,2,5,7,5,4,6,6,8,2,1,9,1,2,2,5,1,2,1,3,1,8,27,6,10,4,9,4,2,5,5,3,1,4,5,3,8,1,3,4,12,3,8,3,2,9,9,1,1,5,1,4,1,3,3,6,12,2,4,2,45,2,1,8,2,1,2,14,1,6,1,11,3,8,2,5,4,3,4,8,1,1,5,12,1,22,15,2,1,1,13,20,15,4,10,2,2,2,1,20,17,3,22,5,2,3,8,6,1,5,7,6,5,10,7,12,6,5,2,4,10,2,5,3,2,6,3,3,4,4,1,11,2,4,18,8,13,5,6,1,18,3,2,6,2,3,1,4,14,8,9,10,2,2,4,6,13,10,1,3,3,2,5,1,3,2,2,4,4,1,2,2,17,1];
 const YD = [14,11,1,7,3,4,1,1,1,3,4,2,6,6,3,12,3,20,8,4,5,2,6,20,3,2,1,24,1,2,4,8,11,10,10,17,7,5,25,6,10,9,6,10,2,6,5,12,5,3,4,7,5,5,13,10,21,12,2,3,33,4,2,21,14,10,6,15,21,6,3,4,6,1,3,6,1,1,3,6,9,5,10,17,3,10,11,2,4,4,8,9,1,9,7,5,3,9,7,4,9,4,7,3,14,2,2,7,2,10,7];
 
 export const BOOKS = [
-  { key: 'oc', ref: 'Shulchan_Arukh,_Orach_Chayim', he: 'אורח חיים', shape: OC },
-  { key: 'yd', ref: "Shulchan_Arukh,_Yoreh_De'ah", he: 'יורה דעה', shape: YD },
+  { key: 'oc', ref: 'Shulchan_Arukh,_Orach_Chayim', he: 'אורח חיים', shape: OC, nikud: 'Torat Emet 363' },
+  { key: 'yd', ref: "Shulchan_Arukh,_Yoreh_De'ah", he: 'יורה דעה', shape: YD, nikud: 'Torat Emet 357' },
 ];
 const TOTAL = BOOKS.reduce((a, b) => a + b.shape.reduce((x, y) => x + y, 0), 0);
 export const DEFAULT_START = '2026-11-05'; // ביום הזה – אורח חיים סימן א סעיף א
@@ -33,27 +33,43 @@ export function heNum(n) {
 }
 
 // ---------- ניקוי הטקסט ----------
+const NQ = '[֑-ׇ]*';
+const HAGAH = new RegExp(`(?:^|\\s)ה${NQ}ג${NQ}ה${NQ}\\s*:?\\s+`, 'g'); // "הגה:" עם או בלי ניקוד
+
 export function clean(html) {
   let title = '';
-  html = html.replace(/<b>([\s\S]*?)<\/b>\s*(<br\s*\/?>)?/, (_, t) => { title = t; return ''; });
+  html = String(html || '').replace(/<b>([\s\S]*?)<\/b>\s*(<br\s*\/?>)?/, (_, t) => { title = t; return ''; });
   html = html.replace(/<i\b[^>]*>\s*<\/i>|<i\b[^>]*\/>/g, '');      // סימני המפרשים
-  html = html.replace(/<small>/g, '\u0001').replace(/<\/small>/g, '\u0002'); // הגהת הרמ"א
-  html = html.replace(/<[^>]+>/g, ' ').replace(/&nbsp;/g, ' ').replace(/&quot;/g, '"').replace(/&amp;/g, '&');
-  html = html.replace(/\s+/g, ' ').replace(/\s+([:.,;)])/g, '$1').replace(/\(\s+/g, '(').replace(/\(\s*\)/g, '').trim();
-  const strip = (t) => t.replace(/<[^>]+>/g, '').replace(/[.:]?\s*ובו\s+[^.:]*?סעיפים?\s*:?\s*$/, '').replace(/[.:\s]+$/, '').trim();
+  html = html.replace(/<i\b[^>]*>/g, '<small>').replace(/<\/i>/g, '</small>'); // בחלק מהמהדורות הרמ"א מסומן בנטוי
+  // מעבר לפי עומק: <small> ראשון = הגהת הרמ"א; <small> פנימי (מראי מקומות) = טקסט רגיל בתוך ההגהה
   const parts = [];
-  html.split(/(\u0001[^\u0002]*\u0002?)/).forEach((p) => {
-    if (!p.trim()) return;
-    // כמה הגהות רצופות בתוך אותו קטע – מפרידים לכל "הגה" בנפרד
-    if (p.startsWith('\u0001')) p.replace(/[\u0001\u0002]/g, '').split(/(?:^|\s)הגה\s*:?\s+/).forEach((t) => { if (t.trim()) parts.push({ rema: true, text: t.trim() }); });
-    else parts.push({ rema: false, text: p.trim() });
-  });
-  return { title: strip(title), parts };
+  let depth = 0;
+  const push = (text, rema) => {
+    if (!text) return;
+    const last = parts[parts.length - 1];
+    if (last && !text.trim()) { last.text += ' '; return; } // רווח בין תגיות לא שובר הגהה
+    if (last && last.rema === rema) last.text += text; else parts.push({ rema, text });
+  };
+  for (const tok of html.match(/<small>|<\/small>|<[^>]+>|[^<]+/g) || []) {
+    if (tok === '<small>') depth++;
+    else if (tok === '</small>') depth = Math.max(0, depth - 1);
+    else if (tok.startsWith('<')) push(' ', depth > 0);
+    else push(tok, depth > 0);
+  }
+  const tidy = (t) => t.replace(/&nbsp;/g, ' ').replace(/&quot;/g, '"').replace(/&amp;/g, '&').replace(/\s+/g, ' ')
+    .replace(/\s+([:.,;)])/g, '$1').replace(/\(\s+/g, '(').replace(/\(\s*\)/g, '').trim();
+  const out = [];
+  for (const p of parts) {
+    if (p.rema) tidy(p.text).split(HAGAH).forEach((t) => { t = tidy(t); if (t && !/^[.:,\s]*$/.test(t)) out.push({ rema: true, text: t }); });
+    else { const t = tidy(p.text); if (t && !/^[.:,\s]*$/.test(t)) out.push({ rema: false, text: t }); }
+  }
+  const strip = (t) => t.replace(/<[^>]+>/g, '').replace(/[.:]?\s*ובו\s+[^.:]*?סעיפים?\s*:?\s*$/, '').replace(/[.:\s]+$/, '').trim();
+  return { title: strip(title), parts: out };
 }
 
 // ---------- מטמון במכשיר ----------
-const KEY = (r) => `sa2:${r.book.key}.${r.siman}.${r.seif}`;
-const TITLE_KEY = (b, s) => `sa2:t:${b.key}.${s}`;
+const KEY = (r) => `sa3:${r.book.key}.${r.siman}.${r.seif}`;
+const TITLE_KEY = (b, s) => `sa3:t:${b.key}.${s}`;
 const ls = {
   get(k) { try { return JSON.parse(localStorage.getItem(k)); } catch { return null; } },
   set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} },
@@ -72,15 +88,12 @@ async function fetchSiman(book, siman) {
   const id = `${book.key}.${siman}`;
   if (inflight.has(id)) return inflight.get(id);
   const p = (async () => {
-    const url = `https://www.sefaria.org/api/v3/texts/${encodeURIComponent(`${book.ref}.${siman}`)}?version=hebrew`;
-    const j = await (await fetch(url)).json();
-    const v = (j.versions || []).find((x) => x.language === 'he') || j.versions?.[0];
-    const arr = Array.isArray(v?.text) ? v.text : [v?.text || ''];
-    arr.forEach((html, i) => {
-      const c = clean(String(html || ''));
-      if (i === 0) ls.set(TITLE_KEY(book, siman), c.title || '');
-      ls.set(`sa2:${book.key}.${siman}.${i + 1}`, { parts: c.parts });
-    });
+    const base = `https://www.sefaria.org/api/v3/texts/${encodeURIComponent(`${book.ref}.${siman}`)}`;
+    const get = async (v) => { const j = await (await fetch(`${base}?version=${encodeURIComponent(v)}`)).json(); const x = (j.versions || [])[0]; return x ? (Array.isArray(x.text) ? x.text : [x.text]) : null; };
+    const [plain, vocal] = await Promise.all([get('hebrew'), get(`hebrew|${book.nikud}`).catch(() => null)]);
+    const arr = vocal && vocal.some(Boolean) ? vocal : plain || [];
+    if (plain) ls.set(TITLE_KEY(book, siman), clean(String(plain[0] || '')).title || '');
+    arr.forEach((html, i) => ls.set(`sa3:${book.key}.${siman}.${i + 1}`, { parts: clean(String(html || '')).parts }));
   })().finally(() => inflight.delete(id));
   inflight.set(id, p);
   return p;

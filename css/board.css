@@ -193,13 +193,15 @@ main#screens { position: relative; z-index: 1; padding: 54px 64px 26px; }
 .halacha .t { font: 900 64px var(--display); }
 .halacha .x { font: 500 46px/1.6 var(--body); text-wrap: pretty; }
 .halacha .src { font: 600 28px var(--body); color: var(--ink-soft); }
-.halacha.sa .x { font-family: var(--display); font-weight: 500; text-align: justify; }
+.halacha.sa { align-items: center; text-align: center; }
+.halacha.sa .t, .halacha.sa .src { text-align: center; }
+.halacha.sa .x { font-family: var(--display); font-weight: 500; text-align: center; text-wrap: pretty; max-width: 1560px; }
 .halacha .rema { font-size: .86em; color: var(--ink-soft); }
 .halacha .rema b { color: var(--ink); font-weight: 700; }
-.halacha.len-s .x { font-size: 54px; line-height: 1.6; }
-.halacha.len-m .x { font-size: 44px; line-height: 1.55; }
-.halacha.len-l .x { font-size: 36px; line-height: 1.5; }
-.halacha.len-xl .x { font-size: 30px; line-height: 1.45; }
+.halacha.len-s .x { font-size: 54px; line-height: 1.75; }
+.halacha.len-m .x { font-size: 44px; line-height: 1.7; }
+.halacha.len-l .x { font-size: 36px; line-height: 1.65; }
+.halacha.len-xl .x { font-size: 30px; line-height: 1.6; }
 .halacha.len-l, .halacha.len-xl { padding: 36px 70px; gap: 18px; }
 
 /* פס גולל */

@@ -236,15 +236,18 @@ export const SCREENS = {
       const h = cachedHalacha(ctx.todayIso, ctx.data.halachaStart || DEFAULT_START);
       if (h) {
         // סעיף ארוך במיוחד – מקצרים בסוף משפט ומפנים לספר
-        let left = 1500, cut = false;
+        // האורך נמדד בלי סימני הניקוד
+        const plainLen = (t) => t.replace(/[\u0591-\u05C7]/g, '').length;
+        const cutAt = (t, n) => { let c = 0, i = 0; for (; i < t.length && c < n; i++) if (!/[\u0591-\u05C7]/.test(t[i])) c++; while (i < t.length && /[\u0591-\u05C7]/.test(t[i])) i++; return t.slice(0, i); };
+        let left = 1300, cut = false;
         const parts = [];
         for (const p of h.parts) {
           if (left <= 0) { cut = true; break; }
           let t = p.text;
-          if (t.length > left) { const m = t.slice(0, left).match(/^[\s\S]*[.:]/); t = (m ? m[0] : t.slice(0, left)) + ' …'; cut = true; }
-          left -= t.length; parts.push({ ...p, text: t });
+          if (plainLen(t) > left) { const head = cutAt(t, left); const m = head.match(/^[\s\S]*[.:]/); t = (m ? m[0] : head) + ' …'; cut = true; }
+          left -= plainLen(t); parts.push({ ...p, text: t });
         }
-        const len = parts.reduce((a, p) => a + p.text.length, 0);
+        const len = parts.reduce((a, p) => a + plainLen(p.text), 0);
         const size = len > 1100 ? 'xl' : len > 700 ? 'l' : len > 380 ? 'm' : 's';
         const body = parts.map((p) => (p.rema ? `<span class="rema"><b>הגה:</b> ${esc(p.text)}</span>` : esc(p.text))).join(' ');
         return `${title('הלכה יומית')}<section class="card halacha sa len-${size}">${h.title ? `<div class="t">${esc(h.title)}</div>` : ''}<div class="x">${body}</div><div class="src">${esc(h.source)}${cut ? ' · ההמשך בספר' : ''}</div></section>`;

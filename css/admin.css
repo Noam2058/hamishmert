@@ -223,3 +223,6 @@ html, body { overflow-x: hidden; }
 
 .boot-err { position: fixed; z-index: 100; inset: auto 12px 24px 12px; max-width: 520px; margin: 0 auto; display: flex; flex-direction: column; gap: 8px; align-items: center; text-align: center;
   background: var(--surface); border: 2px solid var(--gold); border-radius: 16px; padding: 18px; box-shadow: 0 14px 34px rgba(0,0,0,.3); }
+/* שעות, תאריכים ומספרים – תמיד משמאל לימין (ב-RTL הדפדפן הפך את 08:00 ל-00:08) */
+input[type="time"], input[type="date"], input[type="number"], input[type="email"], input[type="password"] { direction: ltr; text-align: right; unicode-bidi: plaintext; }
+input[type="time"]::-webkit-datetime-edit, input[type="date"]::-webkit-datetime-edit { direction: ltr; }

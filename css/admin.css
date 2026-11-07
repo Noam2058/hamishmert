@@ -140,7 +140,7 @@ textarea { min-height: 96px; resize: vertical; line-height: 1.5; }
 .preview { position: relative; width: 100%; aspect-ratio: 16 / 9; border-radius: 12px; overflow: hidden; background: #000; box-shadow: inset 0 0 0 1px var(--line); }
 .preview iframe { position: absolute; top: 0; left: 0; width: 1920px; height: 1080px; border: 0; transform-origin: 0 0; pointer-events: none; }
 .screen-list { display: flex; flex-direction: column; gap: 8px; }
-.screen-row { display: grid; grid-template-columns: auto 1fr 110px auto; align-items: center; gap: 12px; padding: 10px 14px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); }
+.screen-row { display: grid; grid-template-columns: auto auto 1fr 110px auto; align-items: center; gap: 12px; padding: 10px 14px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); }
 .screen-row.off { opacity: .55; }
 .screen-row strong { font-weight: 800; }
 
@@ -177,8 +177,8 @@ textarea { min-height: 96px; resize: vertical; line-height: 1.5; }
   .brand-name { font-size: 19px; }
   .topbar .btn span { display: none; }
   .topbar .btn.primary span, .topbar #btn-save { font-size: 14px; }
-  .screen-row { grid-template-columns: auto 1fr 80px; }
-  .screen-row .btns { grid-column: 1 / -1; justify-self: end; }
+  .screen-row { grid-template-columns: auto auto 1fr 76px; gap: 8px; padding: 8px 10px; }
+  .screen-row .btns { display: none !important; } /* בטלפון – גוררים */
   .item > summary { padding: 12px 14px; gap: 10px; }
   .item-body { padding: 4px 14px 14px; }
 }
@@ -192,3 +192,11 @@ textarea { min-height: 96px; resize: vertical; line-height: 1.5; }
 .drop .link { color: var(--accent); text-decoration: underline; cursor: pointer; font-weight: 800; }
 .progress { font-weight: 800; color: var(--accent); }
 @media (max-width: 560px) { .item > summary .thumb { width: 72px; height: 40px; } }
+
+/* גרירה */
+.grip { display: grid; place-items: center; width: 30px; height: 36px; margin-inline-start: -6px; color: var(--soft); cursor: grab; touch-action: none; border-radius: 8px; flex: none; }
+.grip:hover { background: var(--surface-2); color: var(--ink); }
+.grip svg { fill: currentColor; stroke: none; width: 22px; height: 22px; }
+.dragging { position: relative; z-index: 5; box-shadow: 0 14px 34px rgba(0,0,0,.25) !important; border-color: var(--gold) !important; transform: scale(1.015); background: var(--surface); }
+.dragging .grip { cursor: grabbing; color: var(--gold); }
+body.is-dragging { user-select: none; -webkit-user-select: none; cursor: grabbing; }

@@ -32,6 +32,7 @@ const I = {
   backup: '<path d="M12 3v12M7 10l5 5 5-5"/><path d="M4 17v3h16v-3"/>',
   slides: '<rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="10" r="2"/><path d="M21 16l-5-5-9 9"/>',
   upload: '<path d="M12 16V4M7 9l5-5 5 5"/><path d="M4 16v4h16v-4"/>',
+  grip: '<circle cx="9" cy="6" r="1.3"/><circle cx="15" cy="6" r="1.3"/><circle cx="9" cy="12" r="1.3"/><circle cx="15" cy="12" r="1.3"/><circle cx="9" cy="18" r="1.3"/><circle cx="15" cy="18" r="1.3"/>',
   plus: '<path d="M12 5v14M5 12h14"/>',
   chev: '<path d="M6 9l6 6 6-6"/>',
   up: '<path d="M6 15l6-6 6 6"/>', down: '<path d="M6 9l6 6 6-6"/>',
@@ -93,6 +94,50 @@ async function shrinkImage(file) {
   const blob = await new Promise((res) => c.toBlob(res, 'image/jpeg', 0.86));
   return { blob, ext: 'jpg', w, h };
 }
+
+// ---------- גרירה לשינוי סדר (עובד גם במגע בטלפון) ----------
+/** container: האב; itemSel: שורה; onDone(order): מערך האינדקסים המקוריים בסדר החדש. canSwap(a, b) – מגביל לאותה קבוצה */
+function makeSortable(container, itemSel, onDone, canSwap = () => true) {
+  container.querySelectorAll(`${itemSel} .grip`).forEach((h) => {
+    h.addEventListener('click', (e) => { e.preventDefault(); e.stopPropagation(); });
+    h.addEventListener('pointerdown', (e) => {
+      if (e.button > 0) return;
+      e.preventDefault(); e.stopPropagation();
+      const item = h.closest(itemSel);
+      const before = [...container.querySelectorAll(itemSel)].map((x) => x.dataset.i).join(',');
+      item.classList.add('dragging'); document.body.classList.add('is-dragging');
+      h.setPointerCapture(e.pointerId);
+      let lastY = e.clientY, raf = 0;
+      const scroller = () => { // גלילה אוטומטית ליד קצה המסך
+        const edge = 90;
+        if (lastY < edge) scrollBy(0, -12); else if (lastY > innerHeight - edge) scrollBy(0, 12);
+        raf = requestAnimationFrame(scroller);
+      };
+      raf = requestAnimationFrame(scroller);
+      const move = (ev) => {
+        lastY = ev.clientY;
+        const el = document.elementFromPoint(container.getBoundingClientRect().left + 20, ev.clientY)?.closest(itemSel);
+        if (!el || el === item || !container.contains(el) || !canSwap(item, el)) {
+          const all = [...container.querySelectorAll(itemSel)];
+          const under = all.find((x) => { const r = x.getBoundingClientRect(); return ev.clientY >= r.top && ev.clientY <= r.bottom; });
+          if (!under || under === item || !canSwap(item, under)) return;
+          return place(under, ev.clientY);
+        }
+        place(el, ev.clientY);
+      };
+      const place = (el, y) => { const r = el.getBoundingClientRect(); el[y < r.top + r.height / 2 ? 'before' : 'after'](item); };
+      const up = () => {
+        cancelAnimationFrame(raf);
+        h.removeEventListener('pointermove', move); h.removeEventListener('pointerup', up); h.removeEventListener('pointercancel', up);
+        item.classList.remove('dragging'); document.body.classList.remove('is-dragging');
+        const order = [...container.querySelectorAll(itemSel)].map((x) => +x.dataset.i);
+        if (order.join(',') !== before) onDone(order);
+      };
+      h.addEventListener('pointermove', move); h.addEventListener('pointerup', up); h.addEventListener('pointercancel', up);
+    });
+  });
+}
+const reorder = (arr, order) => { const copy = order.map((i) => arr[i]); arr.splice(0, arr.length, ...copy); };
 
 // ---------- הגדרות שדות לכל רשימה ----------
 const LISTS = {
@@ -283,7 +328,7 @@ function renderList(key, focusNew = false) {
   const visible = arr.map((it, i) => [it, i]).filter(([it]) => !f || JSON.stringify(it).includes(f));
   const itemHtml = ([it, i]) => `
     <details class="item" data-i="${i}" ${openIds.has(it.id) ? 'open' : ''}>
-      <summary>${summaryHtml(def, it)}</summary>
+      <summary><span class="grip" title="גרור לשינוי הסדר" aria-label="גרור לשינוי הסדר">${icon('grip')}</span>${summaryHtml(def, it)}</summary>
       <div class="item-body">
         <div class="form-grid">${def.fields.map((fd) => fieldHtml(it, fd, `${key}-${i}`)).join('')}</div>
         <div class="item-tools"><span class="calc">${def.calc ? esc(calcText(it)) : ''}</span>
@@ -324,7 +369,7 @@ function renderList(key, focusNew = false) {
       if (el.dataset.type === 'time' && e.target.dataset.t === 'type') return renderList(key);
       if (def.group && el.dataset.k === def.group) return renderList(key);
       if (def.calc) row.querySelector('.calc').textContent = calcText(arr[i]);
-      row.querySelector('summary').innerHTML = summaryHtml(def, arr[i]);
+      const sm = row.querySelector('summary'); [...sm.children].slice(1).forEach((n) => n.remove()); sm.insertAdjacentHTML('beforeend', summaryHtml(def, arr[i]));
     };
     row.addEventListener('change', commit);
     row.addEventListener('input', (e) => { if (e.target.matches('input[type=text],input:not([type]),textarea')) commit(e); });
@@ -346,6 +391,8 @@ function renderList(key, focusNew = false) {
       setDirty(); renderList(key);
     });
   });
+  if (!f) makeSortable(p.querySelector('.list'), '.item', (order) => { reorder(arr, order); setDirty(); renderList(key); },
+    (a, b) => !def.group || (arr[+a.dataset.i][def.group] || 'weekday') === (arr[+b.dataset.i][def.group] || 'weekday'));
   if (focusNew) { const last = [...p.querySelectorAll('.item[open]')].pop(); last?.scrollIntoView({ block: 'center', behavior: 'smooth' }); last?.querySelector('input,textarea')?.focus({ preventScroll: true }); }
 }
 
@@ -471,6 +518,7 @@ function renderDisplay() {
     <section class="card"><h2>${icon('prayers')}המסכים <span class="tag">${d.screens.filter((x) => x.enabled).length} פעילים</span></h2>
       <div class="screen-list">${d.screens.map((sc, i) => `
         <div class="screen-row ${sc.enabled ? '' : 'off'}" data-i="${i}">
+          <span class="grip" title="גרור לשינוי הסדר" aria-label="גרור לשינוי הסדר">${icon('grip')}</span>
           <input type="checkbox" data-sc="enabled" ${sc.enabled ? 'checked' : ''} aria-label="הצג ${esc(SCREEN_LABEL[sc.type])}">
           <strong>${esc(SCREEN_LABEL[sc.type] || sc.type)}</strong>
           <label class="fld" style="flex-direction:row;align-items:center;gap:6px"><input type="number" min="4" data-sc="seconds" value="${esc(sc.seconds)}" aria-label="שניות"><span class="muted" style="font-weight:600">שנ׳</span></label>
@@ -497,6 +545,7 @@ function renderDisplay() {
     setDirty();
   };
   p.addEventListener('change', upd); p.addEventListener('input', upd);
+  makeSortable(p.querySelector('.screen-list'), '.screen-row', (order) => { reorder(d.screens, order); setDirty(); renderDisplay(); });
   p.querySelectorAll('[data-act]').forEach((b) => b.onclick = () => {
     const i = +b.closest('.screen-row').dataset.i, j = b.dataset.act === 'up' ? i - 1 : i + 1;
     if (j < 0 || j >= d.screens.length) return;

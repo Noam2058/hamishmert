@@ -339,11 +339,15 @@ function readField(el) {
   return el.value;
 }
 
+let renderedTab = null;
 function freshPanel() {
   const old = document.getElementById('panel');
   const n = old.cloneNode(false);
   old.replaceWith(n);
-  scrollTo({ top: 0 });
+  // באותה לשונית (הזזה, מחיקה, שינוי) – נשארים באותו מקום בדף; רק במעבר לשונית עולים לראש
+  if (renderedTab === tab) { const y = scrollY; n.style.minHeight = `${old.offsetHeight}px`; requestAnimationFrame(() => { scrollTo({ top: y }); n.style.minHeight = ''; }); }
+  else scrollTo({ top: 0 });
+  renderedTab = tab;
   return n;
 }
 const head = (h, p, btns = '') => `<div class="page-head"><div><h1>${h}</h1>${p ? `<p>${p}</p>` : ''}</div>${btns ? `<div class="head-btns">${btns}</div>` : ''}</div>`;

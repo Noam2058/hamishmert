@@ -479,6 +479,7 @@ function renderDisplay() {
       <p class="note">למסך שני עם תוכן אחר: הוסף לכתובת הלוח <code>?screens=memorials,parnas</code></p></section>
     <section class="card"><h2>הגדרות נוספות</h2><div class="form-grid">
       <label class="fld"><span>זמן ברירת מחדל למסך (שניות)</span><input data-d="defaultSeconds" type="number" min="4" value="${esc(d.defaultSeconds)}"></label>
+      <label class="fld"><span>ביצועים (לסטרימר)</span><select data-d="performance">${[['auto', 'אוטומטי – חסכוני במכשיר חלש'], ['lite', 'חסכוני תמיד (חלק יותר בסטרימר)'], ['full', 'מלא – כל האפקטים']].map(([k, l]) => `<option value="${k}" ${(d.performance || 'auto') === k ? 'selected' : ''}>${l}</option>`).join('')}</select></label>
       <label class="fld"><span>שעון נץ – כמה דקות לפני הנץ</span><input data-d="netzWindowMin" type="number" min="5" value="${esc(d.netzWindowMin)}"></label>
       <label class="fld check"><input data-d="ticker" type="checkbox" ${d.ticker ? 'checked' : ''}><span>פס גולל בתחתית</span></label>
       <label class="fld check"><input data-o="enabled" type="checkbox" ${d.offHours.enabled ? 'checked' : ''}><span>כיבוי המסך בלילה</span></label>

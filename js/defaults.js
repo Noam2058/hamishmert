@@ -48,6 +48,7 @@ export function demoData() {
       bgImage: '',
       scene: 'auto',
       holidayDesign: true,
+      performance: 'auto',
       defaultSeconds: 14,
       screens: [
         { type: 'greeting', enabled: true, seconds: 12 },

@@ -208,8 +208,12 @@ main#screens { position: relative; z-index: 1; padding: 54px 64px 26px; }
 footer.ticker { position: relative; z-index: 2; display: flex; align-items: center; gap: 28px; padding: 0 40px; background: var(--head-band); border-top: 3px solid var(--gold); overflow: hidden; }
 .ticker .next { flex: none; font: 800 30px var(--body); color: var(--head-band); background: var(--gold-2); padding: 8px 22px; border-radius: 12px; white-space: nowrap; }
 .ticker .next b { font-family: var(--display); font-size: 36px; font-variant-numeric: tabular-nums; }
-.ticker .track { flex: 1; align-self: stretch; position: relative; overflow: hidden; mask-image: linear-gradient(90deg, transparent, #000 6%, #000 94%, transparent); }
-.ticker .run { position: absolute; right: 0; top: 50%; translate: 0 -50%; display: flex; flex-wrap: nowrap; white-space: nowrap; font: 600 30px var(--body); will-change: transform; }
+.ticker .track { flex: 1; align-self: stretch; position: relative; overflow: hidden; contain: strict; }
+/* דהייה בקצוות – שכבות צבע סטטיות במקום mask (שמחושב מחדש בכל פריים ומאט סטרימרים) */
+.ticker .track::before, .ticker .track::after { content: ""; position: absolute; top: 0; bottom: 0; width: 70px; z-index: 1; pointer-events: none; }
+.ticker .track::before { left: 0; background: linear-gradient(90deg, var(--head-band), transparent); }
+.ticker .track::after { right: 0; background: linear-gradient(270deg, var(--head-band), transparent); }
+.ticker .run { position: absolute; right: 0; top: 50%; margin-top: -21px; line-height: 42px; display: flex; flex-wrap: nowrap; white-space: nowrap; font: 600 30px var(--body); will-change: transform; }
 .ticker .copy { flex: none; display: flex; gap: 52px; padding-inline-end: 52px; }
 .ticker .run span { flex: none; }
 .ticker .run b { color: var(--gold-2); font-family: var(--display); font-variant-numeric: tabular-nums; }
@@ -250,7 +254,7 @@ body.offline .offline-dot { display: block; }
 #stage.has-scene { --veil-top: rgba(5, 12, 28, .38); --veil-bottom: rgba(5, 12, 28, .52); }
 [data-theme="modern"]#stage.has-scene { --veil-top: rgba(255,255,255,.35); --veil-bottom: rgba(255,255,255,.5); }
 #stage.has-scene::before { opacity: 0; }
-#stage.has-scene header.band { background: linear-gradient(180deg, color-mix(in srgb, var(--head-band) 82%, transparent), color-mix(in srgb, var(--head-band) 40%, transparent)); backdrop-filter: blur(2px); }
+#stage.has-scene header.band { background: linear-gradient(180deg, color-mix(in srgb, var(--head-band) 82%, transparent), color-mix(in srgb, var(--head-band) 40%, transparent)); }
 #stage.has-scene footer.ticker { background: color-mix(in srgb, var(--head-band) 86%, transparent); }
 #stage.has-scene .card { background: linear-gradient(180deg, color-mix(in srgb, var(--parchment) 93%, transparent), color-mix(in srgb, var(--parchment-2) 93%, transparent)); }
 #stage.has-scene .card.mem, #stage.has-scene .ann.memorial { background: linear-gradient(180deg, rgba(35,40,58,.93), rgba(23,27,40,.93)); }
@@ -320,3 +324,18 @@ body.offline .offline-dot { display: block; }
 .img-slide .cap { position: absolute; inset: auto 0 0 0; padding: 70px 60px 34px; text-align: center; font: 800 52px/1.25 var(--display); color: #fff;
   background: linear-gradient(180deg, transparent, rgba(0,0,0,.75)); text-shadow: 0 2px 10px rgba(0,0,0,.6); text-wrap: balance; }
 .img-slide::after { content: ""; position: absolute; inset: 0; border-radius: 22px; box-shadow: inset 0 0 0 3px color-mix(in srgb, var(--gold) 85%, #6b4e14); pointer-events: none; }
+
+/* ---------- ביצועים ---------- */
+header.band { contain: layout paint; }
+footer.ticker { contain: layout paint; }
+.screen { will-change: opacity; contain: layout paint; }
+#bg .layer { will-change: opacity; }
+/* מצב חסכוני: בלי טשטושים, צלליות כבדות ואנימציות רקע */
+.lite #stage.has-scene footer.ticker { background: var(--head-band); }
+.lite .card { box-shadow: 0 6px 14px rgba(0,0,0,.25), inset 0 0 0 3px color-mix(in srgb, var(--gold) 85%, #6b4e14), inset 0 0 0 10px var(--parchment), inset 0 0 0 11px color-mix(in srgb, var(--gold) 60%, transparent); }
+.lite .greet .art { filter: none; }
+.lite .candle .flame { filter: none; animation: none; }
+.lite .img-slide .blur { filter: none; opacity: .35; }
+.lite .screen { transition-duration: .5s; }
+.lite #bg .layer { transition-duration: .6s; }
+.lite .band .clock .sec { display: none; }

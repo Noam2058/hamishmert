@@ -74,10 +74,22 @@ const WD = ['ראשון', 'שני', 'שלישי', 'רביעי', 'חמישי', '�
 const nextWeekday = (dow) => WD[(dow + 1) % 7];
 const escapeHtml = (t) => String(t ?? '').replace(/[&<>]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]));
 
+// מצב חסכוני לסטרימרים חלשים: ?lite / ?full, הגדרה בממשק, או זיהוי אוטומטי (Android עם עד 4 ליבות או 2GB)
+let LITE = false;
+function applyPerf() {
+  const pref = params.has('lite') ? 'lite' : params.has('full') ? 'full' : (DATA?.display?.performance || 'auto');
+  const weak = /Android/i.test(navigator.userAgent) && ((navigator.hardwareConcurrency || 8) <= 4 || (navigator.deviceMemory || 8) <= 2);
+  LITE = pref === 'lite' || (pref === 'auto' && weak);
+  document.documentElement.classList.toggle('lite', LITE);
+}
+
 function tickClock() {
   const now = nowDate();
   const p = tzParts(now, DATA.synagogue.tz);
-  $('#clock').innerHTML = `${String(p.hh).padStart(2, '0')}:${String(p.mm).padStart(2, '0')}<span class="sec">${String(p.ss).padStart(2, '0')}</span>`;
+  const hm = `${String(p.hh).padStart(2, '0')}:${String(p.mm).padStart(2, '0')}`;
+  const ck = $('#clock');
+  if (ck.dataset.hm !== hm) { ck.dataset.hm = hm; ck.innerHTML = `${hm}<span class="sec"></span>`; }
+  if (!LITE) ck.lastElementChild.textContent = String(p.ss).padStart(2, '0'); // במצב חסכוני – בלי שניות
   // מצב לילה
   const off = DATA.display.offHours;
   if (off?.enabled && !params.has('preview')) {
@@ -243,6 +255,7 @@ async function start() {
   fit();
   const r = await load();
   DATA = r.data;
+  applyPerf();
   document.body.classList.toggle('offline', r.source === 'cache');
   document.getElementById('loading').hidden = true;
   advance();
@@ -250,6 +263,7 @@ async function start() {
   tickClock();
   subscribe((data, info) => {
     DATA = data;
+    applyPerf();
     document.body.classList.toggle('offline', info?.source === 'cache');
     advance();
   });

@@ -7,6 +7,7 @@
   --parchment-2: #ecdfc0;
   --ink: #1a2a4a;            /* טקסט על קלף */
   --ink-soft: #5a6478;
+  --next-ink: #8a5208;   /* התפילה/הזמן הבא – זהב כהה */
   --gold: #c9a24a;           /* מסגרות ועיטור */
   --gold-2: #e6c97a;
   --on-field: #f4ecd8;       /* טקסט על הרקע העמוק */
@@ -93,23 +94,26 @@ main#screens { position: relative; z-index: 1; padding: 54px 64px 26px; }
 .card {
   background: linear-gradient(180deg, var(--parchment), var(--parchment-2)); color: var(--ink);
   border-radius: 22px; padding: 26px 34px; box-shadow: 0 18px 40px rgba(0,0,0,.28), inset 0 0 0 2px color-mix(in srgb, var(--gold) 70%, transparent), inset 0 0 0 8px var(--parchment), inset 0 0 0 9px color-mix(in srgb, var(--gold) 45%, transparent);
-  display: flex; flex-direction: column; gap: 14px; min-width: 0;
+  display: flex; flex-direction: column; justify-content: center; justify-content: safe center; gap: 22px; min-width: 0;
 }
-.card h3 { margin: 0; font: 900 42px/1.1 var(--display); color: var(--ink); display: flex; align-items: center; gap: 14px; }
+.grid > .card, .hero > .card { padding: 40px 48px; }
+.card h3 { margin: 0; font: 900 44px/1.15 var(--display); color: var(--ink); display: flex; align-items: center; justify-content: center; text-align: center; flex-wrap: wrap; gap: 14px; padding-bottom: 14px; border-bottom: 2px solid color-mix(in srgb, var(--gold) 55%, transparent); }
 .card h3 .tag { font: 700 22px var(--body); background: var(--chip); color: var(--chip-ink); padding: 5px 14px; border-radius: 999px; }
-.rows { display: flex; flex-direction: column; }
-.row { display: flex; justify-content: space-between; align-items: baseline; gap: 18px; padding: 10px 2px; border-bottom: 1px dashed color-mix(in srgb, var(--ink) 22%, transparent); }
+.rows { display: flex; flex-direction: column; width: 100%; max-width: 600px; margin-inline: auto; }
+.row { display: flex; justify-content: space-between; align-items: baseline; gap: 24px; padding: 16px 6px; border-bottom: 1px dashed color-mix(in srgb, var(--ink) 22%, transparent); }
 .row:last-child { border-bottom: 0; }
 .row .k { font: 700 36px/1.2 var(--body); min-width: 0; }
-.row .k small { display: block; font: 500 24px/1.2 var(--body); color: var(--ink-soft); }
-.row .v { font: 900 46px/1 var(--display); font-variant-numeric: tabular-nums; direction: ltr; white-space: nowrap; }
-.row.past { opacity: .42; }
-.row.next .k, .row.next .v { color: color-mix(in srgb, var(--gold) 55%, var(--ink)); }
+.row .k small { display: block; margin-top: 4px; font: 500 24px/1.25 var(--body); color: var(--ink-soft); }
+.row .v { font: 900 48px/1 var(--display); font-variant-numeric: tabular-nums; direction: ltr; white-space: nowrap; color: var(--ink); }
+.row.past .k { color: var(--ink-soft); }
+.row.past .v { color: color-mix(in srgb, var(--ink) 78%, var(--parchment)); }
+.row.next .k, .row.next .v { color: var(--next-ink); }
+.row.next { background: color-mix(in srgb, var(--next-ink) 9%, transparent); border-radius: 12px; }
 .row.next .k::after { content: "  ◄ הבא"; font: 700 22px var(--body); }
-.rows.compact .row { padding: 7px 2px; }
+.rows.compact .row { padding: 11px 6px; }
 .rows.compact .row .k { font-size: 30px; }
 .rows.compact .row .v { font-size: 38px; }
-.chips { display: flex; flex-wrap: wrap; gap: 10px; }
+.chips { display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; }
 .chip { font: 700 28px/1.2 var(--body); background: var(--chip); color: var(--chip-ink); padding: 8px 18px; border-radius: 14px; }
 .muted { color: var(--ink-soft); }
 .grid { display: grid; gap: 30px; flex: 1; min-height: 0; }
@@ -117,7 +121,7 @@ main#screens { position: relative; z-index: 1; padding: 54px 64px 26px; }
 .g3 { grid-template-columns: 1fr 1fr 1fr; }
 .g-combined { grid-template-columns: 1.05fr 1fr 1fr; }
 .span-all { grid-column: 1 / -1; }
-.empty { font: 600 30px var(--body); color: var(--ink-soft); }
+.empty { font: 600 30px var(--body); color: var(--ink-soft); text-align: center; }
 
 /* שבת / חג */
 .hero { flex: 1; display: grid; grid-template-columns: 1fr 1.25fr 1fr; gap: 34px; align-items: stretch; }
@@ -158,7 +162,7 @@ main#screens { position: relative; z-index: 1; padding: 54px 64px 26px; }
 
 /* פרנס */
 .parnas { flex: 1; justify-content: center; align-items: center; text-align: center; gap: 22px; }
-.parnas .t { font: 900 54px var(--display); color: color-mix(in srgb, var(--gold) 60%, var(--ink)); }
+.parnas .t { font: 900 54px var(--display); color: var(--next-ink); }
 .parnas .n { font: 900 104px/1.05 var(--display); text-wrap: balance; }
 .parnas .x { font: 600 44px/1.4 var(--body); max-width: 1200px; text-wrap: balance; }
 
@@ -171,7 +175,7 @@ main#screens { position: relative; z-index: 1; padding: 54px 64px 26px; }
 
 /* עומר */
 .omer { flex: 1; justify-content: center; align-items: center; text-align: center; gap: 24px; }
-.omer .n { font: 900 220px/1 var(--display); color: color-mix(in srgb, var(--gold) 55%, var(--ink)); }
+.omer .n { font: 900 220px/1 var(--display); color: var(--next-ink); }
 .omer .t { font: 900 64px/1.25 var(--display); text-wrap: balance; max-width: 1500px; }
 .omer .s { font: 700 40px var(--body); color: var(--ink-soft); }
 .omer-bar { display: grid; grid-template-columns: repeat(49, 1fr); gap: 4px; width: 1300px; }

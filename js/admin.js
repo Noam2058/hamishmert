@@ -106,7 +106,6 @@ function makeSortable(container, itemSel, onDone, canSwap = () => true) {
       const item = h.closest(itemSel);
       const before = [...container.querySelectorAll(itemSel)].map((x) => x.dataset.i).join(',');
       item.classList.add('dragging'); document.body.classList.add('is-dragging');
-      h.setPointerCapture(e.pointerId);
       let lastY = e.clientY, raf = 0;
       const scroller = () => { // גלילה אוטומטית ליד קצה המסך
         const edge = 90;
@@ -115,6 +114,7 @@ function makeSortable(container, itemSel, onDone, canSwap = () => true) {
       };
       raf = requestAnimationFrame(scroller);
       const move = (ev) => {
+        ev.preventDefault();
         lastY = ev.clientY;
         const el = document.elementFromPoint(container.getBoundingClientRect().left + 20, ev.clientY)?.closest(itemSel);
         if (!el || el === item || !container.contains(el) || !canSwap(item, el)) {
@@ -128,12 +128,13 @@ function makeSortable(container, itemSel, onDone, canSwap = () => true) {
       const place = (el, y) => { const r = el.getBoundingClientRect(); el[y < r.top + r.height / 2 ? 'before' : 'after'](item); };
       const up = () => {
         cancelAnimationFrame(raf);
-        h.removeEventListener('pointermove', move); h.removeEventListener('pointerup', up); h.removeEventListener('pointercancel', up);
+        removeEventListener('pointermove', move); removeEventListener('pointerup', up); removeEventListener('pointercancel', up);
         item.classList.remove('dragging'); document.body.classList.remove('is-dragging');
         const order = [...container.querySelectorAll(itemSel)].map((x) => +x.dataset.i);
         if (order.join(',') !== before) onDone(order);
       };
-      h.addEventListener('pointermove', move); h.addEventListener('pointerup', up); h.addEventListener('pointercancel', up);
+      // מאזינים על החלון: כשהשורה זזה ב-DOM הדפדפן משחרר את ה-pointer capture
+      addEventListener('pointermove', move, { passive: false }); addEventListener('pointerup', up); addEventListener('pointercancel', up);
     });
   });
 }

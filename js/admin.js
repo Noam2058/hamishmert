@@ -83,15 +83,15 @@ function hebDateOf(item, fn) {
 
 // ---------- הקטנת תמונה לפני העלאה ----------
 async function shrinkImage(file) {
-  const MAXW = 1920, MAXH = 1080;
+  // עד 2560 פיקסלים בצד הארוך ועד ~5 מגה-פיקסל – מספיק כדי שטקסט במסמך יישאר חד
   if (file.type === 'image/gif') { if (file.size > 5e6) throw new Error('קובץ GIF גדול מ-5MB'); return { blob: file, ext: 'gif' }; }
   const bmp = await new Promise((res, rej) => { const im = new Image(); im.onload = () => res(im); im.onerror = () => rej(new Error('לא הצלחתי לקרוא את התמונה')); im.src = URL.createObjectURL(file); });
-  const k = Math.min(1, MAXW / bmp.naturalWidth, MAXH / bmp.naturalHeight);
+  const k = Math.min(1, 2560 / Math.max(bmp.naturalWidth, bmp.naturalHeight), Math.sqrt(5e6 / (bmp.naturalWidth * bmp.naturalHeight)));
   const w = Math.round(bmp.naturalWidth * k), h = Math.round(bmp.naturalHeight * k);
   const c = document.createElement('canvas'); c.width = w; c.height = h;
   const g = c.getContext('2d'); g.fillStyle = '#fff'; g.fillRect(0, 0, w, h); g.drawImage(bmp, 0, 0, w, h);
   URL.revokeObjectURL(bmp.src);
-  const blob = await new Promise((res) => c.toBlob(res, 'image/jpeg', 0.86));
+  const blob = await new Promise((res) => c.toBlob(res, 'image/jpeg', 0.88));
   return { blob, ext: 'jpg', w, h };
 }
 
@@ -198,7 +198,7 @@ const LISTS = {
     help: 'תמונה שתעלה הופכת לשקופית בלוח – מודעה, הזמנה לשמחה, צילום מאירוע. כל תמונה מוצגת כשקופית נפרדת, ואפשר להגביל אותה לתאריכים.',
     head: () => `<section class="card drop" id="drop">
         <div class="drop-in">${icon('upload')}<div><b>גרור לכאן תמונות</b> או <label class="link" for="up">בחר מהמכשיר</label><input id="up" type="file" accept="image/*" multiple hidden></div>
-        <small class="muted">JPG, PNG או GIF. תמונה גדולה מוקטנת אוטומטית לגודל המסך. הכי טוב: תמונה לרוחב (16:9).</small></div>
+        <small class="muted">JPG, PNG או GIF. תמונה לרוחב ממלאת את המסך; דף לאורך (למשל לוח זמנים) מוצג בגדול ונגלל לאט כדי שאפשר יהיה לקרוא.</small></div>
         <div class="progress" id="upprog" hidden></div></section>`,
     bindHead: (rerender) => {
       const go = async (files) => {
@@ -211,7 +211,8 @@ const LISTS = {
           try {
             const { blob, ext, w, h } = await shrinkImage(f);
             const { url, path } = await uploadMedia(blob, ext);
-            const it = { id: uid(), url, path, title: '', caption: '', seconds: DATA.display.defaultSeconds || 12, fit: 'contain', enabled: true, from: '', to: '', w, h, name: f.name };
+            const tall = w && h && h > w * 1.15; // מסמך לאורך – גלילה איטית כדי שאפשר יהיה לקרוא
+            const it = { id: uid(), url, path, title: '', caption: '', seconds: tall ? 30 : (DATA.display.defaultSeconds || 12), fit: tall ? 'scroll' : 'contain', enabled: true, from: '', to: '', w, h, name: f.name };
             DATA.slides.push(it); ok++;
           } catch (e) { flash(`ההעלאה של ${f.name} נכשלה: ${e.message}`, true); }
         }
@@ -227,7 +228,7 @@ const LISTS = {
     },
     onDelete: (it) => { if (it.path) pendingDeletes.push(it.path); },
     blank: () => ({ id: uid(), url: '', title: '', caption: '', seconds: 12, fit: 'contain', enabled: true }),
-    fields: [['title', 'כותרת מעל התמונה (לא חובה)', 'text'], ['caption', 'כיתוב על התמונה (לא חובה)', 'text'], ['seconds', 'כמה שניות להציג', 'number'], ['fit', 'התאמה למסך', 'select', [['contain', 'כל התמונה (עם שוליים)'], ['cover', 'מילוי כל המסך (חיתוך)']]], ['from', 'מתאריך', 'date'], ['to', 'עד תאריך', 'date'], ['enabled', 'מוצגת בלוח', 'check']],
+    fields: [['title', 'כותרת מעל התמונה (לא חובה)', 'text'], ['caption', 'כיתוב על התמונה (לא חובה)', 'text'], ['seconds', 'כמה שניות להציג', 'number'], ['fit', 'התאמה למסך', 'select', [['contain', 'כל התמונה (עם שוליים)'], ['scroll', 'גלילה איטית – למסמך לאורך (קריא)'], ['cover', 'מילוי כל המסך (חיתוך)']]], ['from', 'מתאריך', 'date'], ['to', 'עד תאריך', 'date'], ['enabled', 'מוצגת בלוח', 'check']],
     sum: (it) => ({ thumb: it.url, title: it.title || it.caption || it.name || 'תמונה', meta: [`${it.seconds || 12} שניות`, it.from || it.to ? `${fmtDate(it.from) || '…'} – ${fmtDate(it.to) || '…'}` : 'מוצגת תמיד'].join(' · '), badge: it.enabled === false ? ['off', 'מוסתרת'] : activeRange(it) ? ['on', 'מוצגת'] : ['off', 'לא בתוקף'] }),
   },
   halachot: {

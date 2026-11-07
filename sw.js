@@ -1,7 +1,7 @@
 // Service Worker: שומר את קוד הלוח, הספריות והגופנים כדי שהלוח יעבוד גם בלי אינטרנט.
-const VERSION = 'shulboard-v9';
+const VERSION = 'shulboard-v10';
 const SHELL = [
-  './', './index.html', './m.html', './config.js', './manifest.webmanifest',
+  './', './index.html', './m.html', './config.js', './manifest.webmanifest', './m.webmanifest',
   './css/board.css', './css/mobile.css',
   './js/board.js', './js/mobile.js', './js/jewish.js', './js/prayers.js', './js/screens.js',
   './js/store.js', './js/defaults.js', './js/lib.js', './js/art.js', './js/scenes.js', './js/halacha-sa.js',

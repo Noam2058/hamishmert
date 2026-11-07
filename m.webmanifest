@@ -1,0 +1,15 @@
+{
+  "name": "בית הכנסת – זמנים והודעות",
+  "short_name": "בית הכנסת",
+  "lang": "he",
+  "dir": "rtl",
+  "start_url": "./m.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#14213d",
+  "theme_color": "#14213d",
+  "icons": [
+    { "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }
+  ]
+}

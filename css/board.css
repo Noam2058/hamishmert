@@ -8,6 +8,7 @@
   --ink: #1a2a4a;            /* טקסט על קלף */
   --ink-soft: #5a6478;
   --next-ink: #8a5208;   /* התפילה/הזמן הבא – זהב כהה */
+  --time-ink: #05080f;   /* השעות – כמעט שחור */
   --gold: #c9a24a;           /* מסגרות ועיטור */
   --gold-2: #e6c97a;
   --on-field: #f4ecd8;       /* טקסט על הרקע העמוק */
@@ -104,9 +105,9 @@ main#screens { position: relative; z-index: 1; padding: 54px 64px 26px; }
 .row:last-child { border-bottom: 0; }
 .row .k { font: 700 36px/1.2 var(--body); min-width: 0; }
 .row .k small { display: block; margin-top: 4px; font: 500 24px/1.25 var(--body); color: var(--ink-soft); }
-.row .v { font: 900 48px/1 var(--display); font-variant-numeric: tabular-nums; direction: ltr; white-space: nowrap; color: var(--ink); }
+.row .v { font: 900 48px/1 var(--display); font-variant-numeric: tabular-nums; direction: ltr; white-space: nowrap; color: var(--time-ink); }
 .row.past .k { color: var(--ink-soft); }
-.row.past .v { color: color-mix(in srgb, var(--ink) 78%, var(--parchment)); }
+.row.past .v { color: var(--time-ink); }
 .row.next .k, .row.next .v { color: var(--next-ink); }
 .row.next { background: color-mix(in srgb, var(--next-ink) 9%, transparent); border-radius: 12px; }
 .row.next .k::after { content: "  ◄ הבא"; font: 700 22px var(--body); }
@@ -129,7 +130,7 @@ main#screens { position: relative; z-index: 1; padding: 54px 64px 26px; }
 .hero .label { font: 700 30px var(--body); color: var(--ink-soft); }
 .hero .big { font: 900 92px/1.05 var(--display); }
 .hero .mid { font: 900 54px/1.1 var(--display); }
-.hero .time { font: 900 120px/1 var(--display); font-variant-numeric: tabular-nums; direction: ltr; }
+.hero .time { color: var(--time-ink); font: 900 120px/1 var(--display); font-variant-numeric: tabular-nums; direction: ltr; }
 .hero .side { justify-content: center; align-items: center; text-align: center; gap: 10px; }
 .flourish { width: 260px; height: 18px; color: var(--gold); }
 

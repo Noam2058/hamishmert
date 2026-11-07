@@ -98,6 +98,10 @@ main#screens { position: relative; z-index: 1; padding: 54px 64px 26px; }
   display: flex; flex-direction: column; justify-content: center; justify-content: safe center; gap: 22px; min-width: 0;
 }
 .grid > .card, .hero > .card { padding: 40px 48px; }
+/* כרטיס עם כותרת: הכותרת קבועה בראש הכרטיס (בגובה אחיד בכל הכרטיסים), והתוכן ממורכז במקום שנשאר */
+.grid > .card:has(> h3:first-child) { justify-content: flex-start; }
+.grid > .card > h3:first-child + * { margin-top: auto; }
+.grid > .card > h3:first-child ~ :last-child { margin-bottom: auto; }
 .card h3 { margin: 0; font: 900 44px/1.15 var(--display); color: var(--ink); display: flex; align-items: center; justify-content: center; text-align: center; flex-wrap: wrap; gap: 14px; padding-bottom: 14px; border-bottom: 2px solid color-mix(in srgb, var(--gold) 55%, transparent); }
 .card h3 .tag { font: 700 22px var(--body); background: var(--chip); color: var(--chip-ink); padding: 5px 14px; border-radius: 999px; }
 .rows { display: flex; flex-direction: column; width: 100%; max-width: 600px; margin-inline: auto; }

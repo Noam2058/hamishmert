@@ -47,6 +47,20 @@
   </div>
   <div id="msg" class="toast" role="status" hidden></div>
 </div>
+<div id="boot-err" class="boot-err" hidden>
+  <b>ממשק הניהול לא נטען</b>
+  <span>כנראה נשמרה במכשיר גרסה ישנה. לחץ כדי לנקות ולטעון מחדש.</span>
+  <button class="btn primary" id="boot-fix" type="button">טען מחדש</button>
+</div>
+<script>
+  // תיקון עצמי: אם הממשק לא עלה תוך 8 שניות – כפתור שמנקה מטמון ו-Service Worker וטוען מחדש
+  setTimeout(function () { if (!window.__adminReady) document.getElementById('boot-err').hidden = false; }, 8000);
+  document.getElementById('boot-fix').onclick = async function () {
+    try { (await caches.keys()).forEach(function (k) { caches.delete(k); }); } catch (e) {}
+    try { (await navigator.serviceWorker.getRegistrations()).forEach(function (r) { r.unregister(); }); } catch (e) {}
+    location.replace(location.pathname + '?r=' + Date.now() + location.hash);
+  };
+</script>
 <script type="module" src="js/admin.js"></script>
 </body>
 </html>

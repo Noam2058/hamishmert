@@ -699,6 +699,7 @@ $('#btn-signup').onclick = async () => {
 const q = location.search;
 $('#lnk-board').href = (window.SHUL_CONFIG?.boardPage || 'index.html') + q;
 $('#lnk-mobile').href = 'm.html' + q;
+window.__adminReady = true;
 enter().catch((e) => flash('שגיאה: ' + e.message, true));
 
 // גרסה חדשה של הממשק: בדיקה כשחוזרים לדף (ובכל 10 דקות). מרענן לבד רק אם אין שינויים שלא נשמרו.

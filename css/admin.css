@@ -220,3 +220,6 @@ html, body { overflow-x: hidden; }
 .pv-wrap { display: flex; flex-direction: column; gap: 6px; padding-top: 12px; }
 .pv-wrap .preview { max-width: 640px; width: 100%; align-self: center; box-shadow: 0 8px 22px rgba(0,0,0,.18); }
 .pv-wrap small { text-align: center; }
+
+.boot-err { position: fixed; z-index: 100; inset: auto 12px 24px 12px; max-width: 520px; margin: 0 auto; display: flex; flex-direction: column; gap: 8px; align-items: center; text-align: center;
+  background: var(--surface); border: 2px solid var(--gold); border-radius: 16px; padding: 18px; box-shadow: 0 14px 34px rgba(0,0,0,.3); }

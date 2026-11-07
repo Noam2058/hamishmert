@@ -608,6 +608,7 @@ async function doSave() {
   b.disabled = true; b.textContent = 'שומר…'; $('#btn-save2').disabled = true;
   try {
     await save(DATA); SAVED = structuredClone(DATA); setDirty(false);
+    setTimeout(checkVersion, 1500);
     const still = new Set((DATA.slides || []).map((x) => x.path)); const del = pendingDeletes.filter((p) => !still.has(p)); pendingDeletes = [];
     deleteMedia(del).catch(() => {}); flash('נשמר ✓ הלוח יתעדכן תוך כמה שניות');
     const f = $('#pv iframe'); if (f) setTimeout(() => f.contentWindow?.location.reload(), 1500);
@@ -650,3 +651,16 @@ const q = location.search;
 $('#lnk-board').href = (window.SHUL_CONFIG?.boardPage || 'index.html') + q;
 $('#lnk-mobile').href = 'm.html' + q;
 enter().catch((e) => flash('שגיאה: ' + e.message, true));
+
+// גרסה חדשה של הממשק: בדיקה כשחוזרים לדף (ובכל 10 דקות). מרענן לבד רק אם אין שינויים שלא נשמרו.
+let myVersion = null;
+const getVersion = () => fetch('version.txt', { cache: 'no-store' }).then((r) => (r.ok ? r.text() : null)).then((t) => t?.trim() || null).catch(() => null);
+getVersion().then((v) => { myVersion = v; });
+async function checkVersion() {
+  const v = await getVersion();
+  if (!v || !myVersion || v === myVersion) return;
+  if (!dirty) location.reload();
+  else flash('יש גרסה חדשה של הממשק – שמור, והדף יתרענן');
+}
+document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') checkVersion(); });
+setInterval(checkVersion, 10 * 60 * 1000);

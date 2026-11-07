@@ -126,8 +126,7 @@ export const SCREENS = {
         <section class="card">${zmanimRows(ctx, keys.slice(0, half))}</section>
         <section class="card">${zmanimRows(ctx, keys.slice(half))}</section>
         <section class="card"><h3>שינויים בתפילה</h3><div class="chips">${day.changes.map((c) => `<span class="chip">${esc(c)}</span>`).join('')}</div>
-          ${day.fast.length ? `<h3>הצום</h3><div class="rows compact">${day.fast.map((f) => `<div class="row"><div class="k">${f.label}</div><div class="v">${fmtTime(f.time, s.tz)}</div></div>`).join('')}</div>` : ''}
-          <div class="muted" style="font:500 22px var(--body);margin-top:auto">${esc(s.city || '')} · חישוב לפי מיקום בית הכנסת</div></section>
+          ${day.fast.length ? `<h3>הצום</h3><div class="rows compact">${day.fast.map((f) => `<div class="row"><div class="k">${f.label}</div><div class="v">${fmtTime(f.time, s.tz)}</div></div>`).join('')}</div>` : ''}</section>
       </div>`;
   },
 

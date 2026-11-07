@@ -223,10 +223,15 @@ export const SCREENS = {
     const list = (ctx.data.slides || []).filter((x) => x.url && x.enabled !== false && (!x.from || x.from <= t) && (!x.to || x.to >= t));
     if (!list.length) return null;
     return list.map((x) => {
-      const u = String(x.url).replace(/"/g, '%22');
+      const u = esc(String(x.url).replace(/"/g, '%22'));
+      const fit = ['contain', 'cover', 'width', 'scroll', 'zoom', 'full'].includes(x.fit) ? x.fit : 'contain';
+      const secs = +x.seconds || ctx.display.defaultSeconds || 12;
+      const size = Math.min(100, Math.max(40, +x.size || 100));
+      const alt = esc(x.title || x.caption || '');
+      const img = fit === 'scroll' ? `<div class="pan"><img src="${u}" alt="${alt}"></div>` : `<img src="${u}" alt="${alt}">`;
       return {
-        key: x.id, seconds: +x.seconds || 0,
-        html: `${x.title ? title(x.title) : ''}<section class="img-slide${x.fit === 'cover' ? ' cover' : ''}${x.fit === 'scroll' ? ' scroll' : ''}" style="--dur:${(+x.seconds || ctx.display.defaultSeconds || 12)}s">${x.fit === 'scroll' ? `<div class="pan"><img src="${esc(u)}" alt="${esc(x.title || x.caption || '')}"></div>` : `<img src="${esc(u)}" alt="${esc(x.title || x.caption || '')}">`}${x.caption ? `<div class="cap">${esc(x.caption)}</div>` : ''}</section>`,
+        key: x.id, seconds: +x.seconds || 0, full: fit === 'full',
+        html: `${x.title && fit !== 'full' ? title(x.title) : ''}<section class="img-slide fit-${fit} bg-${x.bg || 'board'}" style="--dur:${secs}s;--size:${size / 100}">${img}${x.caption ? `<div class="cap">${esc(x.caption)}</div>` : ''}</section>`,
       };
     });
   },

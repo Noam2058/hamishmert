@@ -206,3 +206,14 @@ html, body { overflow-x: hidden; }
 .brand > div { min-width: 0; }
 .top-actions { flex: none; }
 .topbar { min-width: 0; overflow: hidden; }
+/* בחירת מצב תצוגה לתמונה */
+.fitpick { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; }
+.fitopt { position: relative; display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 10px 8px 9px; border: 2px solid var(--line); border-radius: 12px; cursor: pointer; text-align: center; background: var(--surface); }
+.fitopt input { position: absolute; opacity: 0; pointer-events: none; }
+.fitopt svg { width: 100%; max-width: 128px; height: auto; margin-bottom: 4px; }
+.fitopt .scr { fill: #1c2c50; } .fitopt .bar { fill: #a8822f; opacity: .85; }
+.fitopt .pic { fill: #f3e7c6; } .fitopt .ln { stroke: #8a6a2a; stroke-width: 1.2; fill: none; } .fitopt .arw { stroke: #e3c475; stroke-width: 1.8; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+.fitopt b { font-size: 15px; } .fitopt small { color: var(--soft); font-size: 12.5px; line-height: 1.3; }
+.fitopt:has(input:checked) { border-color: var(--gold); background: var(--gold-soft); box-shadow: 0 0 0 3px color-mix(in srgb, var(--gold) 25%, transparent); }
+.fitopt:has(input:focus-visible) { outline: 3px solid color-mix(in srgb, var(--gold) 65%, transparent); outline-offset: 2px; }
+@media (max-width: 560px) { .fitpick { grid-template-columns: repeat(2, 1fr); } }

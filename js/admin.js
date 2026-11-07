@@ -140,6 +140,18 @@ function makeSortable(container, itemSel, onDone, canSwap = () => true) {
 }
 const reorder = (arr, order) => { const copy = order.map((i) => arr[i]); arr.splice(0, arr.length, ...copy); };
 
+// ---------- בחירת מצב תצוגה לתמונה ----------
+const FRAME = (inner, bars = true) => `<svg viewBox="0 0 64 36" aria-hidden="true"><rect x="1" y="1" width="62" height="34" rx="3" class="scr"/>${bars ? '<rect x="1" y="1" width="62" height="5" rx="1" class="bar"/><rect x="1" y="31" width="62" height="4" rx="1" class="bar"/>' : ''}${inner}</svg>`;
+const DOC = (x, y, w, h) => `<rect x="${x}" y="${y}" width="${w}" height="${h}" class="pic"/><path d="M${x + 2} ${y + 3}h${w - 4}M${x + 2} ${y + 6}h${w - 6}M${x + 2} ${y + 9}h${w - 4}" class="ln"/>`;
+const FITS = [
+  ['contain', 'כל התמונה', 'רואים את כולה, בתוך מסגרת', FRAME(DOC(22, 8, 20, 21))],
+  ['width', 'רוחב מלא', 'ממלאת לרוחב, מתחילה מלמעלה', FRAME(DOC(5, 8, 54, 21))],
+  ['cover', 'מילוי מלא', 'ממלאת הכל, חיתוך בשוליים', FRAME('<rect x="5" y="8" width="54" height="21" class="pic"/><path d="M5 8l54 21M59 8L5 29" class="ln"/>')],
+  ['scroll', 'גלילה איטית', 'למסמך לאורך – גדול ונגלל', FRAME(`${DOC(17, 8, 30, 21)}<path d="M52 11v14M49 22l3 3 3-3" class="arw"/>`)],
+  ['zoom', 'זום איטי', 'תנועה עדינה לתמונה', FRAME('<rect x="5" y="8" width="54" height="21" class="pic"/><rect x="14" y="12" width="36" height="13" class="ln" fill="none"/><path d="M50 12l4-3M14 25l-4 3" class="arw"/>')],
+  ['full', 'מסך מלא', 'על כל המסך, בלי הפסים', FRAME('<rect x="1" y="1" width="62" height="34" rx="3" class="pic"/><path d="M4 9V4h5M60 9V4h-5M4 27v5h5M60 27v5h-5" class="arw"/>', false)],
+];
+
 // ---------- הגדרות שדות לכל רשימה ----------
 const LISTS = {
   prayers: {
@@ -228,8 +240,13 @@ const LISTS = {
     },
     onDelete: (it) => { if (it.path) pendingDeletes.push(it.path); },
     blank: () => ({ id: uid(), url: '', title: '', caption: '', seconds: 12, fit: 'contain', enabled: true }),
-    fields: [['title', 'כותרת מעל התמונה (לא חובה)', 'text'], ['caption', 'כיתוב על התמונה (לא חובה)', 'text'], ['seconds', 'כמה שניות להציג', 'number'], ['fit', 'התאמה למסך', 'select', [['contain', 'כל התמונה (עם שוליים)'], ['scroll', 'גלילה איטית – למסמך לאורך (קריא)'], ['cover', 'מילוי כל המסך (חיתוך)']]], ['from', 'מתאריך', 'date'], ['to', 'עד תאריך', 'date'], ['enabled', 'מוצגת בלוח', 'check']],
-    sum: (it) => ({ thumb: it.url, title: it.title || it.caption || it.name || 'תמונה', meta: [`${it.seconds || 12} שניות`, it.from || it.to ? `${fmtDate(it.from) || '…'} – ${fmtDate(it.to) || '…'}` : 'מוצגת תמיד'].join(' · '), badge: it.enabled === false ? ['off', 'מוסתרת'] : activeRange(it) ? ['on', 'מוצגת'] : ['off', 'לא בתוקף'] }),
+    fields: [['fit', 'איך להציג את התמונה', 'fit'],
+      ['size', 'גודל התמונה', 'select', [[100, 'גדול (100%)'], [90, '90%'], [80, '80%'], [70, '70%'], [60, 'קטן (60%)']]],
+      ['bg', 'רקע מאחורי התמונה', 'select', [['board', 'הרקע של הלוח'], ['dark', 'כהה'], ['light', 'לבן']]],
+      ['seconds', 'כמה שניות להציג', 'number'],
+      ['title', 'כותרת מעל התמונה (לא חובה)', 'text'], ['caption', 'כיתוב על התמונה (לא חובה)', 'text'],
+      ['from', 'מתאריך', 'date'], ['to', 'עד תאריך', 'date'], ['enabled', 'מוצגת בלוח', 'check']],
+    sum: (it) => ({ thumb: it.url, title: it.title || it.caption || it.name || 'תמונה', meta: [(FITS.find((f) => f[0] === (it.fit || 'contain')) || FITS[0])[1], `${it.seconds || 12} שניות`, it.from || it.to ? `${fmtDate(it.from) || '…'} – ${fmtDate(it.to) || '…'}` : 'מוצגת תמיד'].join(' · '), badge: it.enabled === false ? ['off', 'מוסתרת'] : activeRange(it) ? ['on', 'מוצגת'] : ['off', 'לא בתוקף'] }),
   },
   halachot: {
     label: 'הלכות', single: 'הלכה',
@@ -270,6 +287,7 @@ function fieldHtml(item, [key, label, type, opts], path) {
   else if (type === 'textarea') input = `<textarea id="${id}" data-k="${key}">${esc(v)}</textarea>`;
   else if (type === 'check') return `<label class="fld check"><input id="${id}" data-k="${key}" type="checkbox" ${v ? 'checked' : ''}><span>${esc(label)}</span></label>`;
   else if (type === 'select') input = `<select id="${id}" data-k="${key}">${opts.map(([val, lab]) => `<option value="${esc(val)}" ${String(v ?? '') === String(val) ? 'selected' : ''}>${esc(lab)}</option>`).join('')}</select>`;
+  else if (type === 'fit') input = `<div class="fitpick" data-k="${key}" data-type="fit" role="radiogroup">${FITS.map(([val, lab, sub, svg]) => `<label class="fitopt"><input type="radio" name="${id}" value="${val}" ${(v || 'contain') === val ? 'checked' : ''}>${svg}<b>${lab}</b><small>${sub}</small></label>`).join('')}</div>`;
   else if (type === 'weekdays') input = `<div class="days" data-k="${key}" data-type="weekdays">${WEEKDAY_OPTS.map((d, i) => `<label><input type="checkbox" value="${i}" ${(v || []).includes(i) ? 'checked' : ''}>${d}׳</label>`).join('')}</div>`;
   else if (type === 'time') {
     const t = v || { type: 'fixed', value: '07:00' };
@@ -283,13 +301,14 @@ function fieldHtml(item, [key, label, type, opts], path) {
       <select data-t="basis" aria-label="בסיס החישוב">${[['day', 'לפי כל יום'], ['week-min', 'קבוע לשבוע (מוקדם)'], ['week-max', 'קבוע לשבוע (מאוחר)']].map(([k, l]) => `<option value="${k}" ${(t.basis || 'day') === k ? 'selected' : ''}>${l}</option>`).join('')}</select>`}
     </div>`;
   }
-  const full = type === 'textarea' || type === 'time' || type === 'weekdays' ? ' full' : '';
+  const full = type === 'textarea' || type === 'time' || type === 'weekdays' || type === 'fit' ? ' full' : '';
   return `<div class="fld${full}"><span>${esc(label)}</span>${input}</div>`;
 }
 
 function readField(el) {
   const type = el.dataset.type;
   if (type === 'weekdays') return [...el.querySelectorAll('input:checked')].map((i) => +i.value);
+  if (type === 'fit') return el.querySelector('input:checked')?.value || 'contain';
   if (type === 'time') {
     const g = (k) => el.querySelector(`[data-t="${k}"]`)?.value;
     if (g('type') !== 'zman') return { type: 'fixed', value: g('value') || '00:00' };

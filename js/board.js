@@ -166,7 +166,7 @@ function buildQueue() {
     slides.forEach((sl, i) => {
       const html = typeof sl === 'string' ? sl : sl.html;
       const secs = (typeof sl === 'object' && sl.seconds) || item.seconds || DATA.display.defaultSeconds || 12;
-      q.push({ type: item.type, html, seconds: +(params.get('sec') || secs), key: `${item.type}:${typeof sl === 'object' && sl.key ? sl.key : i}` });
+      q.push({ type: item.type, html, full: typeof sl === 'object' && !!sl.full, seconds: +(params.get('sec') || secs), key: `${item.type}:${typeof sl === 'object' && sl.key ? sl.key : i}` });
     });
   }
   return q;
@@ -211,7 +211,8 @@ function applyBg(item, index) {
 function show(next) {
   const host = $('#screens');
   const el = document.createElement('div');
-  el.className = 'screen';
+  el.className = next.full ? 'screen full' : 'screen';
+  $('#stage').classList.toggle('fullslide', !!next.full);
   el.innerHTML = next.html;
   host.appendChild(el);
   void el.offsetWidth; // מאלץ ציור לפני המעבר

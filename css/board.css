@@ -229,10 +229,10 @@ body.night #night { display: grid; }
 
 /* מצב בלי חיבור */
 /* חיווי סנכרון – קטן ושקוף בפינה השמאלית התחתונה */
-.sync { position: absolute; left: 16px; bottom: 5px; z-index: 4; display: flex; align-items: center; gap: 7px; pointer-events: none;
-  font: 600 15px/1 var(--body); color: var(--on-field); opacity: .34; white-space: nowrap; }
-.sync i { width: 8px; height: 8px; border-radius: 50%; background: #5fbf86; flex: none; }
-body.offline .sync { opacity: .6; }
+.sync { position: absolute; left: 18px; bottom: 6px; z-index: 4; display: flex; align-items: center; gap: 8px; pointer-events: none;
+  font: 700 19px/1 var(--body); color: var(--on-field); opacity: .55; white-space: nowrap; }
+.sync i { width: 10px; height: 10px; border-radius: 50%; background: #5fbf86; flex: none; }
+body.offline .sync { opacity: .8; }
 body.offline .sync i { background: #e0605a; }
 #stage.fullslide .sync { visibility: hidden; }
 

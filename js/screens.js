@@ -100,8 +100,8 @@ export const SCREENS = {
       <div class="grid g-combined">
         <section class="card"><h3>תפילות היום ${tag ? `<span class="tag">${esc(tag)}</span>` : ''}</h3>${prayerRows(prayersToday, nowMin)}</section>
         <section class="card"><h3>זמני היום</h3>${zmanimRows(ctx, keys, true)}</section>
-        <section class="card"><h3>שיעורים היום</h3>${lessonsToday.length ? `<div class="rows compact">${lessonsToday.map((l) => `<div class="row"><div class="k">${esc(l.title)}<small>${esc([l.teacher, l.note].filter(Boolean).join(' · '))}</small></div><div class="v">${l.timeStr}</div></div>`).join('')}</div>` : '<div class="empty">אין שיעורים היום</div>'}
-          <h3 style="margin-top:8px">בתפילה</h3><div class="chips">${day.changes.map((c) => `<span class="chip">${esc(c)}</span>`).join('')}${extra.join('')}</div></section>
+        <section class="card split"><div class="sect"><h3>שיעורים היום</h3><div class="body">${lessonsToday.length ? `<div class="rows compact">${lessonsToday.map((l) => `<div class="row"><div class="k">${esc(l.title)}<small>${esc([l.teacher, l.note].filter(Boolean).join(' · '))}</small></div><div class="v">${l.timeStr}</div></div>`).join('')}</div>` : '<div class="empty">אין שיעורים היום</div>'}</div></div>
+          <div class="sect"><h3>בתפילה</h3><div class="body"><div class="chips">${day.changes.map((c) => `<span class="chip">${esc(c)}</span>`).join('')}${extra.join('')}</div></div></div></section>
       </div>`;
   },
 

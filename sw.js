@@ -1,5 +1,5 @@
 // Service Worker: שומר את קוד הלוח, הספריות והגופנים כדי שהלוח יעבוד גם בלי אינטרנט.
-const VERSION = 'shulboard-v8';
+const VERSION = 'shulboard-v9';
 const SHELL = [
   './', './index.html', './m.html', './config.js', './manifest.webmanifest',
   './css/board.css', './css/mobile.css',
@@ -41,7 +41,7 @@ self.addEventListener('fetch', (e) => {
   }
   // קבצי האתר והגדרות הגופנים: מהרשת קודם, ומהמטמון כשאין חיבור
   // cache: 'no-cache' – בודק מול השרת אם יש גרסה חדשה (בקשה קטנה), כדי שעדכון קוד יגיע ללוח מיד
-  e.respondWith(fetch(e.request, { cache: 'no-cache' }).then((res) => {
+  e.respondWith(fetch(e.request, { cache: url.origin === location.origin ? 'reload' : 'no-cache' }).then((res) => {
     const copy = res.clone();
     caches.open(VERSION).then((c) => c.put(e.request, copy));
     return res;

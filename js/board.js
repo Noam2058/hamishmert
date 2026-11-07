@@ -311,7 +311,13 @@ async function watchVersion() {
   const get = () => fetch('version.txt', { cache: 'no-store' }).then((r) => (r.ok ? r.text() : null)).then((t) => t?.trim() || null).catch(() => null);
   const mine = await get();
   if (!mine) return;
-  setInterval(async () => { const v = await get(); if (v && v !== mine) location.reload(); }, 5 * 60 * 1000);
+  setInterval(async () => {
+    const v = await get();
+    if (!v || v === mine) return;
+    try { for (const k of await caches.keys()) await caches.delete(k); } catch {} // בלי שאריות מגרסה קודמת
+    try { (await navigator.serviceWorker?.getRegistration())?.update(); } catch {}
+    location.reload();
+  }, 5 * 60 * 1000);
 }
 
 async function keepAwake() {

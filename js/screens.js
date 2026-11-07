@@ -226,7 +226,7 @@ export const SCREENS = {
       const u = String(x.url).replace(/"/g, '%22');
       return {
         key: x.id, seconds: +x.seconds || 0,
-        html: `${x.title ? title(x.title) : ''}<section class="img-slide${x.fit === 'cover' ? ' cover' : ''}"><div class="blur" style="background-image:url(&quot;${esc(u)}&quot;)"></div><img src="${esc(u)}" alt="${esc(x.title || x.caption || '')}">${x.caption ? `<div class="cap">${esc(x.caption)}</div>` : ''}</section>`,
+        html: `${x.title ? title(x.title) : ''}<section class="img-slide${x.fit === 'cover' ? ' cover' : ''}"><img src="${esc(u)}" alt="${esc(x.title || x.caption || '')}">${x.caption ? `<div class="cap">${esc(x.caption)}</div>` : ''}</section>`,
       };
     });
   },

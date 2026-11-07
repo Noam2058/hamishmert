@@ -178,7 +178,6 @@ function displayOpts() {
 }
 /** מחזיר Promise לכתובת הרקע של השקופית (או null) */
 function bgFor(item, index) {
-  if (item.type === 'images') return Promise.resolve(null); // לתמונה יש רקע משלה (טשטוש של עצמה)
   const disp = displayOpts();
   const holiday = params.get('holiday') || ctx.day.holiday;
   const holidayOn = disp.holidayDesign !== false && holidayHasDesign(holiday);

@@ -342,10 +342,11 @@ function readField(el) {
 let renderedTab = null;
 function freshPanel() {
   const old = document.getElementById('panel');
+  const h = old.offsetHeight;
   const n = old.cloneNode(false);
   old.replaceWith(n);
   // באותה לשונית (הזזה, מחיקה, שינוי) – נשארים באותו מקום בדף; רק במעבר לשונית עולים לראש
-  if (renderedTab === tab) { const y = scrollY; n.style.minHeight = `${old.offsetHeight}px`; requestAnimationFrame(() => { scrollTo({ top: y }); n.style.minHeight = ''; }); }
+  if (renderedTab === tab) { const y = scrollY; n.style.minHeight = `${h}px`; requestAnimationFrame(() => { scrollTo({ top: y }); n.style.minHeight = ''; }); }
   else scrollTo({ top: 0 });
   renderedTab = tab;
   return n;

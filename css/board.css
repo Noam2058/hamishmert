@@ -228,8 +228,13 @@ footer.ticker { position: relative; z-index: 2; display: flex; align-items: cent
 body.night #night { display: grid; }
 
 /* מצב בלי חיבור */
-.offline-dot { position: absolute; top: 14px; left: 18px; z-index: 5; width: 14px; height: 14px; border-radius: 50%; background: #d9534f; display: none; }
-body.offline .offline-dot { display: block; }
+/* חיווי סנכרון – קטן ושקוף בפינה השמאלית התחתונה */
+.sync { position: absolute; left: 16px; bottom: 5px; z-index: 4; display: flex; align-items: center; gap: 7px; pointer-events: none;
+  font: 600 15px/1 var(--body); color: var(--on-field); opacity: .34; white-space: nowrap; }
+.sync i { width: 8px; height: 8px; border-radius: 50%; background: #5fbf86; flex: none; }
+body.offline .sync { opacity: .6; }
+body.offline .sync i { background: #e0605a; }
+#stage.fullslide .sync { visibility: hidden; }
 
 /* טעינה */
 #loading { position: fixed; inset: 0; display: grid; place-items: center; color: #c9a24a; font: 700 40px var(--display); background: #0b1a36; z-index: 60; }

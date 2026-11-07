@@ -266,13 +266,28 @@ function applySlidePreview() {
 }
 addEventListener('hashchange', () => { if (SLIDE_PREVIEW) { applySlidePreview(); advance(); } });
 
+// ---------- חיווי סנכרון ----------
+let lastSync = null;
+function renderSync() {
+  const el = $('#sync span');
+  if (!el) return;
+  const off = document.body.classList.contains('offline');
+  const t = lastSync ? new Intl.DateTimeFormat('he-IL', { hour: '2-digit', minute: '2-digit', hour12: false, timeZone: DATA?.synagogue?.tz || 'Asia/Jerusalem' }).format(lastSync) : '';
+  el.textContent = off ? `אין חיבור${t ? ` · עודכן ${t}` : ''}` : t ? `עודכן ${t}` : '';
+}
+function markSync(source) {
+  if (source === 'server' || source === 'realtime' || source === 'local' || source === 'demo' || source === 'missing') lastSync = new Date();
+  document.body.classList.toggle('offline', source === 'cache' || !navigator.onLine);
+  renderSync();
+}
+
 async function start() {
   fit();
   const r = await load();
   DATA = r.data;
   applySlidePreview();
   applyPerf();
-  document.body.classList.toggle('offline', r.source === 'cache');
+  markSync(r.source);
   document.getElementById('loading').hidden = true;
   advance();
   setInterval(tickClock, 1000);
@@ -281,11 +296,11 @@ async function start() {
     DATA = data;
     applySlidePreview();
     applyPerf();
-    document.body.classList.toggle('offline', info?.source === 'cache');
+    markSync(info?.source);
     advance();
   });
-  addEventListener('offline', () => document.body.classList.add('offline'));
-  addEventListener('online', () => document.body.classList.remove('offline'));
+  addEventListener('offline', () => { document.body.classList.add('offline'); renderSync(); });
+  addEventListener('online', () => { document.body.classList.remove('offline'); renderSync(); });
   keepAwake();
   scheduleDailyReload();
   watchVersion();

@@ -346,7 +346,7 @@ function freshPanel() {
   const n = old.cloneNode(false);
   old.replaceWith(n);
   // באותה לשונית (הזזה, מחיקה, שינוי) – נשארים באותו מקום בדף; רק במעבר לשונית עולים לראש
-  if (renderedTab === tab) { const y = scrollY; n.style.minHeight = `${h}px`; requestAnimationFrame(() => { scrollTo({ top: y }); n.style.minHeight = ''; }); }
+  if (renderedTab === tab) { const y = scrollY; n.style.minHeight = `${h}px`; queueMicrotask(() => { scrollTo({ top: y, behavior: 'instant' }); n.style.minHeight = ''; }); // אחרי שהתוכן החדש נכנס }
   else scrollTo({ top: 0 });
   renderedTab = tab;
   return n;

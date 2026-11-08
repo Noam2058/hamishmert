@@ -462,7 +462,14 @@ function bindRichText(rt) {
   };
   // הסימון נשאר על המילים עצמן (בלי הסימנים) – כך לחיצה נוספת מבטלת/מחליפה במקום לעטוף שוב
   const wrap = (open, close) => apply((before, sel, after) => {
-    if (before.endsWith(open) && after.startsWith(close)) return { before: before.slice(0, -open.length), sel, after: after.slice(close.length) }; // כבר מעוצב – מסיר
+    // כבר מעוצב (גם אם יש ביניהם סימן אחר, למשל צבע) – מסיר רק את העיצוב הזה
+    let b = before, a = after, inL = '', inR = '';
+    for (let k = 0; k < 5; k++) {
+      const mo = b.match(/(\*\*|__|\+\+|\[\[\w+:)$/), mc = a.match(/^(\*\*|__|\+\+|\]\])/);
+      if (!mo || !mc) break;
+      if (mo[0] === open && mc[0] === close) return { before: b.slice(0, -open.length) + inL, sel, after: inR + a.slice(close.length) };
+      inL = mo[0] + inL; inR += mc[0]; b = b.slice(0, -mo[0].length); a = a.slice(mc[0].length);
+    }
     if (sel.startsWith(open) && sel.endsWith(close) && sel.length > open.length + close.length) return { before, sel: sel.slice(open.length, -close.length), after };
     return { before: before + open, sel, after: close + after };
   });

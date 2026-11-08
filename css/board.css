@@ -450,3 +450,9 @@ html, body, #viewport { touch-action: manipulation; -webkit-tap-highlight-color:
 .ann .b .big { font-size: 1.3em; line-height: 1.2; }
 /* הסמל המעוטר בראש הכרטיס בולט 24px מעליו – כשהכרטיסים בראש השקופית (בלי כותרת) צריך מקום כדי שלא ייחתך */
 .screen > .grid:first-child, .screen > .hero:first-child { padding-top: 34px; }
+/* תפילות החג */
+.hol-grid > .card.hol { gap: 14px; }
+.card.hol .hol-when { text-align: center; font: 700 30px var(--body); color: var(--ink-soft); margin-top: -6px; }
+.card.hol .pillw { display: inline-block; font: 800 26px var(--body); color: var(--next-ink); background: color-mix(in srgb, var(--gold) 16%, transparent); padding: 2px 16px; border-radius: 999px; margin-inline-end: 6px; }
+.card.hol .pillw.now { background: var(--next-ink); color: #fff; }
+.card.hol > .rows { margin-block: auto; }

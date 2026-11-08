@@ -1,10 +1,12 @@
 // חישוב זמני תפילות ושיעורים: שעה קבועה או יחסית לזמן הלכתי.
 import { zmanimFor, tzParts, minutesOf, hhmmToMin, minToHhmm } from './jewish.js';
+import { holidayKeysOn } from './holidays.js';
 
 export const SCHEDULES = [
   ['weekday', 'חול'], ['friday', 'ערב שבת'], ['shabbat', 'שבת ומוצ"ש'],
   ['rosh-chodesh', 'ראש חודש'], ['chol-hamoed', 'חול המועד'], ['erev-yomtov', 'ערב חג'],
   ['yomtov', 'חג'], ['fast', 'תענית'], ['chanuka', 'חנוכה'],
+  ['holiday', 'חג / מועד מסוים (לבחור מרשימה)'],
 ];
 export const SCHEDULE_LABEL = Object.fromEntries(SCHEDULES);
 
@@ -61,7 +63,7 @@ export function describeTime(t) {
   return rel + wk;
 }
 
-function rowsFor(prayers, tags, dow) {
+function rowsFor(prayers, tags, dow, hkeys = []) {
   // חג נשען על לוח השבת (ערב חג – על לוח החול, ומה שמוגדר ב"ערב חג" מחליף)
   const baseTag = tags.includes('shabbat') || tags.includes('yomtov') ? 'shabbat'
     : tags.includes('friday') ? 'friday' : 'weekday';
@@ -72,13 +74,17 @@ function rowsFor(prayers, tags, dow) {
     if (!tags.includes(tag)) continue;
     for (const r of prayers.filter((p) => p.schedule === tag && ok(p))) map.set(r.name.trim(), r);
   }
+  // תפילות שהוגדרו לחג מסוים (ראש השנה, פורים…) גוברות על הכל באותו יום
+  for (const r of prayers.filter((p) => p.schedule === 'holiday' && hkeys.includes(p.holiday) && ok(p))) map.set(r.name.trim(), r);
   return [...map.values()];
 }
 
 /** רשימת התפילות ליום (day מגיע מ-computeDay) */
 export function prayersForDay(day, data, s, civil = day.civil, tags = day.tags) {
   const ctx = { candles: day.shabbat.candles, havdalah: day.shabbat.havdalah };
-  return rowsFor(data.prayers || [], tags, civil.getDay())
+  let hkeys = [];
+  try { if ((data.prayers || []).some((p) => p.schedule === 'holiday')) hkeys = holidayKeysOn(civil, s.il !== false); } catch { /* */ }
+  return rowsFor(data.prayers || [], tags, civil.getDay(), hkeys)
     .map((r) => {
       const min = resolveTime(r.time, civil, s, ctx);
       return { id: r.id, name: r.name, note: r.note || '', min, time: min == null ? '--:--' : minToHhmm(min) };

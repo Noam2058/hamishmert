@@ -5,6 +5,7 @@ import { SCHEDULES, ZMAN_BASES, resolveTime, describeTime, prayersForDay, lesson
 import { ZMANIM, HEB_MONTHS, computeDay, minToHhmm, fmtTime, yahrzeitIn, birthdayIn, inHebrewRange, renderHeb } from './jewish.js';
 import { refForDate, heNum, DEFAULT_START } from './halacha-sa.js';
 import { SCENE_CHOICES } from './scenes.js';
+import { HOLIDAY_DAYS, HOLIDAY_LABEL, nextOccurrence } from './holidays.js';
 import { annActive, annWhen, annBody, annClasses, annStyle, ANN_DEFAULT_FMT, ANN_SIZES, ANN_FONTS, ANN_BGS, ANN_COLORS } from './ann.js';
 
 const $ = (s) => document.querySelector(s);
@@ -78,14 +79,17 @@ const sampleCache = new Map();
 function sampleDay(item) {
   const sched = item.schedule || null; // רק לתפילות
   const wd = item.weekdays?.length ? item.weekdays : null;
-  const key = `${isoToday()}|${sched}|${wd}`;
+  const key = `${isoToday()}|${sched}|${wd}|${item.holiday || ''}`;
   if (sampleCache.has(key)) return sampleCache.get(key);
   let res = null;
   try {
     const today = todayDay().civil;
     const at = (i) => new Date(today.getTime() + i * 86400000);
     let dows = sched ? BASE_DOWS[sched] : null;
-    if (sched && !dows) { // לוח מיוחד: ראש חודש, חג, תענית… – מחפשים את היום הקרוב שמתויג כך
+    if (sched === 'holiday') {
+      const o = item.holiday ? nextOccurrence(item.holiday, today, DATA.synagogue.il !== false) : null;
+      if (o) { const d = computeDay(o.date, DATA.synagogue); res = { i: Math.round((o.date - today) / 86400000), day: d, hol: o.label }; }
+    } else if (sched && !dows) { // לוח מיוחד: ראש חודש, חג, תענית… – מחפשים את היום הקרוב שמתויג כך
       for (let i = 0; i < 400 && !res; i++) {
         const d = computeDay(at(i), DATA.synagogue);
         if (d.tags?.includes(sched) && (!wd || wd.includes(d.civil.getDay()))) res = { i, day: d };
@@ -96,7 +100,7 @@ function sampleDay(item) {
     }
     if (res) {
       const dow = res.day.civil.getDay();
-      const name = res.i === 0 ? 'היום' : res.i === 1 ? 'מחר' : dow === 6 ? 'בשבת הקרובה'
+      const name = res.hol ? `ב${res.hol}` : res.i === 0 ? 'היום' : res.i === 1 ? 'מחר' : dow === 6 ? 'בשבת הקרובה'
         : sched && !BASE_DOWS[sched] ? `ב${SCHED_HE[sched]} הקרוב` : `ביום ${DAY_NAME[dow]} הקרוב`;
       res.label = `${name} (${renderHeb(res.day.hd)})`;
     }
@@ -219,9 +223,11 @@ const LISTS = {
     label: 'תפילות', single: 'תפילה', group: 'schedule',
     help: 'כל תפילה שייכת ללוח: חול, ערב שבת, שבת, ראש חודש, חג… תפילה בלוח מיוחד מחליפה תפילה באותו שם מלוח החול או השבת.',
     blank: () => ({ id: uid(), name: '', schedule: 'weekday', time: { type: 'fixed', value: '07:00' } }),
-    fields: [['name', 'שם התפילה', 'text'], ['schedule', 'לוח', 'select', SCHEDULES], ['weekdays', 'רק בימים (ריק = כל הימים)', 'weekdays'], ['note', 'הערה (מוצגת מתחת לשם)', 'text'], ['time', 'שעה', 'time']],
-    sum: (it) => ({ title: it.name, meta: [it.time?.type === 'zman' ? describeTime(it.time) : 'שעה קבועה', daysText(it.weekdays), it.note].filter(Boolean).join(' · '), time: timeOf(it) }),
+    fields: [['name', 'שם התפילה', 'text'], ['schedule', 'לוח', 'select', SCHEDULES],
+      ['holiday', 'איזה חג / מועד', 'select', [['', '— בחר —'], ...HOLIDAY_DAYS.map(([k, l]) => [k, l])], (it) => it.schedule === 'holiday'], ['weekdays', 'רק בימים (ריק = כל הימים)', 'weekdays'], ['note', 'הערה (מוצגת מתחת לשם)', 'text'], ['time', 'שעה', 'time']],
+    sum: (it) => ({ title: it.name, meta: [it.schedule === 'holiday' ? (HOLIDAY_LABEL[it.holiday] || 'לא נבחר חג') : '', it.time?.type === 'zman' ? describeTime(it.time) : 'שעה קבועה', daysText(it.weekdays), it.note].filter(Boolean).join(' · '), time: timeOf(it) }),
     calc: true,
+    rerender: ['holiday'],
   },
   lessons: {
     label: 'שיעורים', single: 'שיעור',
@@ -558,7 +564,11 @@ function renderList(key, focusNew = false) {
   else if (def.group) {
     const groups = new Map(SCHEDULES.map(([k]) => [k, []]));
     visible.forEach((x) => { const g = x[0][def.group] || 'weekday'; if (!groups.has(g)) groups.set(g, []); groups.get(g).push(x); });
-    listHtml = [...groups].filter(([, xs]) => xs.length).map(([g, xs]) => `<div class="group-title">${esc(SCHED_HE[g] || g)}</div>${xs.map(itemHtml).join('')}`).join('');
+    if (groups.get('holiday')?.length) { // בתוך החגים – לפי סדר השנה
+      const order = Object.fromEntries(HOLIDAY_DAYS.map(([k], i) => [k, i]));
+      groups.get('holiday').sort((a, b) => (order[a[0].holiday] ?? 99) - (order[b[0].holiday] ?? 99));
+    }
+    listHtml = [...groups].filter(([, xs]) => xs.length).map(([g, xs]) => `<div class="group-title">${esc(g === 'holiday' ? 'חגים ומועדים – מוצגים בלוח שבוע לפני החג' : SCHED_HE[g] || g)}</div>${xs.map(itemHtml).join('')}`).join('');
   } else listHtml = visible.map(itemHtml).join('');
 
   $('#panel').innerHTML = `

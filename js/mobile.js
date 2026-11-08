@@ -7,6 +7,7 @@ import { cachedHalacha, prefetchHalachot, DEFAULT_START } from './halacha-sa.js'
 import { sceneForSlide, renderScene } from './scenes.js';
 import { annActive, annBody, annClasses, annStyle } from './ann.js';
 import { cachedMishna, prefetchMishna } from './mishna.js';
+import { upcomingHolidaySchedules } from './holidays.js';
 
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const $ = (s) => document.querySelector(s);
@@ -64,6 +65,7 @@ function render() {
   const lessonsToday = (DATA.lessons || []).filter((l) => !l.weekdays?.length || l.weekdays.includes(day.civil.getDay()));
   const lessons = (DATA.lessons || []).map((l) => { const m = resolveTime(l.time, day.civil, s, lctx); return { ...l, timeStr: m == null ? '' : minToHhmm(m) }; });
   const anns = (DATA.announcements || []).filter((a) => annActive(a, iso, day.hd) && (a.title || a.body));
+  let hols = []; try { hols = upcomingHolidaySchedules(DATA, s, now, 7); } catch { /* */ }
   const deds = DATA.display.screens.some((x) => x.type === 'neshama' && x.enabled) ? (DATA.dedications || []).filter((a) => annActive(a, iso, day.hd) && (a.title || a.body)) : [];
   const slides = (DATA.slides || []).filter((x) => x.url && x.enabled !== false && (!x.from || x.from <= iso) && (!x.to || x.to >= iso));
   const mem = inHebrewRange(DATA.memorials || [], day.hd, day.hd.add(7), yahrzeitIn);
@@ -77,7 +79,7 @@ function render() {
   const showZ = s.zmanimShown?.length ? s.zmanimShown : ZMANIM.map((z) => z.key);
 
   document.title = s.name || 'בית הכנסת';
-  const nav = [['t-today', 'היום'], ['t-shabbat', isShabbat ? 'שבת' : 'חג'], anns.length && ['t-ann', 'הודעות'], slides.length && ['t-img', 'תמונות'], ['t-zmanim', 'זמנים'], ['t-week', 'השבוע'], (hal || custom) && ['t-hal', 'הלכה'], mish && ['t-mish', 'משנה'], lessons.length && ['t-les', 'שיעורים']].filter(Boolean);
+  const nav = [['t-today', 'היום'], ['t-shabbat', isShabbat ? 'שבת' : 'חג'], hols.length && ['t-hol', 'החג'], anns.length && ['t-ann', 'הודעות'], slides.length && ['t-img', 'תמונות'], ['t-zmanim', 'זמנים'], ['t-week', 'השבוע'], (hal || custom) && ['t-hal', 'הלכה'], mish && ['t-mish', 'משנה'], lessons.length && ['t-les', 'שיעורים']].filter(Boolean);
 
   $('#app').innerHTML = `
     <header class="hero"><div class="hero-in">
@@ -106,6 +108,9 @@ function render() {
         ${weekly.friday.length || weekly.shabbat.length ? `<div class="sub-h">ערב שבת</div><div class="rows">${weekly.friday.map((p) => row(p.name, esc(p.time), p.note)).join('')}</div>
           <div class="sub-h">שבת</div><div class="rows">${weekly.shabbat.map((p) => row(p.name, esc(p.time), p.note)).join('')}</div>` : ''}
       </section>
+
+      ${hols.length ? `<section class="card" id="t-hol"><h2>${icon('calendar')}תפילות החג</h2>
+        ${hols.map((g) => `<div class="sub-h">${esc(g.label)} · ${esc(g.heb)}</div><div class="rows">${g.rows.map((r) => row(r.name, esc(r.time), r.note)).join('')}</div>`).join('')}</section>` : ''}
 
       ${deds.length ? `<section class="card" id="t-ded"><h2>${icon('candle')}לעילוי נשמת</h2>
         ${deds.map((a) => `<div class="ann ${esc(a.style || '')} ${annClasses(a)}"${annStyle(a)}>${a.title ? `<h3>${esc(a.title)}</h3>` : ''}<p>${annBody(a.body)}</p></div>`).join('')}</section>` : ''}

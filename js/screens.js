@@ -4,6 +4,7 @@ import { computeDay, minToHhmm, fmtTime, minutesOf, ZMAN_LABEL, ZMANIM, inHebrew
 import { HDate } from './lib.js';
 import { daysLabel, resolveTime } from './prayers.js';
 import { cachedMishna } from './mishna.js';
+import { upcomingHolidaySchedules } from './holidays.js';
 import { greetingArt } from './art.js';
 import { annActive, annBody, annClasses, annBig, annStyle } from './ann.js';
 
@@ -155,6 +156,25 @@ export const SCREENS = {
         <section class="card side"><div class="label">צאת ${isShabbat ? 'השבת' : 'החג'}</div><div class="time">${fmtTime(sh.havdalah, s.tz, 'ceil')}</div>
           <div class="label">${s.havdalahMins ? `${s.havdalahMins} דק' אחרי השקיעה` : 'צאת הכוכבים'}</div></section>
       </div>`;
+  },
+
+  holidays(ctx) {
+    const groups = upcomingHolidaySchedules(ctx.data, ctx.s, ctx.now, 7);
+    if (!groups.length) return null;
+    const todayStr = ctx.day.civil.toDateString();
+    const card = (g) => {
+      const isToday = g.dates.some((d) => d.toDateString() === todayStr);
+      const days = Math.round((g.dates[0] - new Date(ctx.day.civil.getFullYear(), ctx.day.civil.getMonth(), ctx.day.civil.getDate(), 12)) / 86400000);
+      const when = isToday ? 'היום' : days === 1 ? 'מחר' : `בעוד ${days} ימים`;
+      return `<section class="card hol"><h3>${esc(g.label)}</h3><div class="hol-when"><span class="pillw${isToday ? ' now' : ''}">${when}</span> ${esc(g.heb)}</div>
+        <div class="rows${g.rows.length > 6 ? ' compact' : ''}">${g.rows.map((r) => `<div class="row"><div class="k">${esc(r.name)}${r.note ? `<small>${esc(r.note)}</small>` : ''}</div><div class="v">${esc(r.time)}</div></div>`).join('')}</div></section>`;
+    };
+    const slides = [];
+    for (let i = 0; i < groups.length; i += 3) {
+      const chunk = groups.slice(i, i + 3);
+      slides.push(`${title('תפילות החג')}<div class="grid hol-grid" style="grid-template-columns:repeat(${chunk.length},1fr)">${chunk.map(card).join('')}</div>`);
+    }
+    return slides.length === 1 ? slides[0] : slides;
   },
 
   neshama(ctx) {

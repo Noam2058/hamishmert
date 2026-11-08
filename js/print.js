@@ -1,7 +1,7 @@
 // דף שבועי להדפסה (A4): זמני השבת, תפילות השבוע, טבלת זמני היום, שיעורים והודעות.
 import { load } from './store.js';
 import { computeDay, zmanimFor, fmtTime, ZMANIM, ZMAN_LABEL, renderHeb, moladInfo, minToHhmm } from './jewish.js';
-import { weeklyPrayers, resolveTime, daysLabel } from './prayers.js';
+import { weeklyPrayers, prayersForDay, resolveTime, daysLabel, describeTime } from './prayers.js';
 import { annActive, annBody } from './ann.js';
 import { upcomingHolidaySchedules } from './holidays.js';
 
@@ -32,7 +32,17 @@ function render() {
   const heb = (d) => renderHeb(computeDay(d, s).hd);
   const range = `${heb(days[0])} – ${heb(days[6])}`;
   const civ = (d) => `${d.getDate()}.${d.getMonth() + 1}`;
-  const prow = (p) => `<tr><td>${esc(p.name)}${p.note ? `<small>${esc(p.note)}</small>` : ''}</td><td class="t">${esc(p.time)}</td></tr>`;
+  // תפילות שהשעה שלהן נגזרת מזמני היום (למשל ותיקין לפי הנץ) – משתנות מיום ליום, ולכן מוצגות לכל יום בטבלה
+  const byId = Object.fromEntries((DATA.prayers || []).map((p) => [p.id, p]));
+  const varies = (p) => byId[p.id]?.time?.type === 'zman' && !['week-min', 'week-max'].includes(byId[p.id]?.time?.basis);
+  const perDay = dayInfo.map(({ d, cd }) => { try { return prayersForDay(cd, DATA, s, d); } catch { return []; } });
+  const varyNames = [];
+  perDay.forEach((list, i) => list.forEach((p) => { if (varies(p) && dayInfo[i].d.getDay() !== 6 && !varyNames.includes(p.name)) varyNames.push(p.name); }));
+  const vcols = varyNames.slice(0, 3);
+  const prow = (p) => {
+    const v = varies(p) && vcols.includes(p.name) && $('#opt-zmanim').checked;
+    return `<tr><td>${esc(p.name)}${p.note || v ? `<small>${esc([p.note, v && describeTime(byId[p.id].time)].filter(Boolean).join(' · '))}</small>` : ''}</td><td class="t">${v ? '<span class="see">לפי היום ↓</span>' : esc(p.time)}</td></tr>`;
+  };
   const ptable = (title, list) => list.length ? `<section class="box"><h3>${title}</h3><table class="pt">${list.map(prow).join('')}</table></section>` : '';
 
   // שיעורים – השעה לפי היום הקרוב שבו מתקיימים
@@ -72,8 +82,8 @@ function render() {
 
     ${hols.length ? `<div class="cols3">${hols.slice(0, 3).map((g) => `<section class="box"><h3>${esc(g.label)} <span class="sub">${esc(g.heb)}</span></h3><table class="pt">${g.rows.map(prow).join('')}</table></section>`).join('')}</div>` : ''}
 
-    ${$('#opt-zmanim').checked ? `<section class="box"><h3>זמני היום</h3><table class="zt"><thead><tr><th></th>${zkeys.map((k) => `<th>${esc(ZMAN_LABEL[k])}</th>`).join('')}</tr></thead><tbody>
-      ${dayInfo.map(({ d, cd, z }) => `<tr${d.getDay() === 6 ? ' class="sat"' : ''}><th>${esc(DAYS[d.getDay()])}<small>${esc(renderHeb(cd.hd))}</small></th>${zkeys.map((k) => `<td>${fmtTime(z[k], s.tz, zround[k])}</td>`).join('')}</tr>`).join('')}
+    ${$('#opt-zmanim').checked ? `<section class="box"><h3>${vcols.length ? 'תפילות וזמני היום – לפי יום' : 'זמני היום'}</h3><table class="zt"><thead><tr><th></th>${vcols.map((n) => `<th class="pr">${esc(n)}</th>`).join('')}${zkeys.map((k) => `<th>${esc(ZMAN_LABEL[k])}</th>`).join('')}</tr></thead><tbody>
+      ${dayInfo.map(({ d, cd, z }, i) => `<tr${d.getDay() === 6 ? ' class="sat"' : ''}><th>${esc(DAYS[d.getDay()])}<small>${esc(renderHeb(cd.hd))}</small></th>${vcols.map((n) => `<td class="pr">${esc(perDay[i].find((p) => p.name === n)?.time || '—')}</td>`).join('')}${zkeys.map((k) => `<td>${fmtTime(z[k], s.tz, zround[k])}</td>`).join('')}</tr>`).join('')}
     </tbody></table></section>` : ''}
 
     <div class="cols2">

@@ -12,6 +12,26 @@ const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '
 const title = (t) => `<div class="screen-title"><span>${esc(t)}</span></div>`;
 const flourish = '<svg class="flourish" viewBox="0 0 260 18" aria-hidden="true"><path d="M0 9h100M160 9h100" stroke="currentColor" stroke-width="2"/><path d="M130 2l7 7-7 7-7-7z" fill="currentColor"/><circle cx="112" cy="9" r="3" fill="currentColor"/><circle cx="148" cy="9" r="3" fill="currentColor"/></svg>';
 /** שינויים בתפילה – רשימה מעוצבת: כל שינוי בשורה משלו, מופרד בעיטור זהב. extra: [{t, v}] (שעה/מידע נוסף) */
+// איורים קטנים לכרטיסי השבת
+const CANDLES_SVG = `<svg class="side-art" viewBox="0 0 200 170" aria-hidden="true"><defs>
+  <linearGradient id="cs-m" x1="0" x2="1"><stop offset="0" stop-color="#8f6a22"/><stop offset=".45" stop-color="#f3d98c"/><stop offset="1" stop-color="#9c7322"/></linearGradient>
+  <linearGradient id="cs-w" x1="0" x2="1"><stop offset="0" stop-color="#e9e1cf"/><stop offset=".5" stop-color="#fffdf6"/><stop offset="1" stop-color="#ddd3bd"/></linearGradient>
+  <radialGradient id="cs-g"><stop offset="0" stop-color="#ffe9a0" stop-opacity=".9"/><stop offset="1" stop-color="#ffe9a0" stop-opacity="0"/></radialGradient></defs>
+  ${[62, 138].map((x) => `<circle cx="${x}" cy="30" r="30" fill="url(#cs-g)" class="glow"/>
+  <path class="flame" d="M${x} 10c7 10 9 16 0 26c-9-10-7-16 0-26z" fill="#ffb53b"/><path d="M${x} 20c3 5 4 8 0 13c-4-5-3-8 0-13z" fill="#fff4c4"/>
+  <rect x="${x - 9}" y="38" width="18" height="62" rx="3" fill="url(#cs-w)"/><path d="M${x} 36v6" stroke="#3a2a12" stroke-width="2"/>
+  <path d="M${x - 22} 102h44l-6 8h-32z" fill="url(#cs-m)"/><rect x="${x - 5}" y="110" width="10" height="34" fill="url(#cs-m)"/>
+  <path d="M${x - 26} 158c4-10 16-14 26-14s22 4 26 14z" fill="url(#cs-m)"/>`).join('')}</svg>`;
+const HAVDALAH_SVG = `<svg class="side-art" viewBox="0 0 200 170" aria-hidden="true"><defs>
+  <linearGradient id="hv-b" x1="0" x2="1"><stop offset="0" stop-color="#2c5aa0"/><stop offset=".5" stop-color="#6d9be0"/><stop offset="1" stop-color="#23467f"/></linearGradient>
+  <radialGradient id="hv-g"><stop offset="0" stop-color="#ffe9a0" stop-opacity=".85"/><stop offset="1" stop-color="#ffe9a0" stop-opacity="0"/></radialGradient></defs>
+  ${[[34, 30, 9], [166, 22, 7], [150, 70, 5]].map(([x, y, r]) => `<path class="star" d="M${x} ${y - r}l${r * .3} ${r * .7} ${r * .7} ${r * .3} -${r * .7} ${r * .3} -${r * .3} ${r * .7} -${r * .3} -${r * .7} -${r * .7} -${r * .3} ${r * .7} -${r * .3}z" fill="#e6c97a"/>`).join('')}
+  <circle cx="100" cy="34" r="36" fill="url(#hv-g)" class="glow"/>
+  <path class="flame" d="M92 8c10 12 14 20 8 32c-4 4-12 4-16 0c-6-12-2-20 8-32z" fill="#ffb53b"/><path class="flame" d="M108 10c8 10 11 17 6 27c-3 3-9 3-12 0c-5-10-2-17 6-27z" fill="#ffc451"/>
+  <path d="M100 22c4 6 5 10 0 16c-5-6-4-10 0-16z" fill="#fff4c4"/>
+  ${[0, 1, 2, 3, 4, 5].map((i) => `<path d="M86 ${44 + i * 18}c10-6 18-6 28 0v18c-10-6-18-6-28 0z" fill="url(#hv-b)" stroke="#1b3a6b" stroke-width="1"/>`).join('')}
+  <path d="M60 158h80" stroke="#c9a24a" stroke-width="4" stroke-linecap="round"/></svg>`;
+
 const ribbon = (html, i = 0) => `<div class="ribbon c${i % 5}"><span class="rb-body">${html}</span></div>`;
 const capsule = (t) => `<div class="capsule"><span>${esc(t)}</span></div>`;
 const changesHtml = (changes, extra = []) => {
@@ -88,14 +108,37 @@ function greetingFor(ctx) {
   }
 }
 
+/** מסך הכניסה בימים רגילים: ברכה בתוך מסגרת זהב מעוטרת, ומתחתיה שלושה פרטים שימושיים להיום */
+function welcomeHtml(ctx, gr) {
+  const { day, s } = ctx;
+  const nowMin = minutesOf(ctx.now, s.tz);
+  const next = ctx.prayersToday.find((p) => p.min != null && p.min >= nowMin);
+  const z = (k, mode) => fmtTime(day.zmanim[k], s.tz, mode);
+  const info = [
+    next ? ['התפילה הבאה', next.name, next.time] : ['מחר בבוקר', 'הנץ החמה', fmtTime(day.next?.zmanim?.sunrise || day.zmanim.sunrise, s.tz, 'ceil')],
+    nowMin < minutesOf(day.zmanim.sunrise, s.tz) ? ['הזמן הבא', 'הנץ החמה', z('sunrise', 'ceil')] : nowMin < minutesOf(day.zmanim.sunset, s.tz) ? ['הזמן הבא', 'שקיעה', z('sunset', 'floor')] : ['הזמן הבא', 'צאת הכוכבים', z('tzeit', 'ceil')],
+    day.shabbat.candles ? [day.shabbat.candlesLabel, renderHeb(day.shabbat.candlesDate) || '', fmtTime(day.shabbat.candles, s.tz, 'floor')] : ['פרשת השבוע', '', esc(day.shabbat.parsha || '')],
+  ];
+  return `<div class="welcome">
+    <div class="w-frame">
+      <span class="w-c tl"></span><span class="w-c tr"></span><span class="w-c bl"></span><span class="w-c br"></span>
+      <div class="w-crest">${flourish}</div>
+      <div class="w-title">${esc(gr.title)}</div>
+      <div class="w-sub">${esc(gr.sub || '')}</div>
+      ${s.name ? `<div class="w-name">${esc(s.name)}</div>` : ''}
+    </div>
+    <div class="w-info">${info.map(([lbl, name, time]) => `<div class="wi"><small>${esc(lbl)}</small>${name ? `<span>${esc(name)}</span>` : ''}<b>${time}</b></div>`).join('')}</div>
+  </div>`;
+}
+
 export const SCREENS = {
   greeting(ctx) {
     const gr = greetingFor(ctx);
     if (!gr) return null;
     let img = '';
     // ספר התורה במסך הכניסה – תמונה אמיתית (img/torah.webp); בחגים – האיורים המצוירים
-    if (gr.kind === 'torah') img = 'img/torah.webp';
-    else { try { img = greetingArt(gr.kind, { lit: gr.lit }); } catch { /* */ } }
+    if (gr.kind === 'torah') return welcomeHtml(ctx, gr); // ימים רגילים: מסך כניסה בלי איור – מסגרת מעוטרת ומידע להיום
+    try { img = greetingArt(gr.kind, { lit: gr.lit }); } catch { /* */ }
     return `<div class="greet">
       ${img ? `<img class="art" src="${img}" alt="">` : ''}
       <div class="words"><div class="gt">${esc(gr.title)}</div>${flourish}<div class="gs">${esc(gr.sub || '')}</div>
@@ -151,16 +194,16 @@ export const SCREENS = {
     const isShabbat = sh.candlesDate && sh.candlesDate.getDay() === 5;
     return `
       <div class="hero">
-        <section class="card side"><div class="label">${esc(sh.candlesLabel)}</div><div class="time">${fmtTime(sh.candles, s.tz, 'floor')}</div>
-          <div class="label">${sh.candlesDate ? esc(renderHeb(sh.candlesDate)) : ''}</div></section>
+        <section class="card side sb-card">${capsule(sh.candlesLabel)}${CANDLES_SVG}<div class="time">${fmtTime(sh.candles, s.tz, 'floor')}</div>
+          <div class="sb-sub">${sh.candlesDate ? `יום ${['ראשון', 'שני', 'שלישי', 'רביעי', 'חמישי', 'שישי', 'שבת'][sh.candlesDate.getDay()]} · ${esc(renderHeb(sh.candlesDate))}` : ''}</div></section>
         <section class="card center">
           <div class="label">${isShabbat ? 'שבת קודש' : esc(holidayName || 'חג שמח')}</div>
           <div class="big">${head}</div>${flourish}
           ${sh.haftarah && !sh.parshaIsChag ? `<div class="label">הפטרה</div><div class="mid">${esc(sh.haftarah)}</div>` : ''}
           ${sh.specialShabbat.length || sh.mevarchim.length ? `<div class="chips" style="justify-content:center">${[...sh.specialShabbat, ...sh.mevarchim].map((x) => `<span class="chip">${esc(x)}</span>`).join('')}</div>` : ''}
         </section>
-        <section class="card side"><div class="label">צאת ${isShabbat ? 'השבת' : 'החג'}</div><div class="time">${fmtTime(sh.havdalah, s.tz, 'ceil')}</div>
-          <div class="label">${s.havdalahMins ? `${s.havdalahMins} דק' אחרי השקיעה` : 'צאת הכוכבים'}</div></section>
+        <section class="card side sb-card">${capsule(`צאת ${isShabbat ? 'השבת' : 'החג'}`)}${HAVDALAH_SVG}<div class="time">${fmtTime(sh.havdalah, s.tz, 'ceil')}</div>
+          <div class="sb-sub">${s.havdalahMins ? `${s.havdalahMins} דק' אחרי השקיעה` : 'צאת הכוכבים · הבדלה'}</div></section>
       </div>`;
   },
 

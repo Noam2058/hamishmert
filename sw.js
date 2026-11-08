@@ -4,7 +4,7 @@ const SHELL = [
   './', './index.html', './m.html', './config.js', './manifest.webmanifest', './m.webmanifest',
   './css/board.css', './css/mobile.css',
   './js/board.js', './js/mobile.js', './js/jewish.js', './js/prayers.js', './js/screens.js',
-  './js/store.js', './js/defaults.js', './js/lib.js', './js/art.js', './js/scenes.js', './js/halacha-sa.js', './js/ann.js', './js/mishna.js', './js/holidays.js', './img/torah.webp',
+  './js/store.js', './js/defaults.js', './js/lib.js', './js/art.js', './js/scenes.js', './js/halacha-sa.js', './js/ann.js', './js/mishna.js', './js/holidays.js',
 ];
 
 self.addEventListener('install', (e) => {

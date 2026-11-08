@@ -391,8 +391,7 @@ function fieldHtml(item, [key, label, type, opts], path) {
         <button type="button" data-wrap="**" title="מודגש"><b>B</b></button><button type="button" data-wrap="__" title="קו תחתון"><u>U</u></button><button type="button" data-wrap="++" title="גדול יותר">A<small>+</small></button>
         <span class="rt-colors">${ANN_COLORS.filter((c) => c[2]).map(([k, l, c]) => `<button type="button" data-color="${k}" title="צבע: ${l}"><i style="background:${c}"></i></button>`).join('')}</span>
         <button type="button" data-clear title="הסר עיצוב מהחלק המסומן" class="rt-clear">נקה</button></div>
-      <textarea id="${id}" data-k="${key}">${esc(v)}</textarea>
-      <small class="muted">הסימנים שמופיעים בטקסט (כמו <bdi>**</bdi> או <bdi>[[red:</bdi>) הם העיצוב – בתצוגה המקדימה ובלוח רואים את התוצאה.</small></div>`;
+      <div id="${id}" class="rt-ed" data-k="${key}" data-type="rich" contenteditable="true" role="textbox" aria-multiline="true" dir="rtl">${annBody(v)}</div></div>`;
   }
   const full = type === 'textarea' || type === 'richtext' || type === 'time' || type === 'weekdays' || type === 'fit' || type === 'annfmt' ? ' full' : '';
   return `<div class="fld${full}"><span>${esc(label)}</span>${input}</div>`;
@@ -412,6 +411,7 @@ function readField(el) {
     const d = el.querySelector('[data-h="d"]').value, m = el.querySelector('[data-h="m"]').value;
     return { [el.dataset.dk]: d === '' ? '' : +d, [el.dataset.mk]: m };
   }
+  if (type === 'rich') return richToText(el);
   if (type === 'annfmt') {
     const q = (k) => el.querySelector(`[data-f="${k}"]`);
     return { align: el.querySelector('[data-f="align"]:checked')?.value || 'center', bold: q('bold').checked, underline: q('underline').checked,
@@ -445,65 +445,74 @@ function calcText(item) {
   return `${describeTime(item.time)} · ${sd ? sd.label : 'היום'}: ${t || '—'}`;
 }
 
-/** סרגל עיצוב לחלק המסומן בתיבת טקסט: עוטף את הבחירה בסימנים (**, __, ++, [[צבע:…]]) */
-function bindRichText(rt) {
-  const ta = rt.querySelector('textarea');
-  const MARK = /\*\*|__|\+\+|\[\[\w+:|\]\]/g;
-  const apply = (fn) => {
-    let a = ta.selectionStart, b = ta.selectionEnd;
-    const s = ta.value;
-    while (a < b && /\s/.test(s[a])) a++; while (b > a && /\s/.test(s[b - 1])) b--; // בלי רווחים בקצוות
-    if (a === b) { flash('סמן קודם בתיבת הטקסט את המילים שתרצה לעצב'); ta.focus(); return; }
-    const [before, sel, after] = [s.slice(0, a), s.slice(a, b), s.slice(b)];
-    const r = fn(before, sel, after);
-    ta.value = r.before + r.sel + r.after;
-    ta.focus(); ta.setSelectionRange(r.before.length, r.before.length + r.sel.length);
-    ta.dispatchEvent(new Event('input', { bubbles: true }));
+/** עורך "מה שרואים זה מה שמקבלים": התוכן נשמר כטקסט עם סימנים (**, __, ++, [[צבע:…]]) אבל מוצג מעוצב */
+const HEX_NAME = Object.fromEntries(ANN_COLORS.filter((c) => c[2]).map(([k, , h]) => [h.toLowerCase(), k]));
+function colorName(css) {
+  if (!css) return null;
+  let hex = css.trim().toLowerCase();
+  const m = hex.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)/);
+  if (m) hex = '#' + [m[1], m[2], m[3]].map((n) => (+n).toString(16).padStart(2, '0')).join('');
+  if (HEX_NAME[hex]) return HEX_NAME[hex];
+  // הצבע הקרוב ביותר מהרשימה
+  const rgb = (h) => [1, 3, 5].map((i) => parseInt(h.slice(i, i + 2), 16));
+  if (!/^#[0-9a-f]{6}$/.test(hex)) return null;
+  const c = rgb(hex); let best = null, bd = 1e9;
+  for (const [h, k] of Object.entries(HEX_NAME)) { const d = rgb(h).reduce((s, v, i) => s + (v - c[i]) ** 2, 0); if (d < bd) { bd = d; best = k; } }
+  return best;
+}
+function richToText(root) {
+  const walk = (node) => {
+    let out = '';
+    node.childNodes.forEach((n, i) => {
+      if (n.nodeType === 3) { out += n.nodeValue.replace(/ /g, ' '); return; }
+      if (n.nodeType !== 1) return;
+      const tag = n.tagName;
+      if (tag === 'BR') { out += '\n'; return; }
+      let inner = walk(n);
+      const st = n.style || {};
+      const color = colorName(n.getAttribute('color') || st.color);
+      if (tag === 'B' || tag === 'STRONG' || +st.fontWeight >= 600 || st.fontWeight === 'bold') inner = inner.trim() ? `**${inner}**` : inner;
+      if (tag === 'U' || /underline/.test(st.textDecoration || st.textDecorationLine || '')) inner = inner.trim() ? `__${inner}__` : inner;
+      if (n.classList?.contains('big') || (tag === 'FONT' && +n.getAttribute('size') >= 4)) inner = inner.trim() ? `++${inner}++` : inner;
+      if (color) inner = inner.trim() ? `[[${color}:${inner}]]` : inner;
+      if ((tag === 'DIV' || tag === 'P') && out && !out.endsWith('\n')) out += '\n';
+      out += inner;
+    });
+    return out;
   };
-  // הסימון נשאר על המילים עצמן (בלי הסימנים) – כך לחיצה נוספת מבטלת/מחליפה במקום לעטוף שוב
-  const wrap = (open, close) => apply((before, sel, after) => {
-    // כבר מעוצב (גם אם יש ביניהם סימן אחר, למשל צבע) – מסיר רק את העיצוב הזה
-    let b = before, a = after, inL = '', inR = '';
-    for (let k = 0; k < 5; k++) {
-      const mo = b.match(/(\*\*|__|\+\+|\[\[\w+:)$/), mc = a.match(/^(\*\*|__|\+\+|\]\])/);
-      if (!mo || !mc) break;
-      if (mo[0] === open && mc[0] === close) return { before: b.slice(0, -open.length) + inL, sel, after: inR + a.slice(close.length) };
-      inL = mo[0] + inL; inR += mc[0]; b = b.slice(0, -mo[0].length); a = a.slice(mc[0].length);
-    }
-    if (sel.startsWith(open) && sel.endsWith(close) && sel.length > open.length + close.length) return { before, sel: sel.slice(open.length, -close.length), after };
-    return { before: before + open, sel, after: close + after };
-  });
+  return walk(root).replace(/\n{3,}/g, '\n\n').replace(/\s+$/, '');
+}
+function bindRichText(rt) {
+  const ed = rt.querySelector('.rt-ed');
+  let saved = null; // הבחירה האחרונה בעורך (באייפון לחיצה על כפתור עלולה לאבד אותה)
+  const keep = () => { const s = getSelection(); if (s.rangeCount && ed.contains(s.anchorNode)) saved = s.getRangeAt(0).cloneRange(); };
+  document.addEventListener('selectionchange', keep);
+  ed.addEventListener('paste', (e) => { e.preventDefault(); document.execCommand('insertText', false, e.clipboardData.getData('text/plain')); });
+  const run = (fn) => {
+    ed.focus();
+    const s = getSelection();
+    if (saved && (!s.rangeCount || !ed.contains(s.anchorNode))) { s.removeAllRanges(); s.addRange(saved); }
+    if (s.isCollapsed || !ed.contains(s.anchorNode)) { flash('סמן קודם בתוכן את המילים שתרצה לעצב'); return; }
+    document.execCommand('styleWithCSS', false, false);
+    fn();
+    ed.dispatchEvent(new Event('input', { bubbles: true }));
+  };
   rt.querySelectorAll('button').forEach((btn) => {
-    btn.addEventListener('pointerdown', (e) => e.preventDefault()); // שומר על הסימון בתיבה
+    btn.addEventListener('pointerdown', (e) => e.preventDefault()); // שומר על הסימון בעורך
     btn.addEventListener('mousedown', (e) => e.preventDefault());
     btn.addEventListener('click', () => {
-      if (btn.dataset.wrap) wrap(btn.dataset.wrap, btn.dataset.wrap);
-      else if (btn.dataset.color) apply((before, sel, after) => {
-        const color = btn.dataset.color;
-        let b = before, a = after, s = sel, prev = null, m;
-        // מקלף צבעים קודמים – מבפנים ומבחוץ – כדי שלא ייווצרו צבעים בתוך צבעים
-        while ((m = s.match(/^\[\[(\w+):([\s\S]*)\]\]$/))) { prev ||= m[1]; s = m[2]; }
-        // שכבות הסימנים סביב הבחירה (מבפנים החוצה) – מסירים מהן כל צבע, ושומרים את השאר (מודגש, קו תחתון…)
-        const L = [], R = [];
-        for (let k = 0; k < 6; k++) {
-          const mo = b.match(/(\*\*|__|\+\+|\[\[\w+:)$/), mc = a.match(/^(\*\*|__|\+\+|\]\])/);
-          if (!mo || !mc) break;
-          b = b.slice(0, -mo[0].length); a = a.slice(mc[0].length);
-          const cm = mo[0].match(/^\[\[(\w+):$/);
-          if (cm && mc[0] === ']]') { prev ||= cm[1]; continue; }
-          L.unshift(mo[0]); R.push(mc[0]);
-        }
-        b += L.join(''); a = R.join('') + a;
-        s = s.replace(/\[\[\w+:|\]\]/g, '');
-        if (prev === color) return { before: b, sel: s, after: a }; // אותו צבע שוב – מסיר
-        return { before: `${b}[[${color}:`, sel: s, after: `]]${a}` };
+      const w = btn.dataset.wrap;
+      if (w === '**') run(() => document.execCommand('bold'));
+      else if (w === '__') run(() => document.execCommand('underline'));
+      else if (w === '++') run(() => { const cur = document.queryCommandValue('fontSize'); document.execCommand('fontSize', false, +cur >= 4 ? '3' : '5'); });
+      else if (btn.dataset.color) run(() => {
+        const hex = ANN_COLORS.find((c) => c[0] === btn.dataset.color)[2];
+        const a = getSelection().anchorNode; const holder = (a?.nodeType === 3 ? a.parentElement : a)?.closest('font[color], span[style*="color"]');
+        const same = !!holder && ed.contains(holder) && colorName(holder.getAttribute('color') || holder.style.color) === btn.dataset.color;
+        document.execCommand('foreColor', false, same ? '#000001' : hex); // אותו צבע שוב = הסרה (מסומן בצבע "ריק")
+        if (same) ed.querySelectorAll('font[color="#000001"]').forEach((f) => f.removeAttribute('color'));
       });
-      else if ('clear' in btn.dataset) apply((before, sel, after) => {
-        let b2 = before, a2 = after;
-        // מסיר גם סימנים שצמודים לבחירה מבחוץ
-        for (let k = 0; k < 4; k++) { const mo = b2.match(/(\*\*|__|\+\+|\[\[\w+:)$/); const mc = a2.match(/^(\*\*|__|\+\+|\]\])/); if (!mo || !mc) break; b2 = b2.slice(0, -mo[0].length); a2 = a2.slice(mc[0].length); }
-        return { before: b2, sel: sel.replace(MARK, ''), after: a2 };
-      });
+      else if ('clear' in btn.dataset) run(() => { document.execCommand('removeFormat'); ed.querySelectorAll('font').forEach((f) => { if (f.contains(getSelection().anchorNode)) f.removeAttribute('size'); }); });
     });
   });
 }
@@ -580,7 +589,7 @@ function renderList(key, focusNew = false) {
     };
     row.addEventListener('change', commit);
     // כל הקלדה נקלטת מיד – גם שעה, תאריך ומספר (באייפון 'change' מגיע רק כשיוצאים מהשדה)
-    row.addEventListener('input', (e) => { if (e.target.matches('input:not([type=checkbox]):not([type=radio]),textarea') && e.target.dataset.t !== 'type') commit(e); });
+    row.addEventListener('input', (e) => { if (e.target.matches('input:not([type=checkbox]):not([type=radio]),textarea,[contenteditable]') && e.target.dataset.t !== 'type') commit(e); });
     row.querySelectorAll('.rt').forEach((rt) => bindRichText(rt));
     row.querySelectorAll('[data-act]').forEach((b) => b.onclick = () => {
       const act = b.dataset.act;
@@ -841,7 +850,11 @@ async function enter() {
   const h = location.hash.slice(1);
   if (h && (LISTS[h] || ['home', 'shul', 'display', 'backup'].includes(h))) tab = h;
   if (r.source === 'missing') flash('הלוח עוד לא קיים בשרת. נטענו נתוני הדגמה – ערוך ולחץ "שמור" כדי ליצור אותו.');
+  let restore = null;
+  try { restore = JSON.parse(sessionStorage.getItem('admin:restore')); sessionStorage.removeItem('admin:restore'); } catch {}
+  if (restore && Date.now() - restore.t < 60000) { tab = restore.tab || tab; (restore.open || []).forEach((id) => openIds.add(id)); }
   renderNav(); renderPanel(); setDirty(r.source === 'missing');
+  if (restore && Date.now() - restore.t < 60000) { renderedTab = tab; requestAnimationFrame(() => scrollTo({ top: restore.y, behavior: 'instant' })); }
 }
 
 $('#btn-save').onclick = doSave;
@@ -869,8 +882,11 @@ getVersion().then((v) => { myVersion = v; });
 async function checkVersion() {
   const v = await getVersion();
   if (!v || !myVersion || v === myVersion) return;
-  if (!dirty) location.reload();
-  else flash('יש גרסה חדשה של הממשק – שמור, והדף יתרענן');
+  if (!dirty) {
+    // שומרים איפה היית (לשונית, פריטים פתוחים, גלילה) – כדי שהרענון לא יקפיץ לראש הדף
+    try { sessionStorage.setItem('admin:restore', JSON.stringify({ tab, open: [...openIds], y: scrollY, t: Date.now() })); } catch {}
+    location.reload();
+  } else flash('יש גרסה חדשה של הממשק – שמור, והדף יתרענן');
 }
 document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') checkVersion(); });
 setInterval(checkVersion, 10 * 60 * 1000);

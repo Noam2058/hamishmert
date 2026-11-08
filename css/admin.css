@@ -315,3 +315,11 @@ input, select, textarea { max-width: 100%; }
 .seg label, .swatches label, .days label { position: relative; }
 .seg input, .swatches input, .days input { width: 1px !important; height: 1px !important; inset: 0; margin: 0; }
 html, body { overflow-x: clip; }
+/* עורך התוכן המעוצב */
+.rt-ed { min-height: 110px; padding: 10px 12px; border: 1px solid var(--line); border-radius: 0 0 10px 10px; background: var(--surface); color: var(--ink);
+  font: 500 16px/1.6 var(--body); white-space: pre-wrap; overflow-wrap: anywhere; outline: none; cursor: text; }
+.rt-ed:focus { border-color: var(--gold); }
+.rt-bar + .rt-ed { margin-top: -6px; }
+.rt-ed b, .rt-ed strong { font-weight: 800; }
+.rt-ed font[size="4"], .rt-ed font[size="5"], .rt-ed font[size="6"], .rt-ed font[size="7"], .rt-ed .big { font-size: 1.3em; }
+.rt-ed:empty::before { content: "כתוב כאן את תוכן ההודעה…"; color: var(--soft); }

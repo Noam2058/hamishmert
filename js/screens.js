@@ -168,7 +168,7 @@ export const SCREENS = {
         <section class="card"><h3>המולד</h3><div class="body mo">
           <div class="mo-day">יום ${esc(m.dayName)}</div>
           <div class="time">${esc(m.time)}</div>
-          <div class="mo-ch">ו־${m.chalakim} חלקים</div>
+          ${m.chalakim ? `<div class="mo-ch">ו־${esc(m.chalakimHe)} חלקים</div>` : ''}
           <div class="mo-note">לפי שעון ירושלים</div></div></section>
         <section class="card"><h3>ראש חודש ${esc(m.month)}</h3><div class="body mo">
           <div class="mo-day">${esc(rcDays)}</div>

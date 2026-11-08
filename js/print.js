@@ -68,7 +68,7 @@ function render() {
       ${ptable('ימות החול', weekly.weekday)}
     </div>
 
-    ${molad ? `<section class="box molad"><h3>שבת מברכים – חודש ${esc(molad.month)}</h3><p>המולד: יום ${esc(molad.dayName)}, ${esc(molad.time)} ו־${molad.chalakim} חלקים (שעון ירושלים) · ראש חודש: ${molad.rc.map((r) => `יום ${esc(r.dayName)} ${esc(r.heb)}`).join(' ו')}</p></section>` : ''}
+    ${molad ? `<section class="box molad"><h3>שבת מברכים – חודש ${esc(molad.month)}</h3><p>המולד: יום ${esc(molad.dayName)}, ${esc(molad.time)}${molad.chalakim ? ` ו־${esc(molad.chalakimHe)} חלקים` : ''} (שעון ירושלים) · ראש חודש: ${molad.rc.map((r) => `יום ${esc(r.dayName)} ${esc(r.heb)}`).join(' ו')}</p></section>` : ''}
 
     ${hols.length ? `<div class="cols3">${hols.slice(0, 3).map((g) => `<section class="box"><h3>${esc(g.label)} <span class="sub">${esc(g.heb)}</span></h3><table class="pt">${g.rows.map(prow).join('')}</table></section>`).join('')}</div>` : ''}
 

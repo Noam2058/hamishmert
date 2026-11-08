@@ -148,7 +148,7 @@ function render() {
         ${specials.length ? `<div class="chips center">${specials.map((x) => `<span class="chip">${esc(x)}</span>`).join('')}</div>` : ''}
         <div class="two"><div><small>${esc(sh.candlesLabel || 'הדלקת נרות')}</small><b>${fmtTime(sh.candles, s.tz, 'floor')}</b></div><div><small>צאת ${isShabbat ? 'השבת' : 'החג'}</small><b>${fmtTime(sh.havdalah, s.tz, 'ceil')}</b></div></div>
         ${(() => { if (!sh.mevarchim?.length || !sh.date) return ''; try { const m = moladInfo(sh.date); return `<div class="molad-box"><div class="sub-h">שבת מברכים – חודש ${esc(m.month)}</div>
-          <div class="rows">${row('המולד', `<span style="font:700 16px var(--body);direction:rtl">יום ${esc(m.dayName)} ${esc(m.time)} ו־${m.chalakim} חלקים</span>`)}
+          <div class="rows">${row('המולד', `<span style="font:700 16px var(--body);direction:rtl">יום ${esc(m.dayName)} ${esc(m.time)}${m.chalakim ? ` ו־${esc(m.chalakimHe)} חלקים` : ''}</span>`)}
           ${row('ראש חודש', `<span style="font:700 16px var(--body);direction:rtl">${m.rc.map((r) => `${r.dayName} (${r.heb})`).join(' ו')}</span>`)}</div></div>`; } catch { return ''; } })()}
         ${weekly.friday.length || weekly.shabbat.length ? `<div class="sub-h">ערב שבת</div><div class="rows">${weekly.friday.map((p) => row(p.name, esc(p.time), p.note)).join('')}</div>
           <div class="sub-h">שבת</div><div class="rows">${weekly.shabbat.map((p) => row(p.name, esc(p.time), p.note)).join('')}</div>` : ''}

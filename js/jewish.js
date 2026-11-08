@@ -332,7 +332,7 @@ export function moladInfo(sat) {
   const civ = (h) => { const g = h.greg(); return `${g.getDate()}.${g.getMonth() + 1}`; };
   return {
     month, dow: m.getDow(), dayName: DAY_NAMES[m.getDow()],
-    hour: m.getHour(), minutes: m.getMinutes(), chalakim: m.getChalakim(),
+    hour: m.getHour(), minutes: m.getMinutes(), chalakim: m.getChalakim(), chalakimHe: m.getChalakim() ? gematriya(m.getChalakim()) : '',
     time: `${String(m.getHour()).padStart(2, '0')}:${String(m.getMinutes()).padStart(2, '0')}`,
     rc: rc.map((h) => ({ dayName: DAY_NAMES[h.getDay()], heb: renderHeb(h), civil: civ(h) })),
   };

@@ -550,14 +550,15 @@ function summaryHtml(def, it) {
     ${s.badge ? `<span class="badge ${s.badge[0]}">${esc(s.badge[1])}</span>` : ''}${s.time ? `<span class="sum-time">${esc(s.time)}</span>` : ''}<span class="chev">${icon('chev')}</span>`;
 }
 
-function renderList(key, focusNew = false) {
+/** opts: true / {focusId} – לגלול לפריט חדש ולהתמקד בו; {anchorId, anchorTop} – להשאיר את הפריט שנערך באותו מקום על המסך */
+function renderList(key, opts = null) {
   freshPanel();
   const def = LISTS[key];
   const arr = (DATA[key] ||= []);
   const f = (filters[key] || '').trim();
   const visible = arr.map((it, i) => [it, i]).filter(([it]) => !f || JSON.stringify(it).includes(f));
   const itemHtml = ([it, i]) => `
-    <details class="item" data-i="${i}" ${openIds.has(it.id) ? 'open' : ''}>
+    <details class="item" data-i="${i}" data-id="${esc(it.id)}" ${openIds.has(it.id) ? 'open' : ''}>
       <summary><span class="grip" title="גרור לשינוי הסדר" aria-label="גרור לשינוי הסדר">${icon('grip')}</span>${summaryHtml(def, it)}</summary>
       <div class="item-body">
         ${key === 'slides' ? `<div class="pv-wrap"><div class="preview slide-pv"></div><small class="muted">כך זה ייראה בלוח. הבחירות למטה מתעדכנות כאן מיד – וכשמרוצים, לוחצים "שמור".</small></div>` : ''}
@@ -588,7 +589,7 @@ function renderList(key, focusNew = false) {
 
   const p = $('#panel');
   p.querySelectorAll('[data-add]').forEach((b) => b.onclick = () => {
-    const it = def.blank(); arr.push(it); openIds.add(it.id); filters[key] = ''; setDirty(); renderList(key, true); updateCounts();
+    const it = def.blank(); arr.push(it); openIds.add(it.id); filters[key] = ''; setDirty(); renderList(key, { focusId: it.id }); updateCounts();
   });
   def.bindHead?.(() => renderList(key));
   const flt = $('#flt');
@@ -605,9 +606,10 @@ function renderList(key, focusNew = false) {
       const v = readField(el);
       if (el.dataset.type === 'hebdate' || el.dataset.type === 'schedule') { Object.assign(arr[i], v); if (v.holiday === undefined) delete arr[i].holiday; } else arr[i][el.dataset.k] = v;
       setDirty();
-      if (el.dataset.type === 'time' && ['type', 'round'].includes(e.target.dataset.t)) return renderList(key);
-      if (def.group && el.dataset.k === def.group) return renderList(key);
-      if (def.rerender?.includes(el.dataset.k)) return renderList(key);
+      const keep = { anchorId: arr[i].id, anchorTop: row.getBoundingClientRect().top };
+      if (el.dataset.type === 'time' && ['type', 'round'].includes(e.target.dataset.t)) return renderList(key, keep);
+      if (def.group && el.dataset.k === def.group) return renderList(key, { focusId: arr[i].id, noFocus: true }); // עבר לקבוצה אחרת – גוללים אליו
+      if (def.rerender?.includes(el.dataset.k)) return renderList(key, keep);
       if (def.preview) row.querySelector('.ann-box').innerHTML = def.preview(arr[i]);
       if (def.calc) row.querySelector('.calc').textContent = calcText(arr[i]);
       if (key === 'slides') { clearTimeout(row.pvT); row.pvT = setTimeout(() => mountSlidePreview(row, arr[i]), 350); }
@@ -637,7 +639,16 @@ function renderList(key, focusNew = false) {
   });
   if (!f) makeSortable(p.querySelector('.list'), '.item', (order) => { reorder(arr, order); setDirty(); renderList(key); },
     (a, b) => !def.group || (arr[+a.dataset.i][def.group] || 'weekday') === (arr[+b.dataset.i][def.group] || 'weekday'));
-  if (focusNew) { const last = [...p.querySelectorAll('.item[open]')].pop(); last?.scrollIntoView({ block: 'center', behavior: 'smooth' }); last?.querySelector('input,textarea')?.focus({ preventScroll: true }); }
+  // אחרי שהגלילה של freshPanel חזרה למקומה (microtask) – ממקמים את הפריט הרלוונטי
+  if (opts) queueMicrotask(() => {
+    const id = opts.focusId || opts.anchorId;
+    const row = id && [...p.querySelectorAll('.item')].find((x) => x.dataset.id === id);
+    if (!row) return;
+    if (opts.anchorId) { scrollBy({ top: row.getBoundingClientRect().top - opts.anchorTop, behavior: 'instant' }); return; }
+    const r = row.getBoundingClientRect();
+    if (r.top < 70 || r.bottom > innerHeight - 80) row.scrollIntoView({ block: 'center', behavior: 'instant' });
+    if (!opts.noFocus) row.querySelector('input:not([type=checkbox]):not([type=radio]),textarea')?.focus({ preventScroll: true });
+  });
 }
 
 // ---------- סקירה ----------
@@ -698,7 +709,7 @@ function renderHome() {
   fit(); new ResizeObserver(fit).observe(pv);
   $('#panel').querySelectorAll('[data-go]').forEach((b) => b.onclick = () => {
     tab = b.dataset.go; renderNav();
-    if (b.hasAttribute('data-new') && LISTS[tab]) { const it = LISTS[tab].blank(); DATA[tab].push(it); openIds.add(it.id); setDirty(); renderList(tab, true); updateCounts(); }
+    if (b.hasAttribute('data-new') && LISTS[tab]) { const it = LISTS[tab].blank(); DATA[tab].push(it); openIds.add(it.id); setDirty(); renderList(tab, { focusId: it.id }); updateCounts(); }
     else renderPanel();
   });
 }

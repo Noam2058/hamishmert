@@ -316,7 +316,7 @@ export const SCREENS = {
     };
     const total = m.items.reduce((a, x) => a + plainLen(x.text), 0);
     // שתי משניות קצרות – בשקופית אחת; ארוכות – כל משנה בשקופית משלה
-    if (total <= 900) return card(m.items, m.source);
+    if (total <= 560) return card(m.items, m.source);
     return m.items.map((x) => card([x], `משנה · מסכת ${x.tractate} · פרק ${x.perekHe} · משנה ${x.mishnaHe}`));
   },
 

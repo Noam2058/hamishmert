@@ -343,7 +343,7 @@ export function dailyLearning(hd, enabled) {
     if (!enabled && !['dafYomi', 'mishnaYomi'].includes(key)) continue;
     try {
       const ev = LEARN_EV[key](hd);
-      const text = noNikud(ev.render(HE)).replace(/^[^:]+:\s*/, '')
+      const text = noNikud(ev.render(HE)).replace(/^[^:\d]+:\s*/, '')
         .replace(/(\d+)\.(\d+)/g, '$1:$2').replace(/\d+/g, (n) => gematriya(+n));
       if (text) out.push({ key, label, text });
     } catch (e) { console.warn('learning', key, e); }
@@ -361,7 +361,7 @@ const cache = new Map();
 export function computeDay(now, s) {
   const tz = s.tz || 'Asia/Jerusalem';
   const civil = civilNoon(now, tz);
-  const key = civil.toDateString() + JSON.stringify([s.lat, s.lon, s.il, s.nusach, s.candleMins, s.havdalahDeg, s.useElevation]);
+  const key = civil.toDateString() + JSON.stringify([s.lat, s.lon, s.il, s.nusach, s.candleMins, s.havdalahDeg, s.useElevation, s.learning]);
   const base = cache.get(key) || buildDay(civil, s);
   if (!cache.has(key)) { cache.clear(); cache.set(key, base); }
 

@@ -368,3 +368,15 @@ html, body { overflow-x: clip; }
 .wc.an { background: color-mix(in srgb, #c98a1e 12%, var(--surface)); }
 .wnone { color: var(--soft); font-size: 13px; }
 .sub-h { margin: 6px 0 0; font: 800 13.5px var(--body); color: var(--gold); }
+/* סיסמת הממשק – "ברקאי" (משנה יומא ג, א) */
+.motto { margin: 0; text-align: center; }
+.motto blockquote { margin: 0; font: 700 22px/1.5 var(--display); color: var(--accent); letter-spacing: .01em; }
+.motto figcaption { margin-top: 2px; font: 700 12.5px var(--body); color: var(--gold); }
+#panel > .motto { padding: 4px 0 2px; }
+#panel > .motto blockquote { font-size: 24px; }
+.nav-motto { margin-top: auto; padding: 18px 6px 4px; border-top: 1px dashed var(--line); }
+.nav-motto .motto blockquote { font-size: 16.5px; }
+.nav-motto .motto figcaption { font-size: 11.5px; }
+@media (max-width: 860px) { .nav-motto { display: none; } }
+.login-card .motto { margin: 2px 0 14px; }
+.login-card .motto blockquote { font-size: 19px; }

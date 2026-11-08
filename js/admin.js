@@ -666,6 +666,9 @@ function renderList(key, opts = null) {
   });
 }
 
+// סיסמת הממשק – מהמשנה (יומא ג, א): כשהגיע זמן העבודה במקדש, הצופה מכריז "ברקאי"
+const MOTTO = `<figure class="motto"><blockquote>״אִם הִגִּיעַ, הָרוֹאֶה אוֹמֵר: בַּרְקַאי״</blockquote><figcaption>משנה, מסכת יומא, פרק ג׳ משנה א׳</figcaption></figure>`;
+
 // ---------- חיפוש בכל הלוח ----------
 const SEARCH_LISTS = ['prayers', 'holidayPrayers', 'lessons', 'announcements', 'dedications', 'memorials', 'birthdays', 'halachot', 'slides'];
 function searchAll(q) {
@@ -778,6 +781,7 @@ function renderHome() {
     ['slides', 'העלאת תמונה', 'upload', false], ['lessons', 'שיעור חדש', 'lessons', true], ['memorials', 'אזכרה חדשה', 'memorials', true],
   ];
   $('#panel').innerHTML = `
+    ${MOTTO}
     <section class="card hero-today">
       <div><div class="sub">${esc(day ? day.weekday : '')}</div><div class="hd">${esc(day ? day.hebDate : '')}</div>
       <div class="sub">${esc(day?.gregDate || '')}${sh.parsha ? ` · פרשת ${esc(sh.parsha)}` : ''}${day?.events?.length ? ` · ${esc(day.events.join(' · '))}` : ''}</div></div>
@@ -963,7 +967,7 @@ function renderNav() {
   nav.innerHTML = `<label class="nav-search">${icon('search')}<input id="gsearch" type="search" placeholder="חיפוש בכל הלוח…" autocomplete="off"></label><div class="gresults" id="gresults" hidden></div>` + NAV.map(([g, items]) => `${g ? `<div class="group">${g}</div>` : ''}${items.map(([k, l]) => {
     const n = LISTS[k] ? countOf(k) : null;
     return `<button role="tab" aria-selected="${k === tab}" data-tab="${k}">${icon(k)}<span>${l}</span>${n ? `<span class="count" data-count="${k}">${n}</span>` : ''}</button>`;
-  }).join('')}`).join('');
+  }).join('')}`).join('') + `<div class="nav-motto">${MOTTO}</div>`;
   nav.querySelectorAll('button[data-tab]').forEach((b) => b.onclick = () => { tab = b.dataset.tab; renderNav(); renderPanel(); b.scrollIntoView({ inline: 'center', block: 'nearest' }); });
   bindSearch($('#gsearch'), $('#gresults'));
   try { history.replaceState(null, '', `#${tab}`); } catch {}

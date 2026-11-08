@@ -34,7 +34,7 @@ create policy "owner or editors update" on public.boards for update
   with check (auth.uid() = owner or auth.uid() = any(editors));
 
 drop policy if exists "owner deletes" on public.boards;
-create policy "owner deletes" on public.boards for delete using (auth.uid() = owner);
+create policy "owner deletes" on public.boards for delete using (auth.uid() = owner or auth.uid() = any(editors));
 
 -- עדכון חי ללוח ברגע שהגבאי שומר
 do $$ begin

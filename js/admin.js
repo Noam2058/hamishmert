@@ -223,11 +223,9 @@ const LISTS = {
     label: 'תפילות', single: 'תפילה', group: 'schedule',
     help: 'כל תפילה שייכת ללוח: חול, ערב שבת, שבת, ראש חודש, חג… תפילה בלוח מיוחד מחליפה תפילה באותו שם מלוח החול או השבת.',
     blank: () => ({ id: uid(), name: '', schedule: 'weekday', time: { type: 'fixed', value: '07:00' } }),
-    fields: [['name', 'שם התפילה', 'text'], ['schedule', 'לוח', 'select', SCHEDULES],
-      ['holiday', 'איזה חג / מועד', 'select', [['', '— בחר —'], ...HOLIDAY_DAYS.map(([k, l]) => [k, l])], (it) => it.schedule === 'holiday'], ['weekdays', 'רק בימים (ריק = כל הימים)', 'weekdays'], ['note', 'הערה (מוצגת מתחת לשם)', 'text'], ['time', 'שעה', 'time']],
+    fields: [['name', 'שם התפילה', 'text'], ['schedule', 'מתי התפילה', 'schedule'], ['weekdays', 'רק בימים (ריק = כל הימים)', 'weekdays'], ['note', 'הערה (מוצגת מתחת לשם)', 'text'], ['time', 'שעה', 'time']],
     sum: (it) => ({ title: it.name, meta: [it.schedule === 'holiday' ? (HOLIDAY_LABEL[it.holiday] || 'לא נבחר חג') : '', it.time?.type === 'zman' ? describeTime(it.time) : 'שעה קבועה', daysText(it.weekdays), it.note].filter(Boolean).join(' · '), time: timeOf(it) }),
     calc: true,
-    rerender: ['holiday'],
   },
   lessons: {
     label: 'שיעורים', single: 'שיעור',
@@ -380,6 +378,16 @@ function fieldHtml(item, [key, label, type, opts], path) {
         </div></details>` : ''}
     </div>`;
   }
+  else if (type === 'schedule') {
+    // בחירה אחת: לוח רגיל, קבוצת ימים מיוחדים, או חג מסוים מהרשימה (בלי כפילות)
+    const cur = item.schedule === 'holiday' ? `h:${item.holiday || ''}` : item.schedule === 'chanuka' ? 'h:chanuka' : (item.schedule || 'weekday');
+    const o = (val, lab) => `<option value="${esc(val)}" ${cur === val ? 'selected' : ''}>${esc(lab)}</option>`;
+    input = `<select id="${id}" data-k="${key}" data-type="schedule">
+      <optgroup label="קבוע">${o('weekday', 'ימות החול')}${o('friday', 'ערב שבת')}${o('shabbat', 'שבת ומוצאי שבת')}</optgroup>
+      <optgroup label="כל הימים מסוג">${o('rosh-chodesh', 'כל ראש חודש')}${o('erev-yomtov', 'כל ערב חג')}${o('yomtov', 'כל יום טוב')}${o('chol-hamoed', 'כל חול המועד')}${o('fast', 'כל תענית')}</optgroup>
+      <optgroup label="חג או מועד מסוים – מוצג בלוח שבוע לפני">${HOLIDAY_DAYS.map(([k, l]) => o(`h:${k}`, l)).join('')}</optgroup>
+      ${cur === 'h:' ? o('h:', '— בחר חג —') : ''}</select>`;
+  }
   else if (type === 'hebdate') {
     const [dk, mk] = opts; const d = item[dk] || '', m = item[mk] || '';
     input = `<div class="hebdate" data-k="${key}" data-type="hebdate" data-dk="${dk}" data-mk="${mk}">
@@ -425,6 +433,7 @@ function readField(el) {
     return { [el.dataset.dk]: d === '' ? '' : +d, [el.dataset.mk]: m };
   }
   if (type === 'rich') return richToText(el);
+  if (type === 'schedule') return el.value.startsWith('h:') ? { schedule: 'holiday', holiday: el.value.slice(2) } : { schedule: el.value, holiday: undefined };
   if (type === 'annfmt') {
     const q = (k) => el.querySelector(`[data-f="${k}"]`);
     return { align: el.querySelector('[data-f="align"]:checked')?.value || 'center', bold: q('bold').checked, underline: q('underline').checked,
@@ -594,7 +603,7 @@ function renderList(key, focusNew = false) {
       const el = e.target.closest('[data-k]');
       if (!el) return;
       const v = readField(el);
-      if (el.dataset.type === 'hebdate') Object.assign(arr[i], v); else arr[i][el.dataset.k] = v;
+      if (el.dataset.type === 'hebdate' || el.dataset.type === 'schedule') { Object.assign(arr[i], v); if (v.holiday === undefined) delete arr[i].holiday; } else arr[i][el.dataset.k] = v;
       setDirty();
       if (el.dataset.type === 'time' && ['type', 'round'].includes(e.target.dataset.t)) return renderList(key);
       if (def.group && el.dataset.k === def.group) return renderList(key);

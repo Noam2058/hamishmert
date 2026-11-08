@@ -483,7 +483,17 @@ function bindRichText(rt) {
         let b = before, a = after, s = sel, prev = null, m;
         // מקלף צבעים קודמים – מבפנים ומבחוץ – כדי שלא ייווצרו צבעים בתוך צבעים
         while ((m = s.match(/^\[\[(\w+):([\s\S]*)\]\]$/))) { prev ||= m[1]; s = m[2]; }
-        while ((m = b.match(/\[\[(\w+):$/)) && a.startsWith(']]')) { prev ||= m[1]; b = b.slice(0, -m[0].length); a = a.slice(2); }
+        // שכבות הסימנים סביב הבחירה (מבפנים החוצה) – מסירים מהן כל צבע, ושומרים את השאר (מודגש, קו תחתון…)
+        const L = [], R = [];
+        for (let k = 0; k < 6; k++) {
+          const mo = b.match(/(\*\*|__|\+\+|\[\[\w+:)$/), mc = a.match(/^(\*\*|__|\+\+|\]\])/);
+          if (!mo || !mc) break;
+          b = b.slice(0, -mo[0].length); a = a.slice(mc[0].length);
+          const cm = mo[0].match(/^\[\[(\w+):$/);
+          if (cm && mc[0] === ']]') { prev ||= cm[1]; continue; }
+          L.unshift(mo[0]); R.push(mc[0]);
+        }
+        b += L.join(''); a = R.join('') + a;
         s = s.replace(/\[\[\w+:|\]\]/g, '');
         if (prev === color) return { before: b, sel: s, after: a }; // אותו צבע שוב – מסיר
         return { before: `${b}[[${color}:`, sel: s, after: `]]${a}` };

@@ -306,7 +306,7 @@ export const SCREENS = {
     if (!m) return null;
     const plainLen = (t) => t.replace(/[֑-ׇ]/g, '').length;
     const cutAt = (t, n) => { let c = 0, i = 0; for (; i < t.length && c < n; i++) if (!/[֑-ׇ]/.test(t[i])) c++; while (i < t.length && /[֑-ׇ]/.test(t[i])) i++; const h = t.slice(0, i); const mm = h.match(/^[\s\S]*[.:]/); return (mm ? mm[0] : h) + ' …'; };
-    const sizeOf = (len) => (len > 1100 ? 'xl' : len > 700 ? 'l' : len > 380 ? 'm' : 's');
+    const sizeOf = (len) => (len > 850 ? 'xl' : len > 520 ? 'l' : len > 260 ? 'm' : 's'); // יש גם כותרת סדר – מעט קטן יותר מההלכה
     const card = (items, src) => {
       let cut = false;
       const parts = items.map((x) => { let t = x.text; if (plainLen(t) > 1300) { t = cutAt(t, 1300); cut = true; } return { ...x, text: t }; });

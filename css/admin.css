@@ -264,7 +264,7 @@ details.adv[open] > summary::before { transform: rotate(45deg); }
 .dragging .grip { cursor: grabbing; color: var(--gold); }
 body.is-dragging { user-select: none; -webkit-user-select: none; cursor: grabbing; }
 
-html, body { overflow-x: hidden; }
+html, body { overflow-x: clip; }
 .brand { flex: 1 1 auto; }
 .brand > div { min-width: 0; }
 .top-actions { flex: none; }
@@ -314,4 +314,4 @@ input, select, textarea { max-width: 100%; }
 /* רדיו/צ'קבוקס מוסתרים (בחירת צבע, יישור, ימים) – בלי רוחב, אחרת הם מרחיבים את הדף הצידה */
 .seg label, .swatches label, .days label { position: relative; }
 .seg input, .swatches input, .days input { width: 1px !important; height: 1px !important; inset: 0; margin: 0; }
-html, body { overflow-x: hidden; }
+html, body { overflow-x: clip; }

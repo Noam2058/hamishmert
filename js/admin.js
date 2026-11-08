@@ -538,7 +538,7 @@ function summaryHtml(def, it) {
 function renderList(key, focusNew = false) {
   freshPanel();
   const def = LISTS[key];
-  const arr = DATA[key];
+  const arr = (DATA[key] ||= []);
   const f = (filters[key] || '').trim();
   const visible = arr.map((it, i) => [it, i]).filter(([it]) => !f || JSON.stringify(it).includes(f));
   const itemHtml = ([it, i]) => `

@@ -2,6 +2,8 @@
 import {
   HDate, Zmanim, GeoLocation, Location, HebrewCalendar, getSedra, DailyLearning, flags,
   gematriya, getLeyningOnDate,
+  DafYomiEvent, MishnaYomiIndex, MishnaYomiEvent, NachYomiIndex, NachYomiEvent,
+  dailyRambam1, DailyRambamEvent, chofetzChaim, ChofetzChaimEvent, dailyPsalms, PsalmsEvent,
 } from './lib.js';
 
 // עברית בלי ניקוד, וגם הסרת ניקוד שנשאר (למשל בשמות פרשות)
@@ -321,15 +323,30 @@ const LEARNING = [
   ['dafYomi', 'דף יומי'], ['mishnaYomi', 'משנה יומית'], ['nachYomi', 'נ"ך יומי'],
   ['rambam1', 'רמב"ם יומי'], ['chofetzChaim', 'חפץ חיים'], ['psalms', 'תהלים'],
 ];
+let mishnaIdx = null, nachIdx = null;
+const LEARN_EV = {
+  dafYomi: (hd) => new DafYomiEvent(hd),
+  mishnaYomi: (hd) => new MishnaYomiEvent(hd, (mishnaIdx ||= new MishnaYomiIndex()).lookup(hd)),
+  nachYomi: (hd) => new NachYomiEvent(hd, (nachIdx ||= new NachYomiIndex()).lookup(hd)),
+  rambam1: (hd) => new DailyRambamEvent(hd, dailyRambam1(hd)),
+  chofetzChaim: (hd) => new ChofetzChaimEvent(hd, chofetzChaim(hd)),
+  psalms: (hd) => new PsalmsEvent(hd, dailyPsalms(hd)),
+};
+/** המשניות של היום: [{k: 'Oholot', perek: 16, mishna: 2}, …] */
+export function mishnaYomiRefs(hd) {
+  return (mishnaIdx ||= new MishnaYomiIndex()).lookup(hd).map(({ k, v }) => { const [p, m] = String(v).split(':'); return { k, perek: +p, mishna: +m }; });
+}
 export function dailyLearning(hd, enabled) {
   const out = [];
   for (const [key, label] of LEARNING) {
     if (enabled && enabled[key] === false) continue;
     if (!enabled && !['dafYomi', 'mishnaYomi'].includes(key)) continue;
     try {
-      const ev = DailyLearning.getLearning(key, hd);
-      if (ev) out.push({ key, label, text: noNikud(ev.render(HE)).replace(/^[^:]+:\s*/, '') });
-    } catch { /* לא זמין */ }
+      const ev = LEARN_EV[key](hd);
+      const text = noNikud(ev.render(HE)).replace(/^[^:]+:\s*/, '')
+        .replace(/(\d+)\.(\d+)/g, '$1:$2').replace(/\d+/g, (n) => gematriya(+n));
+      if (text) out.push({ key, label, text });
+    } catch (e) { console.warn('learning', key, e); }
   }
   return out;
 }

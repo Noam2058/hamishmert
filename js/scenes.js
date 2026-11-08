@@ -707,7 +707,7 @@ export const SCENE_DEFS = {
 const BY_SCREEN = {
   combined: 'jerusalem', prayers: 'heichal', zmanim: 'sunpath', netz: 'sunrise', shabbat: 'shabbatEve',
   announcements: 'kotel', memorials: 'yahrzeit', parnas: 'papercut', omer: 'wheatField', halacha: 'stainedGlass',
-  learning: 'library', birthdays: 'festive', hilula: 'safed', greeting: 'jerusalem',
+  learning: 'library', lessons: 'library', mishna: 'papercut', birthdays: 'festive', hilula: 'safed', greeting: 'jerusalem',
 };
 const THEME_MAIN = { classic: 'jerusalem', chassidic: 'heichal', ashkenaz: 'papercut' };
 

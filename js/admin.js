@@ -224,7 +224,7 @@ const LISTS = {
   },
   lessons: {
     label: 'שיעורים', single: 'שיעור',
-    help: 'שיעורים קבועים. מופיעים במסך המשולב ביום שלהם ובפס הגולל.',
+    help: 'שיעורים קבועים. מוצגים בשקופית "שיעורים" משלהם (היום – מודגש) ובפס הגולל ביום שלהם.',
     blank: () => ({ id: uid(), title: '', teacher: '', weekdays: [0, 1, 2, 3, 4], time: { type: 'fixed', value: '20:00' } }),
     fields: [['title', 'שם השיעור', 'text'], ['teacher', 'מעביר השיעור', 'text'], ['weekdays', 'ימים', 'weekdays'], ['note', 'הערה', 'text'], ['time', 'שעה', 'time']],
     sum: (it) => ({ title: it.title, meta: [it.teacher, daysText(it.weekdays) || 'כל יום'].filter(Boolean).join(' · '), time: timeOf(it) }),

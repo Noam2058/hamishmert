@@ -6,6 +6,7 @@ import { load, subscribe } from './store.js';
 import { cachedHalacha, prefetchHalachot, DEFAULT_START } from './halacha-sa.js';
 import { sceneForSlide, renderScene } from './scenes.js';
 import { annActive, annBody, annClasses } from './ann.js';
+import { cachedMishna, prefetchMishna } from './mishna.js';
 
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const $ = (s) => document.querySelector(s);
@@ -68,13 +69,14 @@ function render() {
   const bdays = inHebrewRange(DATA.birthdays || [], day.hd, day.hd.add(7), birthdayIn);
   const hil = inHebrewRange(DATA.hilulot || [], day.hd, day.hd.add(7), (y, it) => { try { return new HDate(+it.hebDay, it.hebMonth, y); } catch { return null; } });
   const hal = (DATA.halachaSource || 'sa') === 'sa' ? cachedHalacha(iso, DATA.halachaStart || DEFAULT_START) : null;
+  const mish = DATA.display.screens.some((x) => x.type === 'mishna' && x.enabled) ? cachedMishna(day.hd) : null;
   const custom = !hal && (DATA.halachot || []).length ? DATA.halachot[Math.floor(day.civil.getTime() / 86400000) % DATA.halachot.length] : null;
   const isShabbat = sh.candlesDate && sh.candlesDate.getDay() === 5;
   const specials = [...(sh.specialShabbat || []), ...(sh.mevarchim || [])];
   const showZ = s.zmanimShown?.length ? s.zmanimShown : ZMANIM.map((z) => z.key);
 
   document.title = s.name || 'בית הכנסת';
-  const nav = [['t-today', 'היום'], ['t-shabbat', isShabbat ? 'שבת' : 'חג'], anns.length && ['t-ann', 'הודעות'], slides.length && ['t-img', 'תמונות'], ['t-zmanim', 'זמנים'], ['t-week', 'השבוע'], (hal || custom) && ['t-hal', 'הלכה'], lessons.length && ['t-les', 'שיעורים']].filter(Boolean);
+  const nav = [['t-today', 'היום'], ['t-shabbat', isShabbat ? 'שבת' : 'חג'], anns.length && ['t-ann', 'הודעות'], slides.length && ['t-img', 'תמונות'], ['t-zmanim', 'זמנים'], ['t-week', 'השבוע'], (hal || custom) && ['t-hal', 'הלכה'], mish && ['t-mish', 'משנה'], lessons.length && ['t-les', 'שיעורים']].filter(Boolean);
 
   $('#app').innerHTML = `
     <header class="hero"><div class="hero-in">
@@ -124,6 +126,9 @@ function render() {
         <div class="x">${hal.parts.map((p) => (p.rema ? `<span class="rema"><b>הגה:</b> ${esc(p.text)}</span>` : esc(p.text))).join(' ')}</div><div class="src">${esc(hal.source)}</div></section>`
         : custom ? `<section class="card halacha" id="t-hal"><h2>${icon('scroll')}הלכה יומית</h2><div class="t">${esc(custom.title)}</div><div class="x">${esc(custom.text)}</div>${custom.source ? `<div class="src">${esc(custom.source)}</div>` : ''}</section>` : ''}
 
+      ${mish ? `<section class="card halacha" id="t-mish"><h2>${icon('book')}משנה יומית</h2><div class="t">מסכת ${esc(mish.tractate)}</div>
+        ${mish.items.map((x) => `<div class="x"><span class="ml">פרק ${esc(x.perekHe)} משנה ${esc(x.mishnaHe)}</span> ${esc(x.text)}</div>`).join('')}<div class="src">${esc(mish.source)}</div></section>` : ''}
+
       ${day.learning?.length ? `<section class="card"><h2>${icon('book')}הלימוד היומי</h2><div class="rows">${day.learning.map((l) => row(l.label, `<span style="font:700 17px var(--body);direction:rtl">${esc(l.text)}</span>`)).join('')}</div></section>` : ''}
 
       ${lessons.length ? `<section class="card" id="t-les"><h2>${icon('book')}שיעורים קבועים</h2><div class="rows">${lessons.map((l) => row(l.title, esc(l.timeStr), [daysLabel(l.weekdays), l.teacher, l.note].filter(Boolean).join(' · '))).join('')}</div></section>` : ''}
@@ -169,6 +174,7 @@ const r = await load();
 DATA = r.data;
 render();
 if ((DATA.halachaSource || 'sa') === 'sa') prefetchHalachot(isoOf(new Date(), DATA.synagogue.tz), DATA.halachaStart || DEFAULT_START, true).then((got) => { if (got) render(); }).catch(() => {});
+prefetchMishna(DATA.synagogue, true).then((got) => { if (got) render(); }).catch(() => {});
 subscribe((d) => { DATA = d; render(); });
 setInterval(render, 60000);
 if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});

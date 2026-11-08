@@ -5,6 +5,7 @@ import { SCREENS, LIVE_SCREENS, tickerItems, nextPrayer } from './screens.js';
 import { load, subscribe } from './store.js';
 import { sceneForSlide, renderScene, holidayHasDesign } from './scenes.js';
 import { prefetchHalachot, DEFAULT_START } from './halacha-sa.js';
+import { prefetchMishna } from './mishna.js';
 
 const params = new URLSearchParams(location.search);
 const onlyScreens = params.get('screens')?.split(',').filter(Boolean);
@@ -235,6 +236,7 @@ function advance() {
   clearTimeout(timer);
   buildCtx();
   if ((DATA.halachaSource || 'sa') === 'sa') prefetchHalachot(ctx.todayIso, DATA.halachaStart || DEFAULT_START).catch(() => {});
+  if (DATA.display.screens.some((x) => x.type === 'mishna' && x.enabled)) prefetchMishna(DATA.synagogue).catch(() => {});
   renderHeader();
   renderTicker();
   queue = buildQueue();

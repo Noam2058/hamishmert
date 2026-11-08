@@ -403,3 +403,20 @@ footer.ticker { contain: layout paint; }
 .rows.compact .row .v { font-size: 36px; }
 /* רקע שנבחר להודעה גובר על רקע הסגנון ועל השקיפות של מסך עם ציור */
 #stage .card.ann[class*="bg-"] { background: radial-gradient(ellipse at 50% 45%, transparent 55%, rgba(0,0,0,.12) 100%), linear-gradient(180deg, var(--parchment), var(--parchment-2)); }
+/* בתפילה היום – במסך המשולב */
+.card .body.changes { flex: 1; display: flex; flex-direction: column; justify-content: center; }
+/* שיעורים */
+.lessons-cards { align-content: center; }
+.card.lesson { text-align: center; align-items: center; justify-content: center; gap: 14px; padding: 60px 36px; }
+.card.lesson .when { font: 800 28px var(--body); color: var(--next-ink); background: color-mix(in srgb, var(--gold) 16%, transparent); padding: 4px 22px; border-radius: 999px; }
+.card.lesson.today .when { background: var(--next-ink); color: #fff; }
+.card.lesson .lt { font: 900 58px/1.15 var(--display); text-wrap: balance; }
+.card.lesson .lr { font: 700 36px var(--body); color: var(--ink-soft); }
+.card.lesson .time { font: 900 84px/1 var(--display); font-variant-numeric: tabular-nums; direction: ltr; color: var(--time-ink); margin-top: 6px; }
+.card.lesson .ld { font: 700 30px var(--body); color: var(--ink-soft); }
+.card.lesson .ln { font: 600 28px var(--body); color: var(--ink-soft); }
+.lessons-rows .card { justify-content: center; }
+/* משנה יומית */
+.halacha.mishna .x p { margin: 0 0 .5em; }
+.halacha.mishna .x p:last-child { margin-bottom: 0; }
+.halacha.mishna .ml { font-family: var(--body); font-weight: 800; font-size: .7em; color: var(--next-ink); background: color-mix(in srgb, var(--gold) 14%, transparent); padding: 2px 14px; border-radius: 999px; margin-inline-end: 8px; white-space: nowrap; vertical-align: middle; }

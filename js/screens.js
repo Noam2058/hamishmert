@@ -1,8 +1,9 @@
 // המסכים של הלוח. כל מסך מחזיר HTML, מערך של שקפים, או null כשאין מה להציג.
 import { cachedHalacha, DEFAULT_START } from './halacha-sa.js';
-import { fmtTime, minutesOf, ZMAN_LABEL, ZMANIM, inHebrewRange, yahrzeitIn, birthdayIn, renderHeb, hhmmToMin } from './jewish.js';
+import { computeDay, minToHhmm, fmtTime, minutesOf, ZMAN_LABEL, ZMANIM, inHebrewRange, yahrzeitIn, birthdayIn, renderHeb, hhmmToMin } from './jewish.js';
 import { HDate } from './lib.js';
-import { daysLabel } from './prayers.js';
+import { daysLabel, resolveTime } from './prayers.js';
+import { cachedMishna } from './mishna.js';
 import { greetingArt } from './art.js';
 import { annActive, annBody, annClasses, annBig } from './ann.js';
 
@@ -101,8 +102,7 @@ export const SCREENS = {
       <div class="grid g-combined">
         <section class="card"><h3>תפילות היום ${tag ? `<span class="tag">${esc(tag)}</span>` : ''}</h3>${prayerRows(prayersToday, nowMin)}</section>
         <section class="card"><h3>זמני היום</h3>${zmanimRows(ctx, keys, true)}</section>
-        <section class="card split"><div class="sect"><h3>שיעורים היום</h3><div class="body">${lessonsToday.length ? `<div class="rows compact">${lessonsToday.map((l) => `<div class="row"><div class="k">${esc(l.title)}<small>${esc([l.teacher, l.note].filter(Boolean).join(' · '))}</small></div><div class="v">${l.timeStr}</div></div>`).join('')}</div>` : '<div class="empty">אין שיעורים היום</div>'}</div></div>
-          <div class="sect"><h3>בתפילה</h3><div class="body"><div class="chips">${day.changes.map((c) => `<span class="chip">${esc(c)}</span>`).join('')}${extra.join('')}</div></div></div></section>
+        <section class="card"><h3>בתפילה היום</h3><div class="body changes">${day.changes.length || extra.length ? `<div class="chips">${day.changes.map((c) => `<span class="chip">${esc(c)}</span>`).join('')}${extra.join('')}</div>` : '<div class="empty">סדר התפילה הרגיל</div>'}</div></section>
       </div>`;
   },
 
@@ -264,6 +264,60 @@ export const SCREENS = {
     const idx = Math.floor(ctx.day.civil.getTime() / 86400000) % list.length;
     const h = list[idx];
     return `${title('הלכה יומית')}<section class="card halacha"><div class="t">${esc(h.title)}</div><div class="x">${esc(h.text)}</div>${h.source ? `<div class="src">${esc(h.source)}</div>` : ''}</section>`;
+  },
+
+  lessons(ctx) {
+    const { day, s } = ctx;
+    const all = ctx.data.lessons || [];
+    if (!all.length) return null;
+    const nowMin = minutesOf(ctx.now, s.tz);
+    // לכל שיעור: היום הקרוב שבו הוא מתקיים והשעה באותו יום
+    const list = all.map((l) => {
+      const days = l.weekdays?.length ? l.weekdays : [0, 1, 2, 3, 4, 5, 6];
+      let off = 0; while (off < 7 && !days.includes((day.civil.getDay() + off) % 7)) off++;
+      let min = null;
+      try {
+        const d = off ? computeDay(new Date(ctx.now.getTime() + off * 86400000), s) : day;
+        min = resolveTime(l.time, d.civil, s, { candles: d.shabbat.candles, havdalah: d.shabbat.havdalah });
+      } catch { /* */ }
+      return { ...l, off, min, time: min == null ? '' : minToHhmm(min), days: daysLabel(l.weekdays), today: off === 0 };
+    }).sort((a, b) => a.off - b.off || (a.min ?? 9999) - (b.min ?? 9999));
+    const when = (l) => (l.today ? (l.min != null && l.min < nowMin - 60 ? 'היה היום' : 'היום') : l.off === 1 ? 'מחר' : l.days);
+    if (list.length <= 3) {
+      return `${title('שיעורי תורה')}<div class="grid lessons-cards" style="grid-template-columns:repeat(${list.length},1fr)">${list.map((l) => `
+        <section class="card lesson${l.today ? ' today' : ''}"><span class="when">${esc(when(l))}</span>
+          <div class="lt">${esc(l.title)}</div>${l.teacher ? `<div class="lr">${esc(l.teacher)}</div>` : ''}
+          <div class="time">${esc(l.time)}</div><div class="ld">${esc(l.days)}</div>${l.note ? `<div class="ln">${esc(l.note)}</div>` : ''}</section>`).join('')}</div>`;
+    }
+    const row = (l) => `<div class="row${l.today ? ' next' : ''}"><div class="k">${esc(l.title)}<small>${esc([l.teacher, l.days, l.note].filter(Boolean).join(' · '))}</small></div><div class="v">${esc(l.time)}</div></div>`;
+    const slides = [];
+    for (let i = 0; i < list.length; i += 12) {
+      const chunk = list.slice(i, i + 12), half = Math.ceil(chunk.length / 2);
+      slides.push(`${title('שיעורי תורה')}<div class="grid g2 lessons-rows">
+        <section class="card"><div class="rows">${chunk.slice(0, half).map(row).join('')}</div></section>
+        <section class="card"><div class="rows">${chunk.slice(half).map(row).join('')}</div></section></div>`);
+    }
+    return slides.length === 1 ? slides[0] : slides;
+  },
+
+  mishna(ctx) {
+    const m = cachedMishna(ctx.day.hd);
+    if (!m) return null;
+    const plainLen = (t) => t.replace(/[֑-ׇ]/g, '').length;
+    const cutAt = (t, n) => { let c = 0, i = 0; for (; i < t.length && c < n; i++) if (!/[֑-ׇ]/.test(t[i])) c++; while (i < t.length && /[֑-ׇ]/.test(t[i])) i++; const h = t.slice(0, i); const mm = h.match(/^[\s\S]*[.:]/); return (mm ? mm[0] : h) + ' …'; };
+    const sizeOf = (len) => (len > 1100 ? 'xl' : len > 700 ? 'l' : len > 380 ? 'm' : 's');
+    const card = (items, src) => {
+      let cut = false;
+      const parts = items.map((x) => { let t = x.text; if (plainLen(t) > 1300) { t = cutAt(t, 1300); cut = true; } return { ...x, text: t }; });
+      const len = parts.reduce((a, x) => a + plainLen(x.text) + 12, 0);
+      return `${title('משנה יומית')}<section class="card halacha sa mishna len-${sizeOf(len)}"><div class="t">מסכת ${esc(m.tractate)}</div>
+        <div class="x">${parts.map((x) => `<p><span class="ml">פרק ${esc(x.perekHe)} משנה ${esc(x.mishnaHe)}</span> ${esc(x.text)}</p>`).join('')}</div>
+        <div class="src">${esc(src)}${cut ? ' · ההמשך בספר' : ''}</div></section>`;
+    };
+    const total = m.items.reduce((a, x) => a + plainLen(x.text), 0);
+    // שתי משניות קצרות – בשקופית אחת; ארוכות – כל משנה בשקופית משלה
+    if (total <= 900) return card(m.items, m.source);
+    return m.items.map((x) => card([x], `משנה · מסכת ${x.tractate} · פרק ${x.perekHe} · משנה ${x.mishnaHe}`));
   },
 
   learning(ctx) {

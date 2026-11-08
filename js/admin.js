@@ -423,7 +423,8 @@ function renderList(key, focusNew = false) {
       const sm = row.querySelector('summary'); [...sm.children].slice(1).forEach((n) => n.remove()); sm.insertAdjacentHTML('beforeend', summaryHtml(def, arr[i]));
     };
     row.addEventListener('change', commit);
-    row.addEventListener('input', (e) => { if (e.target.matches('input[type=text],input:not([type]),textarea')) commit(e); });
+    // כל הקלדה נקלטת מיד – גם שעה, תאריך ומספר (באייפון 'change' מגיע רק כשיוצאים מהשדה)
+    row.addEventListener('input', (e) => { if (e.target.matches('input:not([type=checkbox]):not([type=radio]),textarea') && e.target.dataset.t !== 'type') commit(e); });
     row.querySelectorAll('[data-act]').forEach((b) => b.onclick = () => {
       const act = b.dataset.act;
       if (act === 'del') {
@@ -653,6 +654,9 @@ function renderPanel() {
 }
 
 async function doSave() {
+  // יציאה מהשדה הפעיל כדי שהערך האחרון ייקלט לפני השמירה
+  const act = document.activeElement;
+  if (act && act.matches?.('input,textarea,select')) { act.dispatchEvent(new Event('change', { bubbles: true })); act.blur(); await new Promise((r) => setTimeout(r, 0)); }
   const b = $('#btn-save');
   b.disabled = true; b.textContent = 'שומר…'; $('#btn-save2').disabled = true;
   try {

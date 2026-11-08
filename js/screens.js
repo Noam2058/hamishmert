@@ -22,15 +22,36 @@ const CANDLES_SVG = `<svg class="side-art" viewBox="0 0 200 170" aria-hidden="tr
   <rect x="${x - 9}" y="38" width="18" height="62" rx="3" fill="url(#cs-w)"/><path d="M${x} 36v6" stroke="#3a2a12" stroke-width="2"/>
   <path d="M${x - 22} 102h44l-6 8h-32z" fill="url(#cs-m)"/><rect x="${x - 5}" y="110" width="10" height="34" fill="url(#cs-m)"/>
   <path d="M${x - 26} 158c4-10 16-14 26-14s22 4 26 14z" fill="url(#cs-m)"/>`).join('')}</svg>`;
-const HAVDALAH_SVG = `<svg class="side-art" viewBox="0 0 200 170" aria-hidden="true"><defs>
+const HAVDALAH_SVG = `<svg class="side-art wide" viewBox="0 0 280 170" aria-hidden="true"><defs>
   <linearGradient id="hv-b" x1="0" x2="1"><stop offset="0" stop-color="#2c5aa0"/><stop offset=".5" stop-color="#6d9be0"/><stop offset="1" stop-color="#23467f"/></linearGradient>
+  <linearGradient id="hv-s" x1="0" x2="1"><stop offset="0" stop-color="#8f949e"/><stop offset=".45" stop-color="#f4f6fa"/><stop offset="1" stop-color="#8a909b"/></linearGradient>
+  <linearGradient id="hv-m" x1="0" x2="1"><stop offset="0" stop-color="#8f6a22"/><stop offset=".45" stop-color="#f3d98c"/><stop offset="1" stop-color="#9c7322"/></linearGradient>
+  <linearGradient id="hv-w" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#9b1b30"/><stop offset="1" stop-color="#5c0d1b"/></linearGradient>
   <radialGradient id="hv-g"><stop offset="0" stop-color="#ffe9a0" stop-opacity=".85"/><stop offset="1" stop-color="#ffe9a0" stop-opacity="0"/></radialGradient></defs>
-  ${[[34, 30, 9], [166, 22, 7], [150, 70, 5]].map(([x, y, r]) => `<path class="star" d="M${x} ${y - r}l${r * .3} ${r * .7} ${r * .7} ${r * .3} -${r * .7} ${r * .3} -${r * .3} ${r * .7} -${r * .3} -${r * .7} -${r * .7} -${r * .3} ${r * .7} -${r * .3}z" fill="#b8892f"/>`).join('')}
-  <circle cx="100" cy="34" r="36" fill="url(#hv-g)" class="glow"/>
-  <path class="flame" d="M92 8c10 12 14 20 8 32c-4 4-12 4-16 0c-6-12-2-20 8-32z" fill="#ffb53b"/><path class="flame" d="M108 10c8 10 11 17 6 27c-3 3-9 3-12 0c-5-10-2-17 6-27z" fill="#ffc451"/>
-  <path d="M100 22c4 6 5 10 0 16c-5-6-4-10 0-16z" fill="#fff4c4"/>
-  ${[0, 1, 2, 3, 4, 5].map((i) => `<path d="M86 ${44 + i * 18}c10-6 18-6 28 0v18c-10-6-18-6-28 0z" fill="url(#hv-b)" stroke="#1b3a6b" stroke-width="1"/>`).join('')}
-  <path d="M60 158h80" stroke="#c9a24a" stroke-width="4" stroke-linecap="round"/></svg>`;
+  ${[[24, 26, 8], [256, 20, 7], [232, 58, 5], [52, 70, 4]].map(([x, y, r]) => `<path class="star" d="M${x} ${y - r}l${r * .3} ${r * .7} ${r * .7} ${r * .3} -${r * .7} ${r * .3} -${r * .3} ${r * .7} -${r * .3} -${r * .7} -${r * .7} -${r * .3} ${r * .7} -${r * .3}z" fill="#b8892f"/>`).join('')}
+  <!-- גביע יין -->
+  <g transform="translate(62 70)">
+    <path d="M-26 0h52c0 26-10 40-26 42c-16-2-26-16-26-42z" fill="url(#hv-m)"/>
+    <path d="M-23 4h46c-1 20-9 32-23 34c-14-2-22-14-23-34z" fill="url(#hv-w)"/>
+    <path d="M-23 4h46" stroke="#ffd7dd" stroke-opacity=".5" stroke-width="2"/>
+    <rect x="-4" y="42" width="8" height="30" fill="url(#hv-m)"/><circle cy="54" r="6" fill="url(#hv-m)"/>
+    <path d="M-24 86c3-9 13-14 24-14s21 5 24 14z" fill="url(#hv-m)"/>
+  </g>
+  <!-- נר הבדלה -->
+  <circle cx="140" cy="34" r="36" fill="url(#hv-g)" class="glow"/>
+  <path class="flame" d="M132 8c10 12 14 20 8 32c-4 4-12 4-16 0c-6-12-2-20 8-32z" fill="#ffb53b"/><path class="flame" d="M148 10c8 10 11 17 6 27c-3 3-9 3-12 0c-5-10-2-17 6-27z" fill="#ffc451"/>
+  <path d="M140 22c4 6 5 10 0 16c-5-6-4-10 0-16z" fill="#fff4c4"/>
+  ${[0, 1, 2, 3, 4, 5].map((i) => `<path d="M126 ${44 + i * 18}c10-6 18-6 28 0v18c-10-6-18-6-28 0z" fill="url(#hv-b)" stroke="#1b3a6b" stroke-width="1"/>`).join('')}
+  <!-- קופסת בשמים (מגדל) -->
+  <g transform="translate(218 62)">
+    <path d="M0 -26v-10" stroke="url(#hv-s)" stroke-width="3"/><path d="M0 -36l12 4-12 4z" fill="#c9a24a"/>
+    <path d="M-12 -2l12-24 12 24z" fill="url(#hv-s)" stroke="#6e737d" stroke-width="1"/>
+    <rect x="-16" y="-2" width="32" height="44" rx="2" fill="url(#hv-s)" stroke="#6e737d" stroke-width="1"/>
+    ${[0, 1].map((r) => [-8, 0, 8].map((x) => `<rect x="${x - 2.5}" y="${6 + r * 16}" width="5" height="9" rx="2.5" fill="#5f6570"/>`).join('')).join('')}
+    <path d="M-20 42h40v6h-40z" fill="url(#hv-s)"/><rect x="-4" y="48" width="8" height="22" fill="url(#hv-s)"/>
+    <path d="M-20 94c3-12 11-24 20-24s17 12 20 24z" fill="url(#hv-s)" stroke="#6e737d" stroke-width="1"/>
+  </g>
+  <path d="M28 162h224" stroke="#c9a24a" stroke-width="4" stroke-linecap="round"/></svg>`;
 
 const ribbon = (html, i = 0) => `<div class="ribbon c${i % 5}"><span class="rb-body">${html}</span></div>`;
 const capsule = (t) => `<div class="capsule"><span>${esc(t)}</span></div>`;

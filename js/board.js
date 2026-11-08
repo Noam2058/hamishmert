@@ -216,8 +216,11 @@ function fitText(root) {
   root.querySelectorAll('.body.changes').forEach((body) => {
     const list = body.querySelector('.chg-list');
     if (!list) return;
+    const card = body.closest('.card'), scr = body.closest('.screen');
+    // חורג אם הרשימה גבוהה מהמקום שלה, או שהכרטיס כולו יוצא מתחתית השקופית
+    const over = () => list.offsetHeight > body.clientHeight + 1 || (scr && card.getBoundingClientRect().bottom > scr.getBoundingClientRect().bottom + 1);
     let fs = parseFloat(getComputedStyle(list).getPropertyValue('--rb-fs')) || 40, guard = 0;
-    while (list.offsetHeight > body.clientHeight + 1 && fs > 20 && guard++ < 40) { fs -= 1.5; list.style.setProperty('--rb-fs', `${fs}px`); }
+    while (over() && fs > 20 && guard++ < 40) { fs -= 1.5; list.style.setProperty('--rb-fs', `${fs}px`); }
   });
   root.querySelectorAll('.halacha .x').forEach((x) => {
     const card = x.closest('.card');

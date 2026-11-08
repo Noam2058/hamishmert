@@ -323,3 +323,4 @@ html, body { overflow-x: clip; }
 .rt-ed b, .rt-ed strong { font-weight: 800; }
 .rt-ed font[size="4"], .rt-ed font[size="5"], .rt-ed font[size="6"], .rt-ed font[size="7"], .rt-ed .big { font-size: 1.3em; }
 .rt-ed:empty::before { content: "כתוב כאן את תוכן ההודעה…"; color: var(--soft); }
+.rt-bar button { display: inline-flex; align-items: center; justify-content: center; gap: 1px; }

@@ -527,3 +527,7 @@ html, body, #viewport { touch-action: manipulation; -webkit-tap-highlight-color:
 @keyframes glowp { 0%, 100% { opacity: .85; } 50% { opacity: 1; } }
 @keyframes twk { 0%, 100% { opacity: 1; } 50% { opacity: .45; } }
 .lite .side-art .flame, .lite .side-art .glow, .lite .side-art .star { animation: none; }
+/* בטלפון: בלי הגדלה בצביטה – הלוח הוא קנבס גדול, והגדלה שלו מקריסה את הדפדפן */
+html, body, #viewport { touch-action: pan-x pan-y; }
+.welcome .w-frame { padding: 90px 120px 84px; gap: 22px; }
+.welcome .w-title { font-size: 168px; }

@@ -80,7 +80,9 @@ let LITE = false;
 function applyPerf() {
   const pref = params.has('lite') ? 'lite' : params.has('full') ? 'full' : (DATA?.display?.performance || 'auto');
   const weak = /Android/i.test(navigator.userAgent) && ((navigator.hardwareConcurrency || 8) <= 4 || (navigator.deviceMemory || 8) <= 2);
-  LITE = pref === 'lite' || (pref === 'auto' && weak);
+  const phone = matchMedia('(pointer: coarse)').matches && Math.min(screen.width, screen.height) < 820; // טלפון/טאבלט קטן – חסכוני, כדי שלא יקרוס
+  const weakOrPhone = weak || phone;
+  LITE = pref === 'lite' || (pref === 'auto' && weakOrPhone);
   document.documentElement.classList.toggle('lite', LITE);
 }
 
@@ -300,6 +302,8 @@ function flip(step) {
   if (h) { h.textContent = `${qi + 1} / ${queue.length}`; h.classList.add('on'); clearTimeout(flip.t); flip.t = setTimeout(() => h.classList.remove('on'), 1200); }
 }
 // בטלפון מטפלים בנגיעה עצמה (באייפון 'click' על אזור שאינו כפתור לא תמיד מגיע, ויש השהיה של זום כפול)
+// ספארי באייפון מתעלם מ-user-scalable=no – חוסמים את מחוות ההגדלה ידנית
+['gesturestart', 'gesturechange'].forEach((ev) => document.addEventListener(ev, (e) => e.preventDefault(), { passive: false }));
 let touch = null;
 addEventListener('touchstart', (e) => { if (e.touches.length === 1) touch = { x: e.touches[0].clientX, y: e.touches[0].clientY, t: Date.now() }; else touch = null; }, { passive: true });
 addEventListener('touchend', (e) => {

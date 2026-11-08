@@ -108,17 +108,9 @@ function greetingFor(ctx) {
   }
 }
 
-/** מסך הכניסה בימים רגילים: ברכה בתוך מסגרת זהב מעוטרת, ומתחתיה שלושה פרטים שימושיים להיום */
+/** מסך הכניסה בימים רגילים: ברכה בתוך מסגרת זהב מעוטרת */
 function welcomeHtml(ctx, gr) {
   const { day, s } = ctx;
-  const nowMin = minutesOf(ctx.now, s.tz);
-  const next = ctx.prayersToday.find((p) => p.min != null && p.min >= nowMin);
-  const z = (k, mode) => fmtTime(day.zmanim[k], s.tz, mode);
-  const info = [
-    next ? ['התפילה הבאה', next.name, next.time] : ['מחר בבוקר', 'הנץ החמה', fmtTime(zmanimFor(new Date(day.civil.getTime() + 86400000), s).sunrise, s.tz, 'ceil')],
-    nowMin < minutesOf(day.zmanim.sunrise, s.tz) ? ['הזמן הבא', 'הנץ החמה', z('sunrise', 'ceil')] : nowMin < minutesOf(day.zmanim.sunset, s.tz) ? ['הזמן הבא', 'שקיעה', z('sunset', 'floor')] : ['הזמן הבא', 'צאת הכוכבים', z('tzeit', 'ceil')],
-    day.shabbat.candles ? [day.shabbat.candlesLabel, renderHeb(day.shabbat.candlesDate) || '', fmtTime(day.shabbat.candles, s.tz, 'floor')] : ['פרשת השבוע', '', esc(day.shabbat.parsha || '')],
-  ];
   return `<div class="welcome">
     <div class="w-frame">
       <span class="w-c tl"></span><span class="w-c tr"></span><span class="w-c bl"></span><span class="w-c br"></span>
@@ -127,7 +119,6 @@ function welcomeHtml(ctx, gr) {
       <div class="w-sub">${esc(gr.sub || '')}</div>
       ${s.name ? `<div class="w-name">${esc(s.name)}</div>` : ''}
     </div>
-    <div class="w-info">${info.map(([lbl, name, time]) => `<div class="wi"><small>${esc(lbl)}</small>${name ? `<span>${esc(name)}</span>` : ''}<b>${time}</b></div>`).join('')}</div>
   </div>`;
 }
 

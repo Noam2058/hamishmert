@@ -1,6 +1,6 @@
 // המסכים של הלוח. כל מסך מחזיר HTML, מערך של שקפים, או null כשאין מה להציג.
 import { cachedHalacha, DEFAULT_START } from './halacha-sa.js';
-import { moladInfo, computeDay, minToHhmm, fmtTime, minutesOf, ZMAN_LABEL, ZMANIM, inHebrewRange, yahrzeitIn, birthdayIn, renderHeb, hhmmToMin } from './jewish.js';
+import { zmanimFor, moladInfo, computeDay, minToHhmm, fmtTime, minutesOf, ZMAN_LABEL, ZMANIM, inHebrewRange, yahrzeitIn, birthdayIn, renderHeb, hhmmToMin } from './jewish.js';
 import { HDate } from './lib.js';
 import { daysLabel, resolveTime } from './prayers.js';
 import { cachedMishna } from './mishna.js';
@@ -115,7 +115,7 @@ function welcomeHtml(ctx, gr) {
   const next = ctx.prayersToday.find((p) => p.min != null && p.min >= nowMin);
   const z = (k, mode) => fmtTime(day.zmanim[k], s.tz, mode);
   const info = [
-    next ? ['התפילה הבאה', next.name, next.time] : ['מחר בבוקר', 'הנץ החמה', fmtTime(day.next?.zmanim?.sunrise || day.zmanim.sunrise, s.tz, 'ceil')],
+    next ? ['התפילה הבאה', next.name, next.time] : ['מחר בבוקר', 'הנץ החמה', fmtTime(zmanimFor(new Date(day.civil.getTime() + 86400000), s).sunrise, s.tz, 'ceil')],
     nowMin < minutesOf(day.zmanim.sunrise, s.tz) ? ['הזמן הבא', 'הנץ החמה', z('sunrise', 'ceil')] : nowMin < minutesOf(day.zmanim.sunset, s.tz) ? ['הזמן הבא', 'שקיעה', z('sunset', 'floor')] : ['הזמן הבא', 'צאת הכוכבים', z('tzeit', 'ceil')],
     day.shabbat.candles ? [day.shabbat.candlesLabel, renderHeb(day.shabbat.candlesDate) || '', fmtTime(day.shabbat.candles, s.tz, 'floor')] : ['פרשת השבוע', '', esc(day.shabbat.parsha || '')],
   ];

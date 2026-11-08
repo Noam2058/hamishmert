@@ -5,7 +5,7 @@ import { SCHEDULES, ZMAN_BASES, resolveTime, describeTime, prayersForDay, lesson
 import { ZMANIM, HEB_MONTHS, computeDay, minToHhmm, fmtTime, yahrzeitIn, birthdayIn, inHebrewRange, renderHeb } from './jewish.js';
 import { refForDate, heNum, DEFAULT_START } from './halacha-sa.js';
 import { SCENE_CHOICES } from './scenes.js';
-import { HOLIDAY_DAYS, HOLIDAY_LABEL, nextOccurrence } from './holidays.js';
+import { HOLIDAY_DAYS, HOLIDAY_LABEL, nextOccurrence, holidayOccurrences } from './holidays.js';
 import { annActive, annWhen, annBody, annClasses, annStyle, ANN_DEFAULT_FMT, ANN_SIZES, ANN_FONTS, ANN_BGS, ANN_COLORS } from './ann.js';
 
 const $ = (s) => document.querySelector(s);
@@ -36,6 +36,7 @@ const I = {
   display: '<rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4"/>',
   backup: '<path d="M12 3v12M7 10l5 5 5-5"/><path d="M4 17v3h16v-3"/>',
   slides: '<rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="10" r="2"/><path d="M21 16l-5-5-9 9"/>',
+  calendar: '<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/>',
   print: '<path d="M6 9V3h12v6"/><rect x="3" y="9" width="18" height="8" rx="2"/><path d="M6 14h12v7H6z"/>',
   upload: '<path d="M12 16V4M7 9l5-5 5 5"/><path d="M4 16v4h16v-4"/>',
   grip: '<circle cx="9" cy="6" r="1.3"/><circle cx="15" cy="6" r="1.3"/><circle cx="9" cy="12" r="1.3"/><circle cx="15" cy="12" r="1.3"/><circle cx="9" cy="18" r="1.3"/><circle cx="15" cy="18" r="1.3"/>',
@@ -348,8 +349,9 @@ LISTS.holidayPrayers = {
 
 const NAV = [
   ['', [['home', 'סקירה']]],
-  ['זמנים ותוכן', [['prayers', 'תפילות'], ['holidayPrayers', 'תפילות החגים'], ['lessons', 'שיעורים'], ['announcements', 'הודעות'], ['slides', 'תמונות שלי'], ['halachot', 'הלכה יומית']]],
-  ['אנשים ומועדים', [['dedications', 'לעילוי נשמת'], ['memorials', 'אזכרות'], ['birthdays', 'ימי הולדת']]],
+  ['תפילות ושיעורים', [['prayers', 'תפילות'], ['holidayPrayers', 'תפילות החגים'], ['lessons', 'שיעורים']]],
+  ['תוכן בלוח', [['announcements', 'הודעות'], ['dedications', 'לעילוי נשמת'], ['slides', 'תמונות שלי'], ['halachot', 'הלכה יומית']]],
+  ['קהילה', [['memorials', 'אזכרות'], ['birthdays', 'ימי הולדת']]],
   ['הגדרות', [['shul', 'בית הכנסת'], ['display', 'תצוגה ועיצוב'], ['backup', 'גיבוי']]],
 ];
 
@@ -664,28 +666,118 @@ function renderList(key, opts = null) {
   });
 }
 
+// ---------- חיפוש בכל הלוח ----------
+const SEARCH_LISTS = ['prayers', 'holidayPrayers', 'lessons', 'announcements', 'dedications', 'memorials', 'birthdays', 'halachot', 'slides'];
+function searchAll(q) {
+  q = q.trim(); if (q.length < 2) return [];
+  const out = [];
+  for (const k of SEARCH_LISTS) {
+    const def = LISTS[k]; const arr = DATA[def.data || k] || [];
+    arr.forEach((it) => {
+      if (def.filter && !def.filter(it)) return;
+      const text = [it.name, it.title, it.teacher, it.body, it.text, it.note, it.by, it.caption, it.holiday && HOLIDAY_LABEL[it.holiday]].filter(Boolean).join(' ');
+      if (text.includes(q)) out.push({ k, id: it.id, title: it.name || it.title || it.caption || (it.body || '').split('\n')[0] || def.single, where: def.label });
+    });
+  }
+  return out.slice(0, 30);
+}
+function goToItem(k, id) {
+  tab = k; openIds.add(id); filters[k] = ''; renderNav(); renderList(k, { focusId: id, noFocus: true });
+}
+function bindSearch(input, box) {
+  if (!input || !box) return;
+  const show = () => {
+    const res = searchAll(input.value);
+    box.hidden = !input.value.trim();
+    box.innerHTML = res.length ? res.map((r) => `<button type="button" data-k="${r.k}" data-id="${esc(r.id)}"><b>${esc(r.title)}</b><small>${esc(r.where)}</small></button>`).join('') : `<div class="none">לא נמצא "${esc(input.value)}"</div>`;
+    box.querySelectorAll('button').forEach((b) => b.onclick = () => { input.value = ''; box.hidden = true; goToItem(b.dataset.k, b.dataset.id); });
+  };
+  input.addEventListener('input', show);
+  input.addEventListener('keydown', (e) => { if (e.key === 'Escape') { input.value = ''; box.hidden = true; } if (e.key === 'Enter') box.querySelector('button')?.click(); });
+}
+
 // ---------- סקירה ----------
+/** דברים שכדאי לטפל בהם */
+function attention(day) {
+  const out = [];
+  const iso = isoToday();
+  try {
+    // חג קרוב בלי תפילות
+    const occ = holidayOccurrences(day.civil, 21, DATA.synagogue.il !== false);
+    const have = new Set((DATA.prayers || []).filter((p) => p.schedule === 'holiday').map((p) => p.holiday));
+    const big = new Set(['rh1', 'yk', 'sukkot1', 'shmini', 'chanuka', 'purim', 'pesach1', 'pesach7', 'shavuot', 'tisha-bav', '9av', 'esther', 'erev-pesach']);
+    const seen = new Set();
+    for (const o of occ) {
+      if (!big.has(o.key) || have.has(o.key) || seen.has(o.key)) continue;
+      seen.add(o.key);
+      const d = Math.round((o.date - day.civil) / 86400000);
+      out.push({ text: `${o.label} ${d <= 0 ? 'היום' : d === 1 ? 'מחר' : `בעוד ${d} ימים`} – עוד לא הוגדרו תפילות לחג`, act: 'holidayPrayers', btn: 'הוסף תפילות', newHoliday: o.key });
+    }
+  } catch (e) { console.warn(e); }
+  const noHol = (DATA.prayers || []).filter((p) => p.schedule === 'holiday' && !p.holiday).length;
+  if (noHol) out.push({ text: `${noHol} תפילות חג בלי חג שנבחר – הן לא יוצגו`, act: 'holidayPrayers', btn: 'לתקן' });
+  const noName = (DATA.prayers || []).filter((p) => !(p.name || '').trim()).length + (DATA.lessons || []).filter((l) => !(l.title || '').trim()).length;
+  if (noName) out.push({ text: `${noName} תפילות/שיעורים בלי שם`, act: (DATA.prayers || []).some((p) => !(p.name || '').trim()) ? 'prayers' : 'lessons', btn: 'לתקן' });
+  const expired = (k) => (DATA[k] || []).filter((a) => a.dateMode !== 'hebrew' && a.to && a.to < iso).length;
+  const ea = expired('announcements'); if (ea) out.push({ text: `${ea} הודעות שתוקפן עבר – אפשר למחוק`, act: 'announcements', btn: 'להודעות' });
+  const es = expired('slides'); if (es) out.push({ text: `${es} תמונות שתוקפן עבר`, act: 'slides', btn: 'לתמונות' });
+  return out;
+}
+
+/** השבוע הקרוב בלוח – מה מיוחד בכל יום */
+function weekAhead(day) {
+  const s = DATA.synagogue;
+  const rows = [];
+  let occ = [];
+  try { occ = holidayOccurrences(day.civil, 8, s.il !== false); } catch {}
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(day.civil.getTime() + i * 86400000);
+    let cd; try { cd = computeDay(d, s); } catch { continue; }
+    const iso = d.toLocaleDateString('en-CA', { timeZone: s.tz || 'Asia/Jerusalem' });
+    const chips = [];
+    occ.filter((o) => o.date.toDateString() === d.toDateString()).forEach((o) => chips.push(['hol', o.label]));
+    if (cd.tags?.includes('rosh-chodesh') && !chips.length) chips.push(['rc', 'ראש חודש']);
+    if (d.getDay() === 6 && cd.shabbat?.parsha) chips.push(['sh', cd.shabbat.parshaIsChag ? cd.shabbat.parsha : `פרשת ${cd.shabbat.parsha}`]);
+    if (d.getDay() === 6 && cd.shabbat?.mevarchim?.length) chips.push(['mo', 'שבת מברכים – מולד']);
+    if (d.getDay() === 5 && cd.shabbat?.candles) chips.push(['cn', `הדלקת נרות ${fmtTime(cd.shabbat.candles, s.tz, 'floor')}`]);
+    try {
+      inHebrewRange(DATA.memorials || [], cd.hd, cd.hd, yahrzeitIn).forEach((m) => chips.push(['mem', `אזכרה: ${m.name}`]));
+      inHebrewRange(DATA.birthdays || [], cd.hd, cd.hd, birthdayIn).forEach((m) => chips.push(['bd', `יום הולדת: ${m.name}`]));
+    } catch {}
+    (DATA.announcements || []).forEach((a) => {
+      if (a.dateMode === 'hebrew') return;
+      if (a.from === iso && iso !== isoToday()) chips.push(['an', `מתחילה: ${a.title || 'הודעה'}`]);
+      if (a.to === iso) chips.push(['an', `יום אחרון: ${a.title || 'הודעה'}`]);
+    });
+    rows.push({ d, cd, chips, today: i === 0 });
+  }
+  return rows;
+}
+
 function renderHome() {
   freshPanel();
   const s = DATA.synagogue;
-  let day, prayers = [], lessons = [], mem = [], bdays = [], hil = [];
+  let day, prayers = [], lessons = [];
   try {
     day = todayDay();
     const lctx = { candles: day.shabbat.candles, havdalah: day.shabbat.havdalah };
     prayers = prayersForDay(day, DATA, s);
     lessons = lessonsForDay(DATA, s, day.civil, lctx);
-    mem = inHebrewRange(DATA.memorials || [], day.hd, day.hd.add(7), yahrzeitIn);
-    bdays = inHebrewRange(DATA.birthdays || [], day.hd, day.hd.add(7), birthdayIn);
   } catch (e) { console.warn(e); }
   const nowMin = (() => { const d = new Date(); return d.getHours() * 60 + d.getMinutes(); })();
   const anns = (DATA.announcements || []).filter((a) => { try { return annActive(a, isoToday(), todayDay().hd); } catch { return activeRange(a); } });
-  const r = refForDate(isoToday(), DATA.halachaStart || DEFAULT_START);
   const tz = s.tz;
   const sh = day?.shabbat || {};
   const zrow = (k, l) => { const v = day?.zmanim?.[k]; return v ? `<div class="pill"><small>${l}</small><b>${fmtTime(v, tz, k === 'sunrise' ? 'ceil' : 'nearest')}</b></div>` : ''; };
   const q = location.search;
+  const att = day ? attention(day) : [];
+  const week = day ? weekAhead(day) : [];
+  const DN = ['א׳', 'ב׳', 'ג׳', 'ד׳', 'ה׳', 'ו׳', 'שבת'];
+  const tiles = [
+    ['announcements', 'הודעה חדשה', 'announcements', true], ['holidayPrayers', 'תפילת חג', 'holidayPrayers', true], ['dedications', 'לעילוי נשמת', 'dedications', true],
+    ['slides', 'העלאת תמונה', 'upload', false], ['lessons', 'שיעור חדש', 'lessons', true], ['memorials', 'אזכרה חדשה', 'memorials', true],
+  ];
   $('#panel').innerHTML = `
-    ${head('סקירה', '', `<a class="btn" href="print.html${esc(location.search)}" target="_blank" rel="noopener">${icon('print')}דף שבועי להדפסה</a><button class="btn" data-go="announcements" data-new>${icon('plus')}הודעה</button><button class="btn" data-go="memorials" data-new>${icon('plus')}אזכרה</button><button class="btn" data-go="lessons" data-new>${icon('plus')}שיעור</button>`)}
     <section class="card hero-today">
       <div><div class="sub">${esc(day ? day.weekday : '')}</div><div class="hd">${esc(day ? day.hebDate : '')}</div>
       <div class="sub">${esc(day?.gregDate || '')}${sh.parsha ? ` · פרשת ${esc(sh.parsha)}` : ''}${day?.events?.length ? ` · ${esc(day.events.join(' · '))}` : ''}</div></div>
@@ -694,37 +786,53 @@ function renderHome() {
         ${sh.candles ? `<div class="pill"><small>${esc(sh.candlesLabel || 'הדלקת נרות')}</small><b>${fmtTime(sh.candles, tz, 'floor')}</b></div>` : ''}
         ${sh.havdalah ? `<div class="pill"><small>צאת השבת</small><b>${fmtTime(sh.havdalah, tz, 'ceil')}</b></div>` : ''}
       </div>
+      <label class="hero-search">${icon('search')}<input id="hsearch" type="search" placeholder="חפש תפילה, שיעור, הודעה, שם…" autocomplete="off"></label>
+      <div class="gresults hero-results" id="hresults" hidden></div>
     </section>
-    <div class="dash">
+
+    <div class="tiles">${tiles.map(([k, l, ic, isNew]) => `<button class="tile" data-go="${k}" ${isNew ? 'data-new' : ''}>${icon(ic)}<span>${l}</span></button>`).join('')}
+      <a class="tile" href="print.html${esc(q)}" target="_blank" rel="noopener">${icon('print')}<span>דף שבועי להדפסה</span></a>
+      <a class="tile" href="holidays-preview.html${esc(q)}" target="_blank" rel="noopener">${icon('display')}<span>הלוח בחגים</span></a></div>
+
+    ${att.length ? `<section class="card attn"><h2>${icon('hilulot')}דורש תשומת לב <span class="tag">${att.length}</span></h2>
+      <div class="attn-list">${att.map((a, i) => `<div class="attn-row"><span>${esc(a.text)}</span><button class="btn sm" data-attn="${i}">${esc(a.btn)}</button></div>`).join('')}</div></section>` : ''}
+
+    <div class="dash home">
+      <section class="card span2"><h2>${icon('calendar')}השבוע בלוח</h2>
+        <div class="week">${week.map((w) => `<div class="wday${w.today ? ' today' : ''}${w.d.getDay() === 6 ? ' sat' : ''}">
+          <div class="wd"><b>${w.today ? 'היום' : DN[w.d.getDay()]}</b><small>${esc(renderHeb(w.cd.hd))}</small></div>
+          <div class="wchips">${w.chips.length ? w.chips.map(([t, l]) => `<span class="wc ${t}">${esc(l)}</span>`).join('') : '<span class="wnone">יום רגיל</span>'}</div></div>`).join('')}</div></section>
+
       <section class="card"><h2>${icon('prayers')}תפילות היום</h2>
         ${prayers.length ? `<div class="mini-rows">${prayers.map((p) => `<div class="mini-row ${p.min != null && p.min < nowMin ? 'past' : ''}"><span>${esc(p.name)}</span><b>${esc(p.time)}</b></div>`).join('')}</div>` : '<p class="note">אין תפילות מוגדרות להיום.</p>'}
-        ${lessons.length ? `<div class="mini-rows">${lessons.map((l) => `<div class="mini-row"><span>${esc(l.title)}${l.teacher ? ` · ${esc(l.teacher)}` : ''}</span><b>${esc(l.timeStr)}</b></div>`).join('')}</div>` : ''}
+        ${lessons.length ? `<div class="sub-h">שיעורים היום</div><div class="mini-rows">${lessons.map((l) => `<div class="mini-row"><span>${esc(l.title)}${l.teacher ? ` · ${esc(l.teacher)}` : ''}</span><b>${esc(l.timeStr)}</b></div>`).join('')}</div>` : ''}
         <button class="btn sm" data-go="prayers">עריכת תפילות</button></section>
+
       <section class="card span2"><h2>${icon('display')}כך נראה הלוח עכשיו <span class="tag">חי</span></h2>
         <div class="preview" id="pv"><iframe title="תצוגה מקדימה של הלוח" src="index.html${q ? q + '&' : '?'}preview" loading="lazy" tabindex="-1"></iframe></div>
         <p class="note">שינויים מופיעים כאן אחרי שמירה. <a href="index.html${esc(q)}" target="_blank" rel="noopener">פתח במסך מלא</a></p></section>
-      <section class="card"><h2>${icon('memorials')}השבוע</h2>
-        ${mem.length || bdays.length || hil.length ? `<div class="mini-rows">
-          ${mem.map((m) => `<div class="mini-row"><span>אזכרה: ${esc(m.name)} ז״ל</span><span class="muted">${esc(renderHeb(m.hdate))}</span></div>`).join('')}
-          ${bdays.map((m) => `<div class="mini-row"><span>יום הולדת: ${esc(m.name)}</span><span class="muted">${esc(renderHeb(m.hdate))}</span></div>`).join('')}
-          ${hil.map((m) => `<div class="mini-row"><span>הילולא: ${esc(m.name)}</span><span class="muted">${esc(renderHeb(m.hdate))}</span></div>`).join('')}
-        </div>` : '<p class="note">אין אזכרות, ימי הולדת או הילולות בשבוע הקרוב.</p>'}
-        <div class="quick"><button class="btn sm" data-go="memorials">אזכרות</button><button class="btn sm" data-go="birthdays">ימי הולדת</button></div></section>
-      <section class="card"><h2>${icon('announcements')}הודעות מוצגות <span class="tag">${anns.length}</span></h2>
-        ${anns.length ? `<div class="mini-rows">${anns.slice(0, 6).map((a) => `<div class="mini-row"><span>${esc(a.title || (a.body || '').split('\n')[0])}</span><span class="muted">${esc(annWhen(a))}</span></div>`).join('')}</div>` : '<p class="note">אין הודעות פעילות כרגע.</p>'}
-        <button class="btn sm" data-go="announcements">ניהול הודעות</button></section>
-      <section class="card"><h2>${icon('halachot')}הלכה יומית</h2>
-        <p class="note">${(DATA.halachaSource || 'sa') === 'sa' ? `היום: שולחן ערוך ${r.book.he}, סימן ${heNum(r.siman)} סעיף ${heNum(r.seif)}` : 'מוצגות ההלכות שכתבת'}</p>
-        <button class="btn sm" data-go="halachot">הגדרות</button></section>
+
+      <section class="card"><h2>${icon('announcements')}מוצג עכשיו</h2>
+        <div class="mini-rows">
+          <div class="mini-row"><span>הודעות</span><b>${anns.length}</b></div>
+          <div class="mini-row"><span>הקדשות לעילוי נשמת</span><b>${(DATA.dedications || []).filter((a) => { try { return annActive(a, isoToday(), todayDay().hd); } catch { return false; } }).length}</b></div>
+          <div class="mini-row"><span>תמונות</span><b>${(DATA.slides || []).filter((x) => x.enabled !== false && activeRange(x)).length}</b></div>
+          <div class="mini-row"><span>שקופיות פעילות בסבב</span><b>${(DATA.display.screens || []).filter((x) => x.enabled).length}</b></div>
+        </div>
+        ${anns.length ? `<div class="sub-h">הודעות</div><div class="mini-rows">${anns.slice(0, 5).map((a) => `<div class="mini-row"><span>${esc(a.title || (a.body || '').split('\n')[0])}</span><span class="muted">${esc(annWhen(a))}</span></div>`).join('')}</div>` : ''}
+        <button class="btn sm" data-go="display">שקופיות וסדר</button></section>
     </div>`;
   const pv = $('#pv');
   const fit = () => { const f = pv?.querySelector('iframe'); if (f) f.style.transform = `scale(${pv.clientWidth / 1920})`; };
   fit(); new ResizeObserver(fit).observe(pv);
-  $('#panel').querySelectorAll('[data-go]').forEach((b) => b.onclick = () => {
-    tab = b.dataset.go; renderNav();
-    if (b.hasAttribute('data-new') && LISTS[tab]) { const it = LISTS[tab].blank(); (DATA[LISTS[tab].data || tab] ||= []).push(it); openIds.add(it.id); setDirty(); renderList(tab, { focusId: it.id }); updateCounts(); }
+  bindSearch($('#hsearch'), $('#hresults'));
+  const go = (k, isNew, extra = {}) => {
+    tab = k; renderNav();
+    if (isNew && LISTS[tab]) { const it = { ...LISTS[tab].blank(), ...extra }; (DATA[LISTS[tab].data || tab] ||= []).push(it); openIds.add(it.id); setDirty(); renderList(tab, { focusId: it.id }); updateCounts(); }
     else renderPanel();
-  });
+  };
+  $('#panel').querySelectorAll('[data-go]').forEach((b) => b.onclick = () => go(b.dataset.go, b.hasAttribute('data-new')));
+  $('#panel').querySelectorAll('[data-attn]').forEach((b) => b.onclick = () => { const a = att[+b.dataset.attn]; go(a.act, !!a.newHoliday, a.newHoliday ? { holiday: a.newHoliday } : {}); });
 }
 
 // ---------- בית הכנסת ----------
@@ -852,11 +960,12 @@ function renderNav() {
   nav.hidden = false;
   nav.setAttribute('role', 'tablist');
   nav.setAttribute('aria-label', 'אזורי ניהול');
-  nav.innerHTML = NAV.map(([g, items]) => `${g ? `<div class="group">${g}</div>` : ''}${items.map(([k, l]) => {
+  nav.innerHTML = `<label class="nav-search">${icon('search')}<input id="gsearch" type="search" placeholder="חיפוש בכל הלוח…" autocomplete="off"></label><div class="gresults" id="gresults" hidden></div>` + NAV.map(([g, items]) => `${g ? `<div class="group">${g}</div>` : ''}${items.map(([k, l]) => {
     const n = LISTS[k] ? countOf(k) : null;
     return `<button role="tab" aria-selected="${k === tab}" data-tab="${k}">${icon(k)}<span>${l}</span>${n ? `<span class="count" data-count="${k}">${n}</span>` : ''}</button>`;
   }).join('')}`).join('');
-  nav.querySelectorAll('button').forEach((b) => b.onclick = () => { tab = b.dataset.tab; renderNav(); renderPanel(); b.scrollIntoView({ inline: 'center', block: 'nearest' }); });
+  nav.querySelectorAll('button[data-tab]').forEach((b) => b.onclick = () => { tab = b.dataset.tab; renderNav(); renderPanel(); b.scrollIntoView({ inline: 'center', block: 'nearest' }); });
+  bindSearch($('#gsearch'), $('#gresults'));
   try { history.replaceState(null, '', `#${tab}`); } catch {}
 }
 function updateCounts() { renderNav(); }

@@ -43,7 +43,7 @@ function lessonIcs(l, s, now) {
   const c = d.civil, p2 = (n) => String(n).padStart(2, '0');
   const dt = (m) => `${c.getFullYear()}${p2(c.getMonth() + 1)}${p2(c.getDate())}T${p2(Math.floor(m / 60) % 24)}${p2(m % 60)}00`;
   const varies = l.time?.type === 'zman';
-  const desc = [l.teacher && `מעביר: ${l.teacher}`, l.note, varies && 'השעה משתנה לפי זמני היום – השעה המעודכנת בלוח ובדף המתפללים', location.href.split('#')[0]].filter(Boolean).join('\n');
+  const desc = [l.teacher && `מעביר: ${l.teacher}`, l.note, varies && 'השעה משתנה לפי זמני היום – השעה המעודכנת בלוח ובדף המתפללים', location.origin + location.pathname].filter(Boolean).join('\n');
   return ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//shulboard//he', 'CALSCALE:GREGORIAN', VTZ, 'BEGIN:VEVENT',
     `UID:${l.id || Math.random().toString(36).slice(2)}@shulboard`, `DTSTAMP:${new Date().toISOString().replace(/[-:]/g, '').slice(0, 15)}Z`,
     `DTSTART;TZID=Asia/Jerusalem:${dt(min)}`, `DTEND;TZID=Asia/Jerusalem:${dt(min + 60)}`,
@@ -64,7 +64,7 @@ function shabbatText(s, sh, weekly, isShabbat) {
   lines.push('', `🕯️ ${sh.candlesLabel || 'הדלקת נרות'}: ${fmtTime(sh.candles, s.tz, 'floor')}`, `✨ צאת ${isShabbat ? 'השבת' : 'החג'}: ${fmtTime(sh.havdalah, s.tz, 'ceil')}`);
   if (weekly.friday.length) lines.push('', '*ערב שבת*', ...weekly.friday.map((p) => `${p.name} – ${p.time}`));
   if (weekly.shabbat.length) lines.push('', '*שבת*', ...weekly.shabbat.map((p) => `${p.name} – ${p.time}`));
-  lines.push('', `כל הזמנים וההודעות: ${location.href.split('#')[0]}`, 'שבת שלום! 🌿');
+  lines.push('', `כל הזמנים וההודעות: ${location.origin + location.pathname}`, 'שבת שלום! 🌿');
   return lines.join('\n');
 }
 

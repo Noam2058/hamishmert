@@ -390,6 +390,11 @@ export const PALETTES = {
   classic: { wall: ['#13284d', '#0b1830'], velvet: '#24477f', velvetDark: '#0f2347', gold: ['#f2d78a', '#9c7322'], field: ['#16305c', '#0c1c38'], paper: '#f3e7c8' },
   chassidic: { wall: ['#3e1218', '#240a0e'], velvet: '#8e1c2a', velvetDark: '#4c0d16', gold: ['#f2d78a', '#9c7322'], field: ['#5a1820', '#2a0a0e'], paper: '#f3e7c8' },
   ashkenaz: { wall: ['#173a2c', '#0b2018'], velvet: '#2a6a4c', velvetDark: '#123826', gold: ['#e9cf8e', '#8f6f2a'], field: ['#1d4434', '#0b1d15'], paper: '#efe3c2' },
+  royal: { wall: ['#2c1652', '#160a2c'], velvet: '#5a2c96', velvetDark: '#2c1452', gold: ['#f2d78a', '#9c7322'], field: ['#3d1f6e', '#1a0b33'], paper: '#f3e7c8' },
+  sky: { wall: ['#2a64a8', '#163e72'], velvet: '#2f72bd', velvetDark: '#16437a', gold: ['#f4f6fa', '#8f9bb0'], field: ['#2f72bd', '#123a6c'], paper: '#f5f8fc' },
+  sephardi: { wall: ['#0f474d', '#072a2e'], velvet: '#1a6e74', velvetDark: '#0b3b40', gold: ['#f0bf92', '#9a5a2a'], field: ['#135a60', '#072a2e'], paper: '#f3e7c8' },
+  stone: { wall: ['#6b5238', '#3b2a1c'], velvet: '#7a5634', velvetDark: '#4a321e', gold: ['#f2d78a', '#9c7322'], field: ['#5a412b', '#2a1d12'], paper: '#f7efdf' },
+  night: { wall: ['#1c2029', '#0b0c10'], velvet: '#2c3240', velvetDark: '#14171e', gold: ['#eef1f6', '#8a92a2'], field: ['#1c2029', '#07080b'], paper: '#eef0f4' },
   modern: { wall: ['#e9edf2', '#cfd8e3'], velvet: '#2f6f8f', velvetDark: '#1b4a61', gold: ['#cfe3ee', '#6e98ad'], field: ['#e9edf2', '#d6dde7'], paper: '#ffffff' },
 };
 

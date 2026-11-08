@@ -709,7 +709,7 @@ const BY_SCREEN = {
   announcements: 'kotel', neshama: 'yahrzeit', holidays: 'heichal', molad: 'moonNight', memorials: 'yahrzeit', parnas: 'papercut', omer: 'wheatField', halacha: 'stainedGlass',
   learning: 'library', lessons: 'library', mishna: 'papercut', birthdays: 'festive', hilula: 'safed', greeting: 'jerusalem',
 };
-const THEME_MAIN = { classic: 'jerusalem', chassidic: 'heichal', ashkenaz: 'papercut' };
+const THEME_MAIN = { classic: 'jerusalem', chassidic: 'heichal', ashkenaz: 'papercut', royal: 'heichal', sky: 'heichal', sephardi: 'jerusalem', stone: 'kotel', night: 'safed' };
 
 // רקעי החג (הראשון – לברכה ולמסך המשולב; השאר מתחלפים בין השקופיות)
 const HOLIDAY_SETS = {

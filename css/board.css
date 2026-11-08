@@ -25,6 +25,11 @@
 /* ערכות לפי נוסח */
 [data-theme="chassidic"] { --field: #3a0f14; --field-2: #5e1a22; --head-band: #2a0a0e; --chip: #5e1a22; --ink: #3a1a12; --gold: #c99a3e; }
 [data-theme="ashkenaz"] { --field: #10291f; --field-2: #1d4434; --head-band: #0a1d15; --chip: #1d4434; --ink: #1d2e26; --gold: #b8955a; --gold-2: #d8bb84; }
+[data-theme="royal"] { --field: #261247; --field-2: #3d1f6e; --head-band: #1a0b33; --chip: #3d1f6e; --ink: #2a1a3e; --gold: #d4a94a; --gold-2: #f0cf7a; }
+[data-theme="sky"] { --field: #1a4f8f; --field-2: #2f72bd; --head-band: #123a6c; --chip: #2f72bd; --ink: #142a4a; --gold: #b9c3d3; --gold-2: #e4e9f1; --parchment: #f5f8fc; --parchment-2: #e3ebf5; --next-ink: #1d5aa6; }
+[data-theme="sephardi"] { --field: #0b3b40; --field-2: #135a60; --head-band: #072a2e; --chip: #135a60; --ink: #13302f; --gold: #c8814a; --gold-2: #e8ad7c; --next-ink: #9a4f1c; }
+[data-theme="stone"] { --field: #3b2a1c; --field-2: #5a412b; --head-band: #2a1d12; --chip: #5a412b; --ink: #3a2a1a; --gold: #c9a24a; --gold-2: #ecd089; --parchment: #f7efdf; --parchment-2: #eadbbd; }
+[data-theme="night"] { --field: #0d0f14; --field-2: #1c2029; --head-band: #07080b; --chip: #1c2029; --ink: #1b1f27; --gold: #b8bfcc; --gold-2: #e2e6ee; --next-ink: #45536b; }
 [data-theme="modern"] {
   --field: #e9edf2; --field-2: #d8dfe8; --head-band: #ffffff; --parchment: #ffffff; --parchment-2: #f2f4f7;
   --ink: #142033; --ink-soft: #5b6676; --gold: #2f6f8f; --gold-2: #4a90b0; --on-field: #142033;

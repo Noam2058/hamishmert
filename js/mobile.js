@@ -5,6 +5,7 @@ import { HDate } from './lib.js';
 import { load, subscribe } from './store.js';
 import { cachedHalacha, prefetchHalachot, DEFAULT_START } from './halacha-sa.js';
 import { sceneForSlide, renderScene } from './scenes.js';
+import { annActive, annBody, annClasses } from './ann.js';
 
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const $ = (s) => document.querySelector(s);
@@ -61,7 +62,7 @@ function render() {
 
   const lessonsToday = (DATA.lessons || []).filter((l) => !l.weekdays?.length || l.weekdays.includes(day.civil.getDay()));
   const lessons = (DATA.lessons || []).map((l) => { const m = resolveTime(l.time, day.civil, s, lctx); return { ...l, timeStr: m == null ? '' : minToHhmm(m) }; });
-  const anns = (DATA.announcements || []).filter((a) => (!a.from || a.from <= iso) && (!a.to || a.to >= iso));
+  const anns = (DATA.announcements || []).filter((a) => annActive(a, iso, day.hd) && (a.title || a.body));
   const slides = (DATA.slides || []).filter((x) => x.url && x.enabled !== false && (!x.from || x.from <= iso) && (!x.to || x.to >= iso));
   const mem = inHebrewRange(DATA.memorials || [], day.hd, day.hd.add(7), yahrzeitIn);
   const bdays = inHebrewRange(DATA.birthdays || [], day.hd, day.hd.add(7), birthdayIn);
@@ -104,7 +105,7 @@ function render() {
       </section>
 
       ${anns.length ? `<section class="card" id="t-ann"><h2>${icon('megaphone')}הודעות <span class="pill">${anns.length}</span></h2>
-        ${anns.map((a) => `<div class="ann ${esc(a.style || '')}">${a.title ? `<h3>${esc(a.title)}</h3>` : ''}<p>${esc(a.body)}</p>${a.to ? `<div class="when">עד ${esc(a.to.split('-').reverse().join('.'))}</div>` : ''}</div>`).join('')}</section>` : ''}
+        ${anns.map((a) => `<div class="ann ${esc(a.style || '')} ${annClasses(a)}">${a.title ? `<h3>${esc(a.title)}</h3>` : ''}<p>${annBody(a.body)}</p>${a.dateMode !== 'hebrew' && a.to ? `<div class="when">עד ${esc(a.to.split('-').reverse().join('.'))}</div>` : ''}</div>`).join('')}</section>` : ''}
 
       ${slides.length ? `<section class="card" id="t-img"><h2>${icon('image')}מודעות ותמונות</h2>
         <div class="gallery">${slides.map((x, i) => `<button type="button" data-img="${i}" aria-label="הגדל: ${esc(x.title || x.caption || 'תמונה')}"><img src="${esc(x.url)}" alt="" loading="lazy">${x.title || x.caption ? `<span>${esc(x.title || x.caption)}</span>` : ''}</button>`).join('')}</div></section>` : ''}

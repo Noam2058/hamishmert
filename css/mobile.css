@@ -91,6 +91,19 @@ details.fold > summary svg { width: 22px; height: 22px; color: var(--gold); }
 .ann.memorial { border-color: #5a6478; background: color-mix(in srgb, #5a6478 10%, var(--surface-2)); }
 .ann.urgent { border-color: #b8443b; box-shadow: inset 0 0 0 1px color-mix(in srgb, #b8443b 45%, transparent); }
 .ann .when { font-size: 13px; color: var(--soft); margin-top: 4px; }
+.ann.al-center { text-align: center; }
+.ann.sz-s p { font-size: 15px; } .ann.sz-l p { font-size: 20px; } .ann.sz-xl p { font-size: 23px; line-height: 1.4; }
+.ann.sz-l h3 { font-size: 21px; } .ann.sz-xl h3 { font-size: 24px; }
+.ann.ff-display p { font-family: var(--display); }
+.ann.ff-festive h3, .ann.ff-festive p { font-family: "Suez One", var(--display); font-weight: 400; }
+.ann.fw-b p { font-weight: 800; }
+.ann.ul p { text-decoration: underline; text-underline-offset: 4px; }
+.ann.bg-parchment { background: #f6efdc; color: #1d2433; } .ann.bg-white { background: #fff; color: #1d2433; }
+.ann.bg-gold { background: #ecd593; color: #2a2109; } .ann.bg-sky { background: #d9e7f5; color: #14243f; }
+.ann.bg-mint { background: #d9edda; color: #14301c; } .ann.bg-rose { background: #f6dede; color: #3b1418; }
+.ann.bg-blue { background: #1f3768; color: #f3ecd9; } .ann.bg-wine { background: #6b1f2c; color: #f6e9dc; } .ann.bg-dark { background: #23283a; color: #efe7d4; }
+.ann.bg-blue h3, .ann.bg-wine h3, .ann.bg-dark h3 { color: #e6c97a; }
+.ann[class*="bg-"] .when { color: inherit; opacity: .7; }
 
 /* תמונות */
 .gallery { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 8px; }

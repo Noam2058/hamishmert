@@ -117,7 +117,70 @@ textarea { min-height: 96px; resize: vertical; line-height: 1.5; }
 .days label { display: grid; place-items: center; min-width: 40px; height: 38px; padding: 0 8px; font-weight: 800; border: 1px solid var(--line); border-radius: 10px; cursor: pointer; user-select: none; }
 .days label:has(input:checked) { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
 .days input { position: absolute; opacity: 0; pointer-events: none; }
-.timebox { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 8px; }
+.timebox { display: flex; flex-direction: column; gap: 10px; }
+.tb-main { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.tb-main > select[data-t="type"] { flex: 0 1 230px; }
+.tb-main > input[type="time"] { flex: 0 1 150px; }
+.tb-rel { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; flex: 1 1 320px; }
+.tb-rel input[data-t="mins"] { width: 84px; flex: none; text-align: center; }
+.tb-rel .unit { font-weight: 700; color: var(--soft); }
+.tb-rel select[data-t="side"] { width: auto; flex: none; }
+.tb-rel select[data-t="zman"] { flex: 1 1 160px; width: auto; }
+details.adv { border: 1px solid var(--line); border-radius: 12px; background: var(--surface-2); }
+details.adv > summary { cursor: pointer; padding: 9px 12px; font: 700 14px var(--body); color: var(--soft); list-style: none; display: flex; align-items: center; gap: 8px; }
+details.adv > summary::-webkit-details-marker { display: none; }
+details.adv > summary::before { content: ""; width: 7px; height: 7px; border-inline-end: 2px solid currentColor; border-bottom: 2px solid currentColor; transform: rotate(135deg); transition: transform .2s; }
+details.adv[open] > summary::before { transform: rotate(45deg); }
+.adv-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 12px 16px; padding: 4px 12px 12px; }
+.adv-grid small { font-size: 13px; line-height: 1.4; }
+.hebdate { display: flex; gap: 8px; }
+.hebdate select[data-h="d"] { flex: 0 0 86px; }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+/* עיצוב הודעה */
+.fmtbar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.fmtbar select { width: auto; flex: 0 1 auto; }
+.seg { display: inline-flex; border: 1px solid var(--line); border-radius: 10px; overflow: hidden; background: var(--surface); }
+.seg label { display: grid; place-items: center; min-width: 42px; height: 40px; cursor: pointer; font: 800 18px var(--display); user-select: none; }
+.seg label + label { border-inline-start: 1px solid var(--line); }
+.seg label:has(input:checked) { background: var(--accent); color: var(--accent-ink); }
+.seg input { position: absolute; opacity: 0; pointer-events: none; }
+.swatches { display: inline-flex; flex-wrap: wrap; gap: 6px; }
+.swatches label { cursor: pointer; }
+.swatches input { position: absolute; opacity: 0; pointer-events: none; }
+.swatches .sw { display: block; width: 30px; height: 30px; border-radius: 50%; border: 1px solid rgba(0,0,0,.2); box-shadow: inset 0 0 0 2px rgba(255,255,255,.5); }
+.swatches .sw.auto { background: conic-gradient(#f6efdc 0 25%, #1c3260 0 50%, #e9cf86 0 75%, #6b1f2c 0); }
+.swatches label:has(input:checked) .sw { outline: 3px solid var(--gold); outline-offset: 2px; }
+.swatches label:has(input:focus-visible) .sw { outline: 3px dashed var(--gold); }
+.ann-box { container-type: inline-size; max-width: 640px; width: 100%; align-self: center; }
+.ann-pv { --parchment: #f6efdc; --parchment-2: #ead9b1; --gold: #a8822f; color: #1d2433; background: linear-gradient(180deg, var(--parchment), var(--parchment-2));
+  box-shadow: 0 8px 20px rgba(0,0,0,.18), inset 0 0 0 2px var(--gold), inset 0 0 0 6px var(--parchment), inset 0 0 0 7px color-mix(in srgb, var(--gold) 60%, transparent);
+  border-radius: 6px; padding: 26px 30px; display: flex; flex-direction: column; gap: 10px; text-align: center; align-items: center; min-height: 150px; justify-content: center; }
+.ann-pv .t { font: 900 30px/1.15 "Frank Ruhl Libre", serif; color: #1b3a6b; }
+.ann-pv .b { font: 600 19px/1.5 var(--body); white-space: pre-line; }
+.ann-pv .b b { font-weight: 900; }
+.ann-pv.simcha { background: radial-gradient(circle at 50% 0%, #fff7dd, var(--parchment-2)); }
+.ann-pv.memorial { --parchment: #2b2f3a; --parchment-2: #1d2029; color: #efe7d4; }
+.ann-pv.memorial .t { color: #e6c97a; }
+.ann-pv.urgent { box-shadow: 0 8px 20px rgba(0,0,0,.18), inset 0 0 0 3px #b8443b, inset 0 0 0 7px var(--parchment); }
+.ann-pv.al-right { text-align: right; align-items: stretch; }
+.ann-pv.sz-s .b { font-size: 16px; } .ann-pv.sz-l .b { font-size: 24px; } .ann-pv.sz-xl .b { font-size: 30px; line-height: 1.35; }
+.ann-pv.sz-l .t { font-size: 36px; } .ann-pv.sz-xl .t { font-size: 42px; }
+.ann-pv.ff-display .b { font-family: "Frank Ruhl Libre", serif; font-weight: 700; }
+.ann-pv.ff-festive .t, .ann-pv.ff-festive .b { font-family: "Suez One", serif; font-weight: 400; }
+.ann-pv.fw-b .b { font-weight: 800; }
+.ann-pv.ul .b { text-decoration: underline; text-underline-offset: 4px; }
+.ann-pv.bg-parchment { --parchment: #fbf5e4; --parchment-2: #efe3c4; color: #1d2433; }
+.ann-pv.bg-white { --parchment: #ffffff; --parchment-2: #f4f1ea; color: #1d2433; }
+.ann-pv.bg-gold { --parchment: #f7e6b0; --parchment-2: #dfbd68; color: #2a2109; }
+.ann-pv.bg-sky { --parchment: #eaf2fb; --parchment-2: #c9dcf0; color: #14243f; }
+.ann-pv.bg-mint { --parchment: #e9f5ea; --parchment-2: #c7e2c9; color: #14301c; }
+.ann-pv.bg-rose { --parchment: #fcecec; --parchment-2: #efcaca; color: #3b1418; }
+.ann-pv.bg-blue { --parchment: #24407a; --parchment-2: #142650; color: #f3ecd9; }
+.ann-pv.bg-wine { --parchment: #7d2635; --parchment-2: #511521; color: #f6e9dc; }
+.ann-pv.bg-dark { --parchment: #2b2f3a; --parchment-2: #1d2029; color: #efe7d4; }
+.ann-pv[class*="bg-"] { background: linear-gradient(180deg, var(--parchment), var(--parchment-2)); }
+.ann-pv[class*="bg-"] .t { color: inherit; }
+.ann-pv.bg-blue .t, .ann-pv.bg-wine .t, .ann-pv.bg-dark .t { color: #e6c97a; }
 .empty-state { text-align: center; padding: 36px 20px; color: var(--soft); border: 2px dashed var(--line); border-radius: var(--r); display: flex; flex-direction: column; align-items: center; gap: 12px; }
 .empty-state svg { width: 40px; height: 40px; color: var(--gold); }
 

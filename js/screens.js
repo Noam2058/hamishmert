@@ -4,6 +4,7 @@ import { fmtTime, minutesOf, ZMAN_LABEL, ZMANIM, inHebrewRange, yahrzeitIn, birt
 import { HDate } from './lib.js';
 import { daysLabel } from './prayers.js';
 import { greetingArt } from './art.js';
+import { annActive, annBody, annClasses, annBig } from './ann.js';
 
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const title = (t) => `<div class="screen-title"><span>${esc(t)}</span></div>`;
@@ -154,16 +155,16 @@ export const SCREENS = {
 
   announcements(ctx) {
     const today = ctx.todayIso;
-    const list = (ctx.data.announcements || []).filter((a) => (!a.from || a.from <= today) && (!a.to || a.to >= today) && (a.title || a.body));
+    const list = (ctx.data.announcements || []).filter((a) => annActive(a, today, ctx.day.hd) && (a.title || a.body));
     if (!list.length) return null;
     const slides = [];
-    const per = list.some((a) => (a.body || '').length > 140) ? 1 : 2;
+    const per = list.some((a) => (a.body || '').length > 140 || annBig(a)) ? 1 : 2;
     for (let i = 0; i < list.length; i += per) {
       slides.push(`<div class="ann-grid">${list.slice(i, i + per).map((a) => `
-        <section class="card ann ${esc(a.style || 'general')}">
+        <section class="card ann ${esc(a.style || 'general')} ${annClasses(a)}">
           ${a.style === 'memorial' ? candle : ''}
-          <div class="t">${esc(a.title)}</div>${a.style !== 'memorial' ? flourish : ''}
-          <div class="b">${esc(a.body)}</div>
+          ${a.title ? `<div class="t">${esc(a.title)}</div>${a.style !== 'memorial' ? flourish : ''}` : ''}
+          <div class="b">${annBody(a.body)}</div>
         </section>`).join('')}</div>`);
     }
     return slides;
@@ -302,7 +303,7 @@ export function tickerItems(ctx) {
   if (day.shabbat.parsha) items.push(day.shabbat.parshaIsChag ? esc(day.shabbat.parsha) : `פרשת ${esc(day.shabbat.parsha)}`);
   for (const c of day.changes.slice(0, 3)) items.push(esc(c));
   for (const l of lessonsToday) items.push(`${esc(l.title)} <b>${l.timeStr}</b>`);
-  for (const a of (ctx.data.announcements || []).slice(0, 3)) if (a.title) items.push(esc(a.title));
+  for (const a of (ctx.data.announcements || []).filter((a) => annActive(a, ctx.todayIso, ctx.day.hd)).slice(0, 3)) if (a.title) items.push(esc(a.title));
   return items;
 }
 

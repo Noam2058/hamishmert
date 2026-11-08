@@ -150,6 +150,30 @@ main#screens { position: relative; z-index: 1; padding: 54px 64px 26px; }
 .ann.memorial { background: linear-gradient(180deg, #2b2f3a, #1d2029); color: #efe7d4; }
 .ann.memorial .t { color: #e6c97a; }
 .ann.urgent { box-shadow: 0 18px 40px rgba(0,0,0,.28), inset 0 0 0 4px #b8443b; }
+/* עיצוב הודעה שנבחר בממשק */
+.ann .b b { font-weight: 900; }
+.ann.al-right { text-align: right; align-items: stretch; }
+.ann.al-right .flourish { align-self: flex-start; }
+.ann.al-right .b { max-width: none; }
+.ann.sz-s .b { font-size: 32px; } .ann.sz-l .b { font-size: 48px; } .ann.sz-xl .b { font-size: 60px; line-height: 1.35; }
+.ann.sz-l .t { font-size: 76px; } .ann.sz-xl .t { font-size: 88px; }
+.ann.ff-display .b { font-family: var(--display); font-weight: 700; }
+.ann.ff-festive .t, .ann.ff-festive .b { font-family: "Suez One", var(--display); font-weight: 400; }
+.ann.fw-b .b { font-weight: 800; }
+.ann.ff-display.fw-b .b { font-weight: 900; }
+.ann.ul .b { text-decoration: underline; text-decoration-thickness: 2px; text-underline-offset: 8px; }
+/* רקע להודעה – משנה את צבעי הקלף של הכרטיס עצמו, כך שגם המסגרת הפנימית מתאימה */
+.ann.bg-parchment { --parchment: #fbf5e4; --parchment-2: #efe3c4; color: #1d2433; }
+.ann.bg-white { --parchment: #ffffff; --parchment-2: #f4f1ea; color: #1d2433; }
+.ann.bg-gold { --parchment: #f7e6b0; --parchment-2: #dfbd68; color: #2a2109; }
+.ann.bg-sky { --parchment: #eaf2fb; --parchment-2: #c9dcf0; color: #14243f; }
+.ann.bg-mint { --parchment: #e9f5ea; --parchment-2: #c7e2c9; color: #14301c; }
+.ann.bg-rose { --parchment: #fcecec; --parchment-2: #efcaca; color: #3b1418; }
+.ann.bg-blue { --parchment: #24407a; --parchment-2: #142650; color: #f3ecd9; }
+.ann.bg-wine { --parchment: #7d2635; --parchment-2: #511521; color: #f6e9dc; }
+.ann.bg-dark { --parchment: #2b2f3a; --parchment-2: #1d2029; color: #efe7d4; }
+.ann.bg-blue .t, .ann.bg-wine .t, .ann.bg-dark .t { color: #e6c97a; }
+.ann.bg-parchment .t, .ann.bg-white .t, .ann.bg-gold .t, .ann.bg-sky .t, .ann.bg-mint .t, .ann.bg-rose .t { color: inherit; }
 
 /* אזכרות */
 .mem-today { display: grid; gap: 26px; grid-auto-flow: column; grid-auto-columns: 1fr; }
@@ -377,3 +401,5 @@ footer.ticker { contain: layout paint; }
 .rows.compact .row { padding: 8px 6px; }
 .rows.compact .row .k { font-size: 29px; }
 .rows.compact .row .v { font-size: 36px; }
+/* רקע שנבחר להודעה גובר על רקע הסגנון ועל השקיפות של מסך עם ציור */
+#stage .card.ann[class*="bg-"] { background: radial-gradient(ellipse at 50% 45%, transparent 55%, rgba(0,0,0,.12) 100%), linear-gradient(180deg, var(--parchment), var(--parchment-2)); }

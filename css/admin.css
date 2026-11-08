@@ -311,3 +311,7 @@ input, select, textarea { max-width: 100%; }
 .rt-colors button { min-width: 30px; width: 30px; padding: 0; }
 .rt-colors i { width: 18px; height: 18px; border-radius: 50%; border: 1px solid rgba(0,0,0,.25); display: block; }
 .rt-bar .rt-clear { font: 700 13px var(--body); color: var(--soft); }
+/* רדיו/צ'קבוקס מוסתרים (בחירת צבע, יישור, ימים) – בלי רוחב, אחרת הם מרחיבים את הדף הצידה */
+.seg label, .swatches label, .days label { position: relative; }
+.seg input, .swatches input, .days input { width: 1px !important; height: 1px !important; inset: 0; margin: 0; }
+html, body { overflow-x: hidden; }

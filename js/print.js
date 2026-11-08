@@ -34,11 +34,12 @@ function render() {
   const civ = (d) => `${d.getDate()}.${d.getMonth() + 1}`;
   // תפילות שהשעה שלהן נגזרת מזמני היום (למשל ותיקין לפי הנץ) – משתנות מיום ליום, ולכן מוצגות לכל יום בטבלה
   const byId = Object.fromEntries((DATA.prayers || []).map((p) => [p.id, p]));
-  const varies = (p) => byId[p.id]?.time?.type === 'zman' && !['week-min', 'week-max'].includes(byId[p.id]?.time?.basis);
+  const varies = (p) => { const t = byId[p.id]?.time; return t?.type === 'zman' && !['candles', 'havdalah'].includes(t.zman) && !['week-min', 'week-max'].includes(t.basis); };
   const perDay = dayInfo.map(({ d, cd }) => { try { return prayersForDay(cd, DATA, s, d); } catch { return []; } });
-  const varyNames = [];
-  perDay.forEach((list, i) => list.forEach((p) => { if (varies(p) && dayInfo[i].d.getDay() !== 6 && !varyNames.includes(p.name)) varyNames.push(p.name); }));
-  const vcols = varyNames.slice(0, 3);
+  // עמודה לכל תפילה כזו שמתקיימת לפחות ביומיים בשבוע
+  const cnt = {};
+  perDay.forEach((list) => list.forEach((p) => { if (varies(p)) cnt[p.name] = (cnt[p.name] || 0) + 1; }));
+  const vcols = Object.keys(cnt).filter((n) => cnt[n] >= 2).slice(0, 3);
   const prow = (p) => {
     const v = varies(p) && vcols.includes(p.name) && $('#opt-zmanim').checked;
     return `<tr><td>${esc(p.name)}${p.note || v ? `<small>${esc([p.note, v && describeTime(byId[p.id].time)].filter(Boolean).join(' · '))}</small>` : ''}</td><td class="t">${v ? '<span class="see">לפי היום ↓</span>' : esc(p.time)}</td></tr>`;

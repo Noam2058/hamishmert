@@ -277,14 +277,19 @@ function flip(step) {
   const h = $('#fliphint');
   if (h) { h.textContent = `${qi + 1} / ${queue.length}`; h.classList.add('on'); clearTimeout(flip.t); flip.t = setTimeout(() => h.classList.remove('on'), 1200); }
 }
-let touchX = null;
-addEventListener('touchstart', (e) => { touchX = e.touches[0].clientX; }, { passive: true });
+// בטלפון מטפלים בנגיעה עצמה (באייפון 'click' על אזור שאינו כפתור לא תמיד מגיע, ויש השהיה של זום כפול)
+let touch = null;
+addEventListener('touchstart', (e) => { if (e.touches.length === 1) touch = { x: e.touches[0].clientX, y: e.touches[0].clientY, t: Date.now() }; else touch = null; }, { passive: true });
 addEventListener('touchend', (e) => {
-  if (touchX == null) return;
-  const dx = e.changedTouches[0].clientX - touchX; touchX = null;
-  if (Math.abs(dx) > 50) { flip(dx > 0 ? 1 : -1); e.preventDefault(); } // החלקה ימינה = הבאה (בעברית מדפדפים ימינה)
+  if (!touch) return;
+  const p = e.changedTouches[0], dx = p.clientX - touch.x, dy = p.clientY - touch.y, dt = Date.now() - touch.t; touch = null;
+  if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy)) { e.preventDefault(); flip(dx > 0 ? 1 : -1); } // החלקה ימינה = הבאה
+  else if (Math.abs(dx) < 15 && Math.abs(dy) < 15 && dt < 600) { e.preventDefault(); flip(p.clientX < innerWidth / 2 ? 1 : -1); }
+  lastTouch = Date.now();
 }, { passive: false });
+let lastTouch = 0;
 addEventListener('click', (e) => {
+  if (Date.now() - lastTouch < 800) return; // כבר טופל כנגיעה
   if (e.target.closest('a, button, input')) return;
   flip(e.clientX < innerWidth / 2 ? 1 : -1);
 });

@@ -126,7 +126,7 @@ function render() {
         <div class="x">${hal.parts.map((p) => (p.rema ? `<span class="rema"><b>הגה:</b> ${esc(p.text)}</span>` : esc(p.text))).join(' ')}</div><div class="src">${esc(hal.source)}</div></section>`
         : custom ? `<section class="card halacha" id="t-hal"><h2>${icon('scroll')}הלכה יומית</h2><div class="t">${esc(custom.title)}</div><div class="x">${esc(custom.text)}</div>${custom.source ? `<div class="src">${esc(custom.source)}</div>` : ''}</section>` : ''}
 
-      ${mish ? `<section class="card halacha" id="t-mish"><h2>${icon('book')}משנה יומית</h2><div class="t">מסכת ${esc(mish.tractate)}</div>
+      ${mish ? `<section class="card halacha" id="t-mish"><h2>${icon('book')}משנה יומית</h2><div class="t">${mish.seder ? `סדר ${esc(mish.seder)} · ` : ''}מסכת ${esc(mish.tractate)}</div>
         ${mish.items.map((x) => `<div class="x"><span class="ml">פרק ${esc(x.perekHe)} משנה ${esc(x.mishnaHe)}</span> ${esc(x.text)}</div>`).join('')}<div class="src">${esc(mish.source)}</div></section>` : ''}
 
       ${day.learning?.length ? `<section class="card"><h2>${icon('book')}הלימוד היומי</h2><div class="rows">${day.learning.map((l) => row(l.label, `<span style="font:700 17px var(--body);direction:rtl">${esc(l.text)}</span>`)).join('')}</div></section>` : ''}

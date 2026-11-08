@@ -424,3 +424,6 @@ footer.ticker { contain: layout paint; }
 .fliphint { position: absolute; left: 50%; bottom: 120px; transform: translateX(-50%); z-index: 50; pointer-events: none;
   font: 800 34px var(--body); color: #fff; background: rgba(10,16,32,.72); padding: 8px 28px; border-radius: 999px; opacity: 0; transition: opacity .25s; direction: ltr; }
 .fliphint.on { opacity: 1; }
+html, body, #viewport { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
+#viewport { cursor: pointer; -webkit-user-select: none; user-select: none; }
+.halacha.mishna .t .seder { display: block; font: 800 30px var(--body); color: var(--next-ink); letter-spacing: .02em; margin-bottom: 4px; }

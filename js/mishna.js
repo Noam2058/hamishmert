@@ -2,6 +2,21 @@
 import { mishnaYomiRefs, computeDay } from './jewish.js';
 
 const VERSION = 'Torat Emet 357';
+// הסדר של כל מסכת (לפי השם העברי כפי שמופיע בספריא)
+const SEDARIM = {
+  'זרעים': ['ברכות', 'פאה', 'דמאי', 'כלאים', 'שביעית', 'תרומות', 'מעשרות', 'מעשר שני', 'חלה', 'ערלה', 'ביכורים'],
+  'מועד': ['שבת', 'עירובין', 'פסחים', 'שקלים', 'יומא', 'סוכה', 'ביצה', 'ראש השנה', 'תענית', 'מגילה', 'מועד קטן', 'חגיגה'],
+  'נשים': ['יבמות', 'כתובות', 'נדרים', 'נזיר', 'סוטה', 'גיטין', 'קידושין'],
+  'נזיקין': ['בבא קמא', 'בבא מציעא', 'בבא בתרא', 'סנהדרין', 'מכות', 'שבועות', 'עדיות', 'עבודה זרה', 'אבות', 'הוריות'],
+  'קדשים': ['זבחים', 'מנחות', 'חולין', 'בכורות', 'ערכין', 'תמורה', 'כריתות', 'מעילה', 'תמיד', 'מדות', 'מידות', 'קינים'],
+  'טהרות': ['כלים', 'אהלות', 'אוהלות', 'נגעים', 'פרה', 'טהרות', 'מקואות', 'מקוואות', 'נדה', 'מכשירין', 'זבים', 'טבול יום', 'ידים', 'ידיים', 'עוקצים', 'עוקצין'],
+};
+const plain = (t) => String(t || '').replace(/[\u0591-\u05C7]/g, '').replace(/[״׳"']/g, '').trim();
+export function sederOf(tractate) {
+  const t = plain(tractate);
+  for (const [s, list] of Object.entries(SEDARIM)) if (list.includes(t)) return s;
+  return '';
+}
 const KEY = (r) => `my1:${r.k}.${r.perek}.${r.mishna}`;
 const ls = {
   get(k) { try { return JSON.parse(localStorage.getItem(k)); } catch { return null; } },
@@ -19,9 +34,9 @@ export function cachedMishna(hd) {
   const sameTr = items.every((x) => x.tractate === tractate);
   const samePerek = sameTr && items.every((x) => x.perekHe === items[0].perekHe);
   const source = samePerek
-    ? `משנה · מסכת ${tractate} · פרק ${items[0].perekHe} · משנה ${items.map((x) => x.mishnaHe).join('–')}`
+    ? `משנה · סדר ${sederOf(tractate) || '—'} · מסכת ${tractate} · פרק ${items[0].perekHe} · משנה ${items.map((x) => x.mishnaHe).join('–')}`
     : `משנה · ${items.map((x) => `${sameTr ? '' : `${x.tractate} `}${x.perekHe}:${x.mishnaHe}`).join(' – ')}${sameTr ? ` · מסכת ${tractate}` : ''}`;
-  return { tractate, items, source };
+  return { tractate, seder: sederOf(tractate), items, source };
 }
 
 async function fetchOne(r) {

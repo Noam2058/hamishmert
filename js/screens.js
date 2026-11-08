@@ -311,14 +311,14 @@ export const SCREENS = {
       let cut = false;
       const parts = items.map((x) => { let t = x.text; if (plainLen(t) > 1300) { t = cutAt(t, 1300); cut = true; } return { ...x, text: t }; });
       const len = parts.reduce((a, x) => a + plainLen(x.text) + 12, 0);
-      return `${title('משנה יומית')}<section class="card halacha sa mishna len-${sizeOf(len)}"><div class="t">מסכת ${esc(m.tractate)}</div>
+      return `${title('משנה יומית')}<section class="card halacha sa mishna len-${sizeOf(len)}"><div class="t">${m.seder ? `<span class="seder">סדר ${esc(m.seder)}</span>` : ''}מסכת ${esc(m.tractate)}</div>
         <div class="x">${parts.map((x) => `<p><span class="ml">פרק ${esc(x.perekHe)} משנה ${esc(x.mishnaHe)}</span> ${esc(x.text)}</p>`).join('')}</div>
         <div class="src">${esc(src)}${cut ? ' · ההמשך בספר' : ''}</div></section>`;
     };
     const total = m.items.reduce((a, x) => a + plainLen(x.text), 0);
     // שתי משניות קצרות – בשקופית אחת; ארוכות – כל משנה בשקופית משלה
     if (total <= 560) return card(m.items, m.source);
-    return m.items.map((x) => card([x], `משנה · מסכת ${x.tractate} · פרק ${x.perekHe} · משנה ${x.mishnaHe}`));
+    return m.items.map((x) => card([x], `משנה · ${m.seder ? `סדר ${m.seder} · ` : ''}מסכת ${x.tractate} · פרק ${x.perekHe} · משנה ${x.mishnaHe}`));
   },
 
   learning(ctx) {

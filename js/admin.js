@@ -589,7 +589,7 @@ function renderList(key, opts = null) {
     const GROUPS = def.groups || SCHEDULES;
     const glabel = Object.fromEntries(GROUPS);
     const groups = new Map(GROUPS.map(([k]) => [k, []]));
-    visible.forEach((x) => { const g = x[0][def.group] || def.groupDefault || 'weekday'; if (!groups.has(g)) groups.set(g, []); groups.get(g).push(x); });
+    visible.forEach((x) => { const g = x[0][def.group] || (def.groupDefault ?? 'weekday'); if (!groups.has(g)) groups.set(g, []); groups.get(g).push(x); });
     listHtml = [...groups].filter(([, xs]) => xs.length).map(([g, xs]) => `<div class="group-title">${esc(glabel[g] || g)}</div>${xs.map(itemHtml).join('')}`).join('');
   } else listHtml = visible.map(itemHtml).join('');
 
@@ -641,7 +641,7 @@ function renderList(key, opts = null) {
       if (act === 'dup' && key === 'slides') { const c = { ...structuredClone(arr[i]), id: uid(), path: null }; arr.splice(i + 1, 0, c); openIds.add(c.id); setDirty(); renderList(key); updateCounts(); return; }
       if (act === 'dup') { const c = { ...structuredClone(arr[i]), id: uid() }; arr.splice(i + 1, 0, c); openIds.add(c.id); setDirty(); renderList(key); updateCounts(); return; }
       // הזזה – בתוך אותה קבוצה (בתפילות: אותו לוח)
-      const same = (j) => (!def.filter || def.filter(arr[j])) && (!def.group || (arr[j][def.group] || def.groupDefault || 'weekday') === (arr[i][def.group] || def.groupDefault || 'weekday'));
+      const same = (j) => (!def.filter || def.filter(arr[j])) && (!def.group || (arr[j][def.group] || (def.groupDefault ?? 'weekday')) === (arr[i][def.group] || (def.groupDefault ?? 'weekday')));
       let j = i;
       do { j += act === 'up' ? -1 : 1; } while (j >= 0 && j < arr.length && !same(j));
       if (j < 0 || j >= arr.length) return;
@@ -650,7 +650,7 @@ function renderList(key, opts = null) {
     });
   });
   if (!f) makeSortable(p.querySelector('.list'), '.item', (order) => { reorder(arr, order); setDirty(); renderList(key); },
-    (a, b) => !def.group || (arr[+a.dataset.i][def.group] || def.groupDefault || 'weekday') === (arr[+b.dataset.i][def.group] || def.groupDefault || 'weekday'));
+    (a, b) => !def.group || (arr[+a.dataset.i][def.group] || (def.groupDefault ?? 'weekday')) === (arr[+b.dataset.i][def.group] || (def.groupDefault ?? 'weekday')));
   // אחרי שהגלילה של freshPanel חזרה למקומה (microtask) – ממקמים את הפריט הרלוונטי
   if (opts) queueMicrotask(() => {
     const id = opts.focusId || opts.anchorId;

@@ -430,3 +430,6 @@ html, body, #viewport { touch-action: manipulation; -webkit-tap-highlight-color:
 /* כרטיס הלכה/משנה לא גדל מעבר למקום הפנוי – הטקסט מוקטן אוטומטית כדי שייכנס (fitText ב-board.js) */
 .halacha { min-height: 0; justify-content: safe center; } /* בלי overflow:hidden – אחרת הסמל המעוטר בראש הכרטיס נחתך */
 .halacha > * { flex-shrink: 0; } /* בלי כיווץ – אחרת הטקסט גולש על שורת המקור */
+/* מסך משולב: מרווח גדול יותר מהעיטורים התחתונים, שורות מעט צפופות יותר */
+.g-combined > .card { padding-bottom: 104px; }
+.g-combined .rows.compact .row { padding: 6px 6px; }

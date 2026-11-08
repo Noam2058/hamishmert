@@ -92,7 +92,7 @@ function render() {
       ${anns.length ? `<section class="box anns"><h3>הודעות</h3>${anns.map((a) => `<div class="ann">${a.title ? `<b>${esc(a.title)}</b>` : ''}<p>${annBody(a.body)}</p></div>`).join('')}</section>` : ''}
     </div>
 
-    <footer class="foot">זמנים, הודעות ועדכונים בכל רגע – סרקו את הקוד או היכנסו ל־<span dir="ltr">${esc(mUrl.replace(/^https?:\/\//, ''))}</span></footer>`;
+`;
 
   try { const q = window.qrcode(0, 'M'); q.addData(mUrl); q.make(); $('#qr').innerHTML = q.createSvgTag({ cellSize: 3, margin: 0, scalable: true }); } catch { $('#qr').remove(); }
   document.querySelectorAll('[data-week]').forEach((b) => b.classList.toggle('on', +b.dataset.week === week));

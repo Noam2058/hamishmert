@@ -25,7 +25,7 @@ const CANDLES_SVG = `<svg class="side-art" viewBox="0 0 200 170" aria-hidden="tr
 const HAVDALAH_SVG = `<svg class="side-art" viewBox="0 0 200 170" aria-hidden="true"><defs>
   <linearGradient id="hv-b" x1="0" x2="1"><stop offset="0" stop-color="#2c5aa0"/><stop offset=".5" stop-color="#6d9be0"/><stop offset="1" stop-color="#23467f"/></linearGradient>
   <radialGradient id="hv-g"><stop offset="0" stop-color="#ffe9a0" stop-opacity=".85"/><stop offset="1" stop-color="#ffe9a0" stop-opacity="0"/></radialGradient></defs>
-  ${[[34, 30, 9], [166, 22, 7], [150, 70, 5]].map(([x, y, r]) => `<path class="star" d="M${x} ${y - r}l${r * .3} ${r * .7} ${r * .7} ${r * .3} -${r * .7} ${r * .3} -${r * .3} ${r * .7} -${r * .3} -${r * .7} -${r * .7} -${r * .3} ${r * .7} -${r * .3}z" fill="#e6c97a"/>`).join('')}
+  ${[[34, 30, 9], [166, 22, 7], [150, 70, 5]].map(([x, y, r]) => `<path class="star" d="M${x} ${y - r}l${r * .3} ${r * .7} ${r * .7} ${r * .3} -${r * .7} ${r * .3} -${r * .3} ${r * .7} -${r * .3} -${r * .7} -${r * .7} -${r * .3} ${r * .7} -${r * .3}z" fill="#b8892f"/>`).join('')}
   <circle cx="100" cy="34" r="36" fill="url(#hv-g)" class="glow"/>
   <path class="flame" d="M92 8c10 12 14 20 8 32c-4 4-12 4-16 0c-6-12-2-20 8-32z" fill="#ffb53b"/><path class="flame" d="M108 10c8 10 11 17 6 27c-3 3-9 3-12 0c-5-10-2-17 6-27z" fill="#ffc451"/>
   <path d="M100 22c4 6 5 10 0 16c-5-6-4-10 0-16z" fill="#fff4c4"/>

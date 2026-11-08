@@ -133,7 +133,7 @@ export const SCREENS = {
     const keys = s.zmanimShown || [];
     const half = Math.ceil(keys.length / 2);
     return `${title('זמני היום')}
-      <div class="grid" style="grid-template-columns:1fr 1fr 0.9fr">
+      <div class="grid" style="grid-template-columns:1fr 1fr ${day.changes.length + day.fast.length > 3 ? '1.25fr' : '1fr'}">
         <section class="card">${zmanimRows(ctx, keys.slice(0, half))}</section>
         <section class="card">${zmanimRows(ctx, keys.slice(half))}</section>
         <section class="card"><h3>שינויים בתפילה</h3><div class="body changes">${changesHtml(day.changes, day.fast.map((f) => ({ t: f.label, v: fmtTime(f.time, s.tz, f.label === 'סוף הצום' ? 'ceil' : 'floor') })))}</div></section>

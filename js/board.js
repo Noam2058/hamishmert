@@ -212,6 +212,13 @@ function applyBg(item, index) {
 
 /** מקטין את הטקסט בכרטיס הלכה/משנה עד שהכרטיס כולו (כולל המקור והעיטורים) נכנס במקום */
 function fitText(root) {
+  // שינויים בתפילה: מקטינים את הסרטים עד שכולם נכנסים בכרטיס
+  root.querySelectorAll('.body.changes').forEach((body) => {
+    const list = body.querySelector('.chg-list');
+    if (!list) return;
+    let fs = parseFloat(getComputedStyle(list).getPropertyValue('--rb-fs')) || 40, guard = 0;
+    while (list.offsetHeight > body.clientHeight + 1 && fs > 20 && guard++ < 40) { fs -= 1.5; list.style.setProperty('--rb-fs', `${fs}px`); }
+  });
   root.querySelectorAll('.halacha .x').forEach((x) => {
     const card = x.closest('.card');
     const over = () => { const need = [...card.children].reduce((a, c) => a + c.offsetHeight, 0) + (card.children.length - 1) * parseFloat(getComputedStyle(card).rowGap || 0) + parseFloat(getComputedStyle(card).paddingTop) + parseFloat(getComputedStyle(card).paddingBottom); return need > card.clientHeight + 1 || card.scrollHeight > card.clientHeight + 1; };

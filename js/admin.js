@@ -250,26 +250,12 @@ const LISTS = {
     fields: [['name', 'שם (פלוני בן פלונית)', 'text'], ['by', 'הונצח ע"י', 'text'], ['date', 'תאריך פטירה לועזי', 'date'], ['afterSunset', 'נפטר אחרי השקיעה', 'check'], ['hebDay', 'או: יום עברי', 'number'], ['hebMonth', 'חודש עברי', 'select', MONTH_OPTS]],
     sum: (it) => { const d = hebDateOf(it, yahrzeitIn); return { title: it.name, meta: [d ? `האזכרה הקרובה: ${d}` : 'חסר תאריך', it.by].filter(Boolean).join(' · ') }; },
   },
-  parnasim: {
-    label: 'פרנסים', single: 'פרנס',
-    help: 'פרנס היום / השבוע / החודש / השנה. אפשר להגביל לתאריכים.',
-    blank: () => ({ id: uid(), period: 'week', title: 'פרנס השבוע', name: '', text: '', from: '', to: '' }),
-    fields: [['title', 'כותרת', 'text'], ['period', 'סוג', 'select', [['day', 'יום'], ['week', 'שבוע'], ['month', 'חודש'], ['year', 'שנה']]], ['name', 'שם', 'text'], ['text', 'הקדשה', 'text'], ['from', 'מתאריך', 'date'], ['to', 'עד תאריך', 'date']],
-    sum: (it) => ({ title: it.name ? `${it.title || 'פרנס'}: ${it.name}` : it.title, meta: [it.text, it.from || it.to ? `${fmtDate(it.from) || '…'} – ${fmtDate(it.to) || '…'}` : ''].filter(Boolean).join(' · '), badge: activeRange(it) ? ['on', 'פעיל'] : ['off', 'לא בתוקף'] }),
-  },
   birthdays: {
     label: 'ימי הולדת', single: 'יום הולדת', search: true,
     help: 'מוצגים בשבוע של יום ההולדת העברי.',
     blank: () => ({ id: uid(), name: '', date: '', afterSunset: false, hebDay: '', hebMonth: '' }),
     fields: [['name', 'שם', 'text'], ['note', 'הערה', 'text'], ['date', 'תאריך לידה לועזי', 'date'], ['afterSunset', 'נולד אחרי השקיעה', 'check'], ['hebDay', 'או: יום עברי', 'number'], ['hebMonth', 'חודש עברי', 'select', MONTH_OPTS]],
     sum: (it) => { const d = hebDateOf(it, birthdayIn); return { title: it.name, meta: d ? `יום ההולדת הקרוב: ${d}` : 'חסר תאריך' }; },
-  },
-  hilulot: {
-    label: 'הילולות', single: 'הילולא', search: true,
-    help: 'יום פטירת צדיקים. מוצגים בשבוע שבו הם חלים.',
-    blank: () => ({ id: uid(), name: '', hebDay: 1, hebMonth: 'Tishrei' }),
-    fields: [['name', 'שם הצדיק', 'text'], ['note', 'הערה', 'text'], ['hebDay', 'יום בחודש', 'number'], ['hebMonth', 'חודש', 'select', HEB_MONTHS]],
-    sum: (it) => ({ title: it.name, meta: `${it.hebDay ? heNum(+it.hebDay) : ''} ${MONTH_HE[it.hebMonth] || ''}`.trim() }),
   },
   slides: {
     label: 'תמונות שלי', single: 'תמונה', noAdd: true,
@@ -338,7 +324,7 @@ const LISTS = {
 const NAV = [
   ['', [['home', 'סקירה']]],
   ['זמנים ותוכן', [['prayers', 'תפילות'], ['lessons', 'שיעורים'], ['announcements', 'הודעות'], ['slides', 'תמונות שלי'], ['halachot', 'הלכה יומית']]],
-  ['אנשים ומועדים', [['memorials', 'אזכרות'], ['parnasim', 'פרנסים'], ['birthdays', 'ימי הולדת'], ['hilulot', 'הילולות']]],
+  ['אנשים ומועדים', [['memorials', 'אזכרות'], ['birthdays', 'ימי הולדת']]],
   ['הגדרות', [['shul', 'בית הכנסת'], ['display', 'תצוגה ועיצוב'], ['backup', 'גיבוי']]],
 ];
 
@@ -557,7 +543,6 @@ function renderHome() {
     lessons = lessonsForDay(DATA, s, day.civil, lctx);
     mem = inHebrewRange(DATA.memorials || [], day.hd, day.hd.add(7), yahrzeitIn);
     bdays = inHebrewRange(DATA.birthdays || [], day.hd, day.hd.add(7), birthdayIn);
-    hil = inHebrewRange(DATA.hilulot || [], day.hd, day.hd.add(7), yahrzeitIn);
   } catch (e) { console.warn(e); }
   const nowMin = (() => { const d = new Date(); return d.getHours() * 60 + d.getMinutes(); })();
   const anns = (DATA.announcements || []).filter((a) => { try { return annActive(a, isoToday(), todayDay().hd); } catch { return activeRange(a); } });
@@ -673,7 +658,7 @@ function renderDisplay() {
           <label class="fld" style="flex-direction:row;align-items:center;gap:6px"><input type="number" min="4" data-sc="seconds" value="${esc(sc.seconds)}" aria-label="שניות"><span class="muted" style="font-weight:600">שנ׳</span></label>
           <span class="btns" style="display:flex;gap:4px"><button class="icon" data-act="up" aria-label="הזז למעלה">${icon('up')}</button><button class="icon" data-act="down" aria-label="הזז למטה">${icon('down')}</button></span>
         </div>`).join('')}</div>
-      <p class="note">למסך שני עם תוכן אחר: הוסף לכתובת הלוח <code>?screens=memorials,parnas</code></p></section>
+      <p class="note">למסך שני עם תוכן אחר: הוסף לכתובת הלוח <code>?screens=memorials,announcements</code></p></section>
     <section class="card"><h2>הגדרות נוספות</h2><div class="form-grid">
       <label class="fld"><span>זמן ברירת מחדל למסך (שניות)</span><input data-d="defaultSeconds" type="number" min="4" value="${esc(d.defaultSeconds)}"></label>
       <label class="fld"><span>ביצועים (לסטרימר)</span><select data-d="performance">${[['auto', 'אוטומטי – חסכוני במכשיר חלש'], ['lite', 'חסכוני תמיד (חלק יותר בסטרימר)'], ['full', 'מלא – כל האפקטים']].map(([k, l]) => `<option value="${k}" ${(d.performance || 'auto') === k ? 'selected' : ''}>${l}</option>`).join('')}</select></label>

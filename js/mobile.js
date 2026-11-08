@@ -67,7 +67,7 @@ function render() {
   const slides = (DATA.slides || []).filter((x) => x.url && x.enabled !== false && (!x.from || x.from <= iso) && (!x.to || x.to >= iso));
   const mem = inHebrewRange(DATA.memorials || [], day.hd, day.hd.add(7), yahrzeitIn);
   const bdays = inHebrewRange(DATA.birthdays || [], day.hd, day.hd.add(7), birthdayIn);
-  const hil = inHebrewRange(DATA.hilulot || [], day.hd, day.hd.add(7), (y, it) => { try { return new HDate(+it.hebDay, it.hebMonth, y); } catch { return null; } });
+  const hil = []; // הילולות הוסרו מהלוח
   const hal = (DATA.halachaSource || 'sa') === 'sa' ? cachedHalacha(iso, DATA.halachaStart || DEFAULT_START) : null;
   const mish = DATA.display.screens.some((x) => x.type === 'mishna' && x.enabled) ? cachedMishna(day.hd) : null;
   const custom = !hal && (DATA.halachot || []).length ? DATA.halachot[Math.floor(day.civil.getTime() / 86400000) % DATA.halachot.length] : null;

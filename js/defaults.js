@@ -7,7 +7,6 @@ export const SCREEN_TYPES = [
   ['shabbat', 'שבת / חג'],
   ['announcements', 'הודעות'],
   ['memorials', 'אזכרות'],
-  ['parnas', 'פרנס'],
   ['netz', 'שעון נץ (בבוקר)'],
   ['omer', 'ספירת העומר (בעונה)'],
   ['halacha', 'הלכה יומית'],
@@ -15,7 +14,6 @@ export const SCREEN_TYPES = [
   ['lessons', 'שיעורים'],
   ['mishna', 'משנה יומית'],
   ['birthdays', 'ימי הולדת'],
-  ['hilula', 'הילולא דצדיקיא'],
   ['images', 'תמונות שהעליתי'],
 ];
 export const SCREEN_LABEL = Object.fromEntries(SCREEN_TYPES);
@@ -61,14 +59,12 @@ export function demoData() {
         { type: 'memorials', enabled: true, seconds: 14 },
         { type: 'prayers', enabled: true, seconds: 14 },
         { type: 'lessons', enabled: true, seconds: 14 },
-        { type: 'parnas', enabled: true, seconds: 10 },
         { type: 'netz', enabled: true, seconds: 14 },
         { type: 'omer', enabled: true, seconds: 12 },
         { type: 'learning', enabled: true, seconds: 10 },
         { type: 'halacha', enabled: true, seconds: 14 },
         { type: 'mishna', enabled: true, seconds: 20 },
         { type: 'birthdays', enabled: true, seconds: 10 },
-        { type: 'hilula', enabled: true, seconds: 10 },
         { type: 'images', enabled: true, seconds: 12 },
       ],
       ticker: true,
@@ -91,16 +87,7 @@ export function demoData() {
     parnasim: [],
     birthdays: [],
     slides: [],
-    hilulot: [
-      { id: id(), name: 'רבי שמעון בר יוחאי', hebDay: 18, hebMonth: 'Iyyar' },
-      { id: id(), name: 'הרמב"ם', hebDay: 20, hebMonth: 'Tevet' },
-      { id: id(), name: 'הבבא סאלי', hebDay: 4, hebMonth: 'Sh\'vat' },
-      { id: id(), name: 'רבי מאיר בעל הנס', hebDay: 14, hebMonth: 'Iyyar' },
-      { id: id(), name: 'החפץ חיים', hebDay: 24, hebMonth: 'Elul' },
-      { id: id(), name: 'רחל אמנו', hebDay: 11, hebMonth: 'Cheshvan' },
-      { id: id(), name: 'האר"י הקדוש', hebDay: 5, hebMonth: 'Av' },
-      { id: id(), name: 'הרב עובדיה יוסף', hebDay: 3, hebMonth: 'Cheshvan' },
-    ],
+    hilulot: [],
     halachaSource: 'sa',
     halachot: [
       { id: id(), title: 'ברכת השחר', text: 'מי שהתעורר בלילה וחזר לישון, לא יברך ברכות השחר עד שיתעורר בבוקר. מי שניעור כל הלילה – יש לו לשמוע את הברכות ממי שישן.', source: 'לדוגמה – יש להחליף בהלכות של רב הקהילה' },
@@ -118,7 +105,10 @@ export function normalize(data) {
   out.synagogue.learning = { ...d.synagogue.learning, ...(data?.synagogue?.learning || {}) };
   out.display = { ...d.display, ...(data?.display || {}) };
   out.display.offHours = { ...d.display.offHours, ...(data?.display?.offHours || {}) };
-  const have = new Set((out.display.screens || []).map((s) => s.type));
+  // שקופיות שהוסרו מהלוח (פרנס, הילולא)
+  const REMOVED = new Set(['parnas', 'hilula']);
+  out.display.screens = (out.display.screens || []).filter((s) => !REMOVED.has(s.type));
+  const have = new Set(out.display.screens.map((s) => s.type));
   d.display.screens.forEach((s, i) => { if (!have.has(s.type)) out.display.screens.splice(s.type === 'greeting' ? 0 : Math.min(i, out.display.screens.length), 0, { ...s }); });
   for (const k of ['prayers', 'lessons', 'announcements', 'memorials', 'parnasim', 'birthdays', 'hilulot', 'halachot', 'slides']) {
     if (!Array.isArray(out[k])) out[k] = [];

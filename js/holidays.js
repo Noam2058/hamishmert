@@ -84,14 +84,16 @@ export function upcomingHolidaySchedules(data, s, now, daysAhead = 7) {
   const list = (data.prayers || []).filter((p) => p.schedule === 'holiday' && p.holiday);
   if (!list.length) return [];
   const keys = new Set(list.map((p) => p.holiday));
-  const occ = holidayOccurrences(now, daysAhead + 1, s.il !== false).filter((o) => keys.has(o.key));
+  // טווח רחב יותר – כדי שחג שמתחיל השבוע יוצג במלואו (כל ימי חנוכה / חול המועד)
+  const occ = holidayOccurrences(now, daysAhead + 12, s.il !== false).filter((o) => keys.has(o.key));
+  const limit = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 12).getTime() + daysAhead * 86400000;
   const groups = [];
   for (const o of occ) {
     const last = groups[groups.length - 1];
     if (last && last.key === o.key && o.hd.abs() - last.hds[last.hds.length - 1].abs() === 1) { last.dates.push(o.date); last.hds.push(o.hd); continue; }
     groups.push({ key: o.key, label: o.label, dates: [o.date], hds: [o.hd] });
   }
-  return groups.map((g) => {
+  return groups.filter((g) => g.dates[0].getTime() <= limit).map((g) => {
     let day = null;
     try { day = computeDay(g.dates[0], s); } catch { /* */ }
     const ctx = day ? { candles: day.shabbat.candles, havdalah: day.shabbat.havdalah } : {};

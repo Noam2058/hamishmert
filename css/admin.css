@@ -289,3 +289,8 @@ html, body { overflow-x: hidden; }
 /* שעות, תאריכים ומספרים – תמיד משמאל לימין (ב-RTL הדפדפן הפך את 08:00 ל-00:08) */
 input[type="time"], input[type="date"], input[type="number"], input[type="email"], input[type="password"] { direction: ltr; text-align: right; unicode-bidi: plaintext; }
 input[type="time"]::-webkit-datetime-edit, input[type="date"]::-webkit-datetime-edit { direction: ltr; }
+/* אייפון: שדות שעה ותאריך מקבלים רוחב פנימי משלהם וזולגים מהכרטיס – מבטלים את העיצוב המובנה */
+input[type="time"], input[type="date"] { -webkit-appearance: none; appearance: none; display: block; max-width: 100%; min-height: 44px; line-height: 1.5; }
+input[type="time"]::-webkit-date-and-time-value, input[type="date"]::-webkit-date-and-time-value { text-align: right; min-height: 1.5em; }
+input, select, textarea { max-width: 100%; }
+.fld, .form-grid > *, .timebox, .tb-main, .tb-rel { min-width: 0; }

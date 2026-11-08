@@ -96,8 +96,23 @@ function render() {
 
   try { const q = window.qrcode(0, 'M'); q.addData(mUrl); q.make(); $('#qr').innerHTML = q.createSvgTag({ cellSize: 3, margin: 0, scalable: true }); } catch { $('#qr').remove(); }
   document.querySelectorAll('[data-week]').forEach((b) => b.classList.toggle('on', +b.dataset.week === week));
+  fitPage();
   document.title = `דף שבועי – ${s.name || 'בית הכנסת'} – ${sh.parsha || ''}`;
 }
+
+/** דף אחד: אם התוכן גבוה מעמוד A4 – מקטינים את כולו כדי שייכנס */
+function fitPage() {
+  const sheet = $('#sheet');
+  sheet.style.zoom = '';
+  const mm = 96 / 25.4;
+  const avail = (297 - 20) * mm - 4; // גובה עמוד A4 פחות שוליים (10 מ"מ מכל צד)
+  const h = sheet.scrollHeight;
+  const z = Math.min(1, avail / h);
+  if (z < 1) sheet.style.zoom = String(Math.floor(z * 1000) / 1000);
+  $('#fitinfo').textContent = z < 1 ? `הוקטן ל-${Math.round(z * 100)}% כדי להיכנס בעמוד אחד` : 'נכנס בעמוד אחד';
+}
+addEventListener('beforeprint', fitPage);
+document.fonts?.ready.then(() => { if (DATA) fitPage(); });
 
 document.querySelectorAll('[data-week]').forEach((b) => b.onclick = () => { week = +b.dataset.week; render(); });
 $('#opt-anns').onchange = render; $('#opt-zmanim').onchange = render;

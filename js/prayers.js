@@ -84,12 +84,20 @@ export function prayersForDay(day, data, s, civil = day.civil, tags = day.tags) 
   const ctx = { candles: day.shabbat.candles, havdalah: day.shabbat.havdalah };
   let hkeys = [];
   try { if ((data.prayers || []).some((p) => p.schedule === 'holiday')) hkeys = holidayKeysOn(civil, s.il !== false); } catch { /* */ }
-  return rowsFor(data.prayers || [], tags, civil.getDay(), hkeys)
-    .map((r) => {
-      const min = resolveTime(r.time, civil, s, ctx);
-      return { id: r.id, name: r.name, note: r.note || '', min, time: min == null ? '--:--' : minToHhmm(min) };
-    })
-    .sort((a, b) => (a.min ?? 9999) - (b.min ?? 9999));
+  const rows = rowsFor(data.prayers || [], tags, civil.getDay(), hkeys);
+  const res = (r) => { const min = resolveTime(r.time, civil, s, ctx); return { id: r.id, name: r.name, note: r.note || '', min, time: min == null ? '--:--' : minToHhmm(min) }; };
+  const out = rows.map(res);
+  // ערב שבת: הבוקר הוא כמו יום חול – תפילות החול של הבוקר (לפני 12:00) נכנסות, אם לא הוגדרה בערב שבת תפילה באותו שם
+  if (tags.includes('friday') && !tags.includes('shabbat') && !tags.includes('yomtov')) {
+    const names = new Set(out.map((r) => r.name.trim()));
+    const dow = civil.getDay();
+    for (const p of (data.prayers || []).filter((x) => x.schedule === 'weekday' && (!x.weekdays?.length || x.weekdays.includes(dow)))) {
+      if (names.has(p.name.trim())) continue;
+      const r = res(p);
+      if (r.min != null && r.min < 12 * 60) { out.push(r); names.add(p.name.trim()); }
+    }
+  }
+  return out.sort((a, b) => (a.min ?? 9999) - (b.min ?? 9999));
 }
 
 /** תפילות חול (לפי יום ראשון של השבוע) ותפילות השבת הקרובה */

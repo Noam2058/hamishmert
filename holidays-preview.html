@@ -18,7 +18,7 @@
   .item h2 { margin: 0; padding: 10px 14px 4px; font: 800 19px "Frank Ruhl Libre", serif; display: flex; justify-content: space-between; gap: 10px; align-items: baseline; }
   .item h2 small { font: 700 13px "Assistant"; color: var(--soft); }
   .frame { position: relative; aspect-ratio: 16 / 9; background: #0b1a36; overflow: hidden; }
-  .frame iframe { position: absolute; top: 0; right: 0; width: 1920px; height: 1080px; border: 0; transform-origin: top right; pointer-events: auto; }
+  .frame iframe { position: absolute; top: 0; right: 0; width: 1920px; height: 1080px; border: 0; transform-origin: top right; }
   .item .tip { padding: 6px 14px 12px; font-size: 13px; color: var(--soft); display: flex; justify-content: space-between; gap: 8px; }
   .item a { color: var(--gold); font-weight: 800; }
   .load { position: absolute; inset: 0; display: grid; place-items: center; color: #c8cfe0; font-weight: 700; }
@@ -26,9 +26,10 @@
 </head>
 <body>
 <header><h1>איך הלוח ייראה בחגים</h1>
-  <p>כל חלון הוא הלוח האמיתי, עם הנתונים של בית הכנסת, כאילו היום הוא החג. השקופיות מתחלפות לבד, ולחיצה בתוך החלון מדפדפת (שמאל = הבאה). "פתח בגדול" – מסך מלא.</p></header>
+  <p>כל חלון הוא הלוח האמיתי, עם הנתונים של בית הכנסת, כאילו היום הוא החג. השקופיות מתחלפות לבד, ולחיצה בתוך החלון מדפדפת (שמאל = הבאה). בטלפון נטען לוח אחד בכל פעם – נגיעה בו פותחת אותו בגדול. "פתח בגדול" – מסך מלא.</p></header>
 <main id="grid"><p>טוען…</p></main>
 <script type="module">
+import { mountFrames } from './js/preview-frames.js';
 import { holidayOccurrences } from './js/holidays.js';
 import { HDate } from './js/lib.js';
 const q = location.search.replace(/^\?/, '');
@@ -64,16 +65,7 @@ document.querySelector('#grid').innerHTML = items.map(([name, d, time, screens],
   return `<section class="item"><h2>${name}<small>${he(d)}</small></h2><div class="frame" data-src="${src}"><div class="load">טוען…</div></div>
     <div class="tip"><span>${screens.split(',').length} שקופיות מתחלפות</span><a href="${src}" target="_blank" rel="noopener">פתח בגדול ↗</a></div></section>`;
 }).join('');
-// טעינה רק כשהחלון נראה (כל לוח הוא דף שלם)
-const io = new IntersectionObserver((ents) => ents.forEach((e) => {
-  const box = e.target;
-  if (e.isIntersecting && !box.querySelector('iframe')) {
-    const f = document.createElement('iframe'); f.src = box.dataset.src; f.title = 'תצוגה מקדימה'; box.appendChild(f);
-    const fit = () => { f.style.transform = `scale(${box.clientWidth / 1920})`; }; fit(); new ResizeObserver(fit).observe(box);
-    f.onload = () => box.querySelector('.load')?.remove();
-  } else if (!e.isIntersecting && box.querySelector('iframe')) { box.querySelector('iframe').remove(); box.insertAdjacentHTML('afterbegin', '<div class="load">טוען…</div>'); }
-}), { rootMargin: '200px' });
-document.querySelectorAll('.frame').forEach((b) => io.observe(b));
+mountFrames([...document.querySelectorAll('.frame')]);
 </script>
 </body>
 </html>

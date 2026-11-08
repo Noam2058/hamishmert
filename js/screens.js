@@ -272,17 +272,18 @@ export const SCREENS = {
     if (!all.length) return null;
     const nowMin = minutesOf(ctx.now, s.tz);
     // לכל שיעור: היום הקרוב שבו הוא מתקיים והשעה באותו יום
+    const at = (off) => { try { const d = off ? computeDay(new Date(ctx.now.getTime() + off * 86400000), s) : day; return d; } catch { return null; } };
     const list = all.map((l) => {
       const days = l.weekdays?.length ? l.weekdays : [0, 1, 2, 3, 4, 5, 6];
-      let off = 0; while (off < 7 && !days.includes((day.civil.getDay() + off) % 7)) off++;
-      let min = null;
-      try {
-        const d = off ? computeDay(new Date(ctx.now.getTime() + off * 86400000), s) : day;
-        min = resolveTime(l.time, d.civil, s, { candles: d.shabbat.candles, havdalah: d.shabbat.havdalah });
-      } catch { /* */ }
-      return { ...l, off, min, time: min == null ? '' : minToHhmm(min), days: daysLabel(l.weekdays), today: off === 0 };
+      const next = (from) => { let o = from; while (o < from + 7 && !days.includes((day.civil.getDay() + o) % 7)) o++; return o; };
+      const timeAt = (o) => { const d = at(o); try { return d ? resolveTime(l.time, d.civil, s, { candles: d.shabbat.candles, havdalah: d.shabbat.havdalah }) : null; } catch { return null; } };
+      let off = next(0), min = timeAt(off);
+      // שיעור של היום שכבר הסתיים (יותר משעה) – מציגים את הפעם הבאה
+      if (off === 0 && min != null && min < nowMin - 60) { off = next(1); min = timeAt(off); }
+      return { ...l, off, min, time: min == null ? '' : minToHhmm(min), days: daysLabel(l.weekdays), today: off === 0, dow: (day.civil.getDay() + off) % 7 };
     }).sort((a, b) => a.off - b.off || (a.min ?? 9999) - (b.min ?? 9999));
-    const when = (l) => (l.today ? (l.min != null && l.min < nowMin - 60 ? 'היה היום' : 'היום') : l.off === 1 ? 'מחר' : l.days);
+    const DN = ['ראשון', 'שני', 'שלישי', 'רביעי', 'חמישי', 'שישי'];
+    const when = (l) => (l.today ? 'היום' : l.off === 1 ? 'מחר' : l.dow === 6 ? 'בשבת' : `ביום ${DN[l.dow]}`);
     if (list.length <= 3) {
       return `${title('שיעורי תורה')}<div class="grid lessons-cards" style="grid-template-columns:repeat(${list.length},1fr)">${list.map((l) => `
         <section class="card lesson${l.today ? ' today' : ''}"><span class="when">${esc(when(l))}</span>

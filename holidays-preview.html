@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>הלוח בחגים – תצוגה מקדימה</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Frank+Ruhl+Libre:wght@700;900&family=Assistant:wght@500;700;800&display=swap">
+<script src="config.js"></script>
+<style>
+  :root { --bg: #f3efe6; --ink: #18243d; --soft: #616b7e; --gold: #a8822f; --line: #e6dece; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font: 500 16px/1.5 "Assistant", sans-serif; direction: rtl; }
+  header { background: linear-gradient(160deg, #22386a, #14213d); color: #f3ecd9; padding: 22px 20px; border-bottom: 3px solid #c9a24a; }
+  header h1 { margin: 0; font: 900 28px "Frank Ruhl Libre", serif; }
+  header p { margin: 6px 0 0; color: #c8cfe0; max-width: 70ch; }
+  main { max-width: 1400px; margin: 0 auto; padding: 20px 16px 40px; display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 420px), 1fr)); gap: 18px; }
+  .item { background: #fffdf8; border: 1px solid var(--line); border-radius: 16px; overflow: hidden; box-shadow: 0 6px 18px rgba(20,33,61,.08); }
+  .item h2 { margin: 0; padding: 10px 14px 4px; font: 800 19px "Frank Ruhl Libre", serif; display: flex; justify-content: space-between; gap: 10px; align-items: baseline; }
+  .item h2 small { font: 700 13px "Assistant"; color: var(--soft); }
+  .frame { position: relative; aspect-ratio: 16 / 9; background: #0b1a36; overflow: hidden; }
+  .frame iframe { position: absolute; top: 0; right: 0; width: 1920px; height: 1080px; border: 0; transform-origin: top right; pointer-events: auto; }
+  .item .tip { padding: 6px 14px 12px; font-size: 13px; color: var(--soft); display: flex; justify-content: space-between; gap: 8px; }
+  .item a { color: var(--gold); font-weight: 800; }
+  .load { position: absolute; inset: 0; display: grid; place-items: center; color: #c8cfe0; font-weight: 700; }
+</style>
+</head>
+<body>
+<header><h1>איך הלוח ייראה בחגים</h1>
+  <p>כל חלון הוא הלוח האמיתי, עם הנתונים של בית הכנסת, כאילו היום הוא החג. השקופיות מתחלפות לבד, ולחיצה בתוך החלון מדפדפת (שמאל = הבאה). "פתח בגדול" – מסך מלא.</p></header>
+<main id="grid"><p>טוען…</p></main>
+<script type="module">
+import { holidayOccurrences } from './js/holidays.js';
+import { HDate } from './js/lib.js';
+const q = location.search.replace(/^\?/, '');
+const occ = holidayOccurrences(new Date(), 400, true);
+const first = (k) => occ.find((o) => o.key === k);
+const ymd = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+// [שם, תאריך, שעה, שקופיות]
+const items = [];
+const add = (name, date, time = '10:30', screens = 'greeting,combined,shabbat,zmanim') => { if (date) items.push([name, date, time, screens]); };
+const now = new Date();
+const nextDow = (dow) => { const d = new Date(now); d.setDate(d.getDate() + ((dow - d.getDay() + 7) % 7 || 7)); return d; };
+add('יום חול רגיל', nextDow(2), '10:30', 'greeting,combined,prayers,lessons');
+add('ערב שבת', nextDow(5), '15:00', 'greeting,shabbat,combined');
+for (const [k, name, time, screens] of [
+  ['rh1', 'ראש השנה', '10:30'], ['yk', 'יום כיפור', '11:00'], ['sukkot1', 'סוכות', '10:30'], ['shmini', 'שמחת תורה', '10:30'],
+  ['chanuka', 'חנוכה', '17:30'], ['tubishvat', 'ט״ו בשבט', '10:30'], ['purim', 'פורים', '10:30'], ['pesach1', 'פסח', '10:30'],
+  ['zikaron', 'יום הזיכרון', '10:30'], ['atzmaut', 'יום העצמאות', '10:30'], ['lag', 'ל״ג בעומר', '18:00'], ['yerushalayim', 'יום ירושלים', '10:30'],
+  ['shavuot', 'שבועות', '10:30'], ['tammuz', 'צום י״ז בתמוז', '10:30'], ['9av', 'תשעה באב', '10:30'],
+]) { const o = first(k); if (o) add(name, o.date, time, screens); }
+// ראש חודש ואלול
+try {
+  let hd = new HDate(); for (let i = 0; i < 40 && hd.getDate() !== 1; i++) hd = hd.next();
+  const g = hd.greg(); add('ראש חודש', g, '10:30', 'greeting,combined');
+  let e = new HDate(5, 'Elul', new HDate().getFullYear()); if (e.greg() < now) e = new HDate(5, 'Elul', new HDate().getFullYear() + 1);
+  add('חודש אלול', e.greg(), '10:30', 'greeting,combined');
+} catch {}
+items.sort((a, b) => a[1] - b[1]);
+const he = (d) => d.toLocaleDateString('he-IL', { day: 'numeric', month: 'long', year: 'numeric' });
+document.querySelector('#grid').innerHTML = items.map(([name, d, time, screens], i) => {
+  const src = `index.html?${q ? q + '&' : ''}date=${ymd(d)}T${time}&screens=${screens}&sec=8`;
+  return `<section class="item"><h2>${name}<small>${he(d)}</small></h2><div class="frame" data-src="${src}"><div class="load">טוען…</div></div>
+    <div class="tip"><span>${screens.split(',').length} שקופיות מתחלפות</span><a href="${src}" target="_blank" rel="noopener">פתח בגדול ↗</a></div></section>`;
+}).join('');
+// טעינה רק כשהחלון נראה (כל לוח הוא דף שלם)
+const io = new IntersectionObserver((ents) => ents.forEach((e) => {
+  const box = e.target;
+  if (e.isIntersecting && !box.querySelector('iframe')) {
+    const f = document.createElement('iframe'); f.src = box.dataset.src; f.title = 'תצוגה מקדימה'; box.appendChild(f);
+    const fit = () => { f.style.transform = `scale(${box.clientWidth / 1920})`; }; fit(); new ResizeObserver(fit).observe(box);
+    f.onload = () => box.querySelector('.load')?.remove();
+  } else if (!e.isIntersecting && box.querySelector('iframe')) { box.querySelector('iframe').remove(); box.insertAdjacentHTML('afterbegin', '<div class="load">טוען…</div>'); }
+}), { rootMargin: '200px' });
+document.querySelectorAll('.frame').forEach((b) => io.observe(b));
+</script>
+</body>
+</html>

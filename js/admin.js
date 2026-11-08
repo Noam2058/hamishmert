@@ -24,6 +24,7 @@ const I = {
   prayers: '<path d="M12 3v4M8 5l4-2 4 2"/><rect x="5" y="7" width="14" height="14" rx="2"/><path d="M9 12h6M9 16h6"/>',
   lessons: '<path d="M4 5a2 2 0 012-2h13v16H6a2 2 0 00-2 2z"/><path d="M4 19V5M8 7h7"/>',
   announcements: '<path d="M4 10v4a1 1 0 001 1h2l5 4V5L7 9H5a1 1 0 00-1 1z"/><path d="M16 8.5a5 5 0 010 7M18.5 6a8.5 8.5 0 010 12"/>',
+  dedications: '<path d="M12 3c2 3 2 4.5 0 6.5C10 7.5 10 6 12 3z"/><path d="M8 21h8M10 21v-9h4v9"/>',
   memorials: '<path d="M12 3c2 3 2 4.5 0 6.5C10 7.5 10 6 12 3z"/><rect x="9" y="10" width="6" height="11" rx="1.5"/>',
   parnasim: '<path d="M12 21s-7-4.4-7-10a4 4 0 017-2.6A4 4 0 0119 11c0 5.6-7 10-7 10z"/>',
   birthdays: '<rect x="4" y="11" width="16" height="10" rx="2"/><path d="M4 15c2 1.5 4 1.5 5.3 0 1.4 1.5 4 1.5 5.4 0 1.3 1.5 3.3 1.5 5.3 0M12 11V7"/><path d="M12 3.5c.9 1 .9 2 0 3-.9-1-.9-2 0-3z"/>',
@@ -321,10 +322,16 @@ const LISTS = {
   },
 };
 
+LISTS.dedications = {
+  ...LISTS.announcements, label: 'לעילוי נשמת', single: 'הקדשה',
+  help: 'שקופית "לעילוי נשמת" – כל הקדשה מוצגת ככרטיס, עם אותן אפשרויות עיצוב ותאריכים כמו בהודעות (למשל לפי תאריך עברי שחוזר כל שנה ביום הפטירה).',
+  blank: () => ({ id: uid(), style: 'memorial', title: '', body: '', dateMode: 'civil', from: '', to: '', fmt: { ...ANN_DEFAULT_FMT } }),
+};
+
 const NAV = [
   ['', [['home', 'סקירה']]],
   ['זמנים ותוכן', [['prayers', 'תפילות'], ['lessons', 'שיעורים'], ['announcements', 'הודעות'], ['slides', 'תמונות שלי'], ['halachot', 'הלכה יומית']]],
-  ['אנשים ומועדים', [['memorials', 'אזכרות'], ['birthdays', 'ימי הולדת']]],
+  ['אנשים ומועדים', [['dedications', 'לעילוי נשמת'], ['memorials', 'אזכרות'], ['birthdays', 'ימי הולדת']]],
   ['הגדרות', [['shul', 'בית הכנסת'], ['display', 'תצוגה ועיצוב'], ['backup', 'גיבוי']]],
 ];
 

@@ -116,7 +116,7 @@ function renderTicker() {
   let pill = '';
   if (inShabbat) pill = `צאת ${sh.candlesDate?.getDay() === 5 ? 'השבת' : 'החג'} <b>${fmtTime(sh.havdalah, ctx.s.tz, 'ceil')}</b>`;
   else if (np) pill = `${escapeHtml(np.name)} <b>${np.time}</b>`;
-  else if (sh.candles && now < sh.candles) pill = `${sh.candlesLabel} <b>${fmtTime(sh.candles, ctx.s.tz, 'floor')}</b>`;
+  else if (sh.candles && now < sh.candles && sh.candles - now < 14 * 3600000) pill = `${sh.candlesLabel} <b>${fmtTime(sh.candles, ctx.s.tz, 'floor')}</b>`; // רק ביום עצמו
   $('#next').innerHTML = pill;
   $('#next').hidden = !pill;
   const run = $('#run');

@@ -706,7 +706,7 @@ export const SCENE_DEFS = {
 // רקע לכל סוג שקופית בימים רגילים
 const BY_SCREEN = {
   combined: 'jerusalem', prayers: 'heichal', zmanim: 'sunpath', netz: 'sunrise', shabbat: 'shabbatEve',
-  announcements: 'kotel', memorials: 'yahrzeit', parnas: 'papercut', omer: 'wheatField', halacha: 'stainedGlass',
+  announcements: 'kotel', neshama: 'yahrzeit', memorials: 'yahrzeit', parnas: 'papercut', omer: 'wheatField', halacha: 'stainedGlass',
   learning: 'library', lessons: 'library', mishna: 'papercut', birthdays: 'festive', hilula: 'safed', greeting: 'jerusalem',
 };
 const THEME_MAIN = { classic: 'jerusalem', chassidic: 'heichal', ashkenaz: 'papercut' };

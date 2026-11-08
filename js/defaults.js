@@ -6,6 +6,7 @@ export const SCREEN_TYPES = [
   ['zmanim', 'זמני היום'],
   ['shabbat', 'שבת / חג'],
   ['announcements', 'הודעות'],
+  ['neshama', 'לעילוי נשמת'],
   ['memorials', 'אזכרות'],
   ['netz', 'שעון נץ (בבוקר)'],
   ['omer', 'ספירת העומר (בעונה)'],
@@ -55,6 +56,7 @@ export function demoData() {
         { type: 'combined', enabled: true, seconds: 20 },
         { type: 'shabbat', enabled: true, seconds: 14 },
         { type: 'announcements', enabled: true, seconds: 10 },
+        { type: 'neshama', enabled: true, seconds: 12 },
         { type: 'zmanim', enabled: true, seconds: 14 },
         { type: 'memorials', enabled: true, seconds: 14 },
         { type: 'prayers', enabled: true, seconds: 14 },
@@ -110,7 +112,7 @@ export function normalize(data) {
   out.display.screens = (out.display.screens || []).filter((s) => !REMOVED.has(s.type));
   const have = new Set(out.display.screens.map((s) => s.type));
   d.display.screens.forEach((s, i) => { if (!have.has(s.type)) out.display.screens.splice(s.type === 'greeting' ? 0 : Math.min(i, out.display.screens.length), 0, { ...s }); });
-  for (const k of ['prayers', 'lessons', 'announcements', 'memorials', 'parnasim', 'birthdays', 'hilulot', 'halachot', 'slides']) {
+  for (const k of ['prayers', 'lessons', 'announcements', 'dedications', 'memorials', 'parnasim', 'birthdays', 'hilulot', 'halachot', 'slides']) {
     if (!Array.isArray(out[k])) out[k] = [];
   }
   return out;

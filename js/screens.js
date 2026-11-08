@@ -157,21 +157,12 @@ export const SCREENS = {
       </div>`;
   },
 
+  neshama(ctx) {
+    return annSlides(ctx, ctx.data.dedications || [], title('לעילוי נשמת'));
+  },
+
   announcements(ctx) {
-    const today = ctx.todayIso;
-    const list = (ctx.data.announcements || []).filter((a) => annActive(a, today, ctx.day.hd) && (a.title || a.body));
-    if (!list.length) return null;
-    const slides = [];
-    const per = list.some((a) => (a.body || '').length > 140 || annBig(a)) ? 1 : 2;
-    for (let i = 0; i < list.length; i += per) {
-      slides.push(`<div class="ann-grid">${list.slice(i, i + per).map((a) => `
-        <section class="card ann ${esc(a.style || 'general')} ${annClasses(a)}"${annStyle(a)}>
-          ${a.style === 'memorial' ? candle : ''}
-          ${a.title ? `<div class="t">${esc(a.title)}</div>${a.style !== 'memorial' ? flourish : ''}` : ''}
-          <div class="b">${annBody(a.body)}</div>
-        </section>`).join('')}</div>`);
-    }
-    return slides;
+    return annSlides(ctx, ctx.data.announcements || [], '');
   },
 
   memorials(ctx) {
@@ -292,7 +283,7 @@ export const SCREENS = {
       return `${title('שיעורי תורה')}<div class="grid lessons-cards" style="grid-template-columns:repeat(${list.length},1fr)">${list.map((l) => `
         <section class="card lesson${l.today ? ' today' : ''}"><span class="when">${esc(when(l))}</span>
           <div class="lt">${esc(l.title)}</div>${l.teacher ? `<div class="lr">${esc(l.teacher)}</div>` : ''}
-          <div class="time">${esc(l.time)}</div><div class="ld">${esc(l.days)}</div>${l.note ? `<div class="ln">${esc(l.note)}</div>` : ''}</section>`).join('')}</div>`;
+          <div class="time">${esc(l.time)}</div>${l.note ? `<div class="ln">${esc(l.note)}</div>` : ''}</section>`).join('')}</div>`;
     }
     const row = (l) => `<div class="row${l.today ? ' next' : ''}"><div class="k">${esc(l.title)}<small>${esc([l.teacher, l.days, l.note].filter(Boolean).join(' · '))}</small></div><div class="v">${esc(l.time)}</div></div>`;
     const slides = [];
@@ -349,6 +340,25 @@ export const SCREENS = {
       ${list.map((h) => `<section class="card" style="text-align:center;align-items:center;padding:50px 30px">${candle}<div style="font:900 60px/1.15 var(--display)">${esc(h.name)}</div><div style="font:700 34px var(--body);color:var(--ink-soft)">${h.hdate.isSameDate(hd) ? 'היום · ' : ''}${esc(renderHeb(h.hdate))}</div>${h.note ? `<div class="muted" style="font:600 28px var(--body)">${esc(h.note)}</div>` : ''}<div style="font:700 30px var(--display)">זכותו תגן עלינו</div></section>`).join('')}</div>`;
   },
 };
+
+/** שקופיות של הודעות (וגם של 'לעילוי נשמת') */
+function annSlides(ctx, all, head) {
+
+    const today = ctx.todayIso;
+    const list = all.filter((a) => annActive(a, today, ctx.day.hd) && (a.title || a.body));
+    if (!list.length) return null;
+    const slides = [];
+    const per = list.some((a) => (a.body || '').length > 140 || annBig(a)) ? 1 : 2;
+    for (let i = 0; i < list.length; i += per) {
+      slides.push(`${head}<div class="ann-grid">${list.slice(i, i + per).map((a) => `
+        <section class="card ann ${esc(a.style || 'general')} ${annClasses(a)}"${annStyle(a)}>
+          ${a.style === 'memorial' ? candle : ''}
+          ${a.title ? `<div class="t">${esc(a.title)}</div>${a.style !== 'memorial' ? flourish : ''}` : ''}
+          <div class="b">${annBody(a.body)}</div>
+        </section>`).join('')}</div>`);
+    }
+    return slides;
+  }
 
 export const LIVE_SCREENS = new Set(['netz']);
 

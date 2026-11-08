@@ -448,3 +448,5 @@ html, body, #viewport { touch-action: manipulation; -webkit-tap-highlight-color:
 /* צבע טקסט שנבחר להודעה, והגדלה של חלק מסומן */
 .ann.tc .t, .ann.tc .b { color: var(--tc); }
 .ann .b .big { font-size: 1.3em; line-height: 1.2; }
+/* הסמל המעוטר בראש הכרטיס בולט 24px מעליו – כשהכרטיסים בראש השקופית (בלי כותרת) צריך מקום כדי שלא ייחתך */
+.screen > .grid:first-child, .screen > .hero:first-child { padding-top: 34px; }

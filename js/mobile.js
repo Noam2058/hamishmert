@@ -64,6 +64,7 @@ function render() {
   const lessonsToday = (DATA.lessons || []).filter((l) => !l.weekdays?.length || l.weekdays.includes(day.civil.getDay()));
   const lessons = (DATA.lessons || []).map((l) => { const m = resolveTime(l.time, day.civil, s, lctx); return { ...l, timeStr: m == null ? '' : minToHhmm(m) }; });
   const anns = (DATA.announcements || []).filter((a) => annActive(a, iso, day.hd) && (a.title || a.body));
+  const deds = DATA.display.screens.some((x) => x.type === 'neshama' && x.enabled) ? (DATA.dedications || []).filter((a) => annActive(a, iso, day.hd) && (a.title || a.body)) : [];
   const slides = (DATA.slides || []).filter((x) => x.url && x.enabled !== false && (!x.from || x.from <= iso) && (!x.to || x.to >= iso));
   const mem = inHebrewRange(DATA.memorials || [], day.hd, day.hd.add(7), yahrzeitIn);
   const bdays = inHebrewRange(DATA.birthdays || [], day.hd, day.hd.add(7), birthdayIn);
@@ -105,6 +106,9 @@ function render() {
         ${weekly.friday.length || weekly.shabbat.length ? `<div class="sub-h">ערב שבת</div><div class="rows">${weekly.friday.map((p) => row(p.name, esc(p.time), p.note)).join('')}</div>
           <div class="sub-h">שבת</div><div class="rows">${weekly.shabbat.map((p) => row(p.name, esc(p.time), p.note)).join('')}</div>` : ''}
       </section>
+
+      ${deds.length ? `<section class="card" id="t-ded"><h2>${icon('candle')}לעילוי נשמת</h2>
+        ${deds.map((a) => `<div class="ann ${esc(a.style || '')} ${annClasses(a)}"${annStyle(a)}>${a.title ? `<h3>${esc(a.title)}</h3>` : ''}<p>${annBody(a.body)}</p></div>`).join('')}</section>` : ''}
 
       ${anns.length ? `<section class="card" id="t-ann"><h2>${icon('megaphone')}הודעות <span class="pill">${anns.length}</span></h2>
         ${anns.map((a) => `<div class="ann ${esc(a.style || '')} ${annClasses(a)}"${annStyle(a)}>${a.title ? `<h3>${esc(a.title)}</h3>` : ''}<p>${annBody(a.body)}</p>${a.dateMode !== 'hebrew' && a.to ? `<div class="when">עד ${esc(a.to.split('-').reverse().join('.'))}</div>` : ''}</div>`).join('')}</section>` : ''}

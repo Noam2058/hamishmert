@@ -232,7 +232,8 @@ function renderDots() {
   $('#dots').innerHTML = queue.map((_, i) => `<i class="${i === qi ? 'on' : ''}"></i>`).join('');
 }
 
-function advance() {
+function advance(step = 1) {
+  if (typeof step !== 'number') step = 1;
   clearTimeout(timer);
   buildCtx();
   if ((DATA.halachaSource || 'sa') === 'sa') prefetchHalachot(ctx.todayIso, DATA.halachaStart || DEFAULT_START).catch(() => {});
@@ -243,7 +244,7 @@ function advance() {
   if (!queue.length) { timer = setTimeout(advance, 10000); return; }
   const lastKey = current?.key;
   let idx = queue.findIndex((x) => x.key === lastKey);
-  qi = (idx + 1) % queue.length;
+  qi = ((idx < 0 && step < 0 ? 0 : idx) + step + queue.length) % queue.length;
   if (queue.length === 1 && current?.key === queue[0].key) {
     current.el.innerHTML = queue[0].html; // רענון תוכן בלי מעבר
   } else {
@@ -267,6 +268,30 @@ function applySlidePreview() {
   } catch { /* אין נתונים */ }
 }
 addEventListener('hashchange', () => { if (SLIDE_PREVIEW) { applySlidePreview(); advance(); } });
+
+// ---------- דפדוף ידני: לחיצה/נגיעה במסך, החלקה או חיצים במקלדת ----------
+// צד שמאל של המסך = הבאה, צד ימין = הקודמת (כמו דפדוף בספר עברי)
+function flip(step) {
+  if (!queue.length || SLIDE_PREVIEW || params.has('preview')) return;
+  advance(step);
+  const h = $('#fliphint');
+  if (h) { h.textContent = `${qi + 1} / ${queue.length}`; h.classList.add('on'); clearTimeout(flip.t); flip.t = setTimeout(() => h.classList.remove('on'), 1200); }
+}
+let touchX = null;
+addEventListener('touchstart', (e) => { touchX = e.touches[0].clientX; }, { passive: true });
+addEventListener('touchend', (e) => {
+  if (touchX == null) return;
+  const dx = e.changedTouches[0].clientX - touchX; touchX = null;
+  if (Math.abs(dx) > 50) { flip(dx > 0 ? 1 : -1); e.preventDefault(); } // החלקה ימינה = הבאה (בעברית מדפדפים ימינה)
+}, { passive: false });
+addEventListener('click', (e) => {
+  if (e.target.closest('a, button, input')) return;
+  flip(e.clientX < innerWidth / 2 ? 1 : -1);
+});
+addEventListener('keydown', (e) => {
+  if (e.key === 'ArrowLeft' || e.key === ' ' || e.key === 'PageDown') { e.preventDefault(); flip(1); }
+  else if (e.key === 'ArrowRight' || e.key === 'PageUp') { e.preventDefault(); flip(-1); }
+});
 
 // ---------- חיווי סנכרון ----------
 let lastSync = null;

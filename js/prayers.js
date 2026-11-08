@@ -58,7 +58,7 @@ export function describeTime(t) {
   if (t.type !== 'zman') return t.value;
   const base = Object.fromEntries(ZMAN_BASES)[t.zman] || t.zman;
   const off = +(t.offset || 0);
-  const rel = off === 0 ? `ב${base.replace(/^ה(?=[א-ת])/, '')}` : `${Math.abs(off)} דק' ${off < 0 ? 'לפני' : 'אחרי'} ${base}`;
+  const rel = off === 0 ? `ב${base === 'השקיעה' ? 'שקיעה' : base}` : `${Math.abs(off)} דק' ${off < 0 ? 'לפני' : 'אחרי'} ${base}`;
   const wk = t.basis === 'week-min' ? ' (לפי המוקדם בשבוע)' : t.basis === 'week-max' ? ' (לפי המאוחר בשבוע)' : '';
   return rel + wk;
 }

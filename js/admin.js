@@ -25,6 +25,7 @@ const I = {
   prayers: '<path d="M12 3v4M8 5l4-2 4 2"/><rect x="5" y="7" width="14" height="14" rx="2"/><path d="M9 12h6M9 16h6"/>',
   lessons: '<path d="M4 5a2 2 0 012-2h13v16H6a2 2 0 00-2 2z"/><path d="M4 19V5M8 7h7"/>',
   announcements: '<path d="M4 10v4a1 1 0 001 1h2l5 4V5L7 9H5a1 1 0 00-1 1z"/><path d="M16 8.5a5 5 0 010 7M18.5 6a8.5 8.5 0 010 12"/>',
+  holidayPrayers: '<path d="M12 2.5l2.4 5 5.6.7-4.1 3.8 1.1 5.5L12 14.8 7 17.5l1.1-5.5L4 8.2l5.6-.7z"/>',
   dedications: '<path d="M12 3c2 3 2 4.5 0 6.5C10 7.5 10 6 12 3z"/><path d="M8 21h8M10 21v-9h4v9"/>',
   memorials: '<path d="M12 3c2 3 2 4.5 0 6.5C10 7.5 10 6 12 3z"/><rect x="9" y="10" width="6" height="11" rx="1.5"/>',
   parnasim: '<path d="M12 21s-7-4.4-7-10a4 4 0 017-2.6A4 4 0 0119 11c0 5.6-7 10-7 10z"/>',
@@ -203,7 +204,8 @@ function mountSlidePreview(row, it) {
     const u = slidePreviewSrc(it); f.contentWindow?.location.replace(u);
   }
 }
-const reorder = (arr, order) => { const copy = order.map((i) => arr[i]); arr.splice(0, arr.length, ...copy); };
+// סידור מחדש רק של הפריטים שמוצגים (order = האינדקסים המקוריים בסדר החדש); השאר נשארים במקומם
+const reorder = (arr, order) => { const slots = [...order].sort((a, b) => a - b); const items = order.map((i) => arr[i]); slots.forEach((s, k) => { arr[s] = items[k]; }); };
 
 // ---------- בחירת מצב תצוגה לתמונה ----------
 const FRAME = (inner, bars = true) => `<svg viewBox="0 0 64 36" aria-hidden="true"><rect x="1" y="1" width="62" height="34" rx="3" class="scr"/>${bars ? '<rect x="1" y="1" width="62" height="5" rx="1" class="bar"/><rect x="1" y="31" width="62" height="4" rx="1" class="bar"/>' : ''}${inner}</svg>`;
@@ -332,9 +334,20 @@ LISTS.dedications = {
   blank: () => ({ id: uid(), style: 'memorial', title: '', body: '', dateMode: 'civil', from: '', to: '', fmt: { ...ANN_DEFAULT_FMT } }),
 };
 
+LISTS.prayers.filter = (it) => it.schedule !== 'holiday';
+LISTS.holidayPrayers = {
+  ...LISTS.prayers, data: 'prayers', label: 'תפילות החגים', single: 'תפילת חג',
+  filter: (it) => it.schedule === 'holiday',
+  help: 'תפילות לחג או מועד מסוים. בלוח מוצגת שקופית "תפילות החג" משבוע לפני החג ועד סופו, וביום עצמו התפילות נכנסות ללוח התפילות של היום (תפילה באותו שם מחליפה את הרגילה).',
+  group: 'holiday', groupDefault: '', groups: [['', 'לא נבחר חג'], ...HOLIDAY_DAYS.map(([k, l]) => [k, l])],
+  blank: () => ({ id: uid(), name: '', schedule: 'holiday', holiday: '', time: { type: 'fixed', value: '07:00' } }),
+  fields: [['holiday', 'איזה חג / מועד', 'select', [['', '— בחר חג —'], ...HOLIDAY_DAYS.map(([k, l]) => [k, l])]], ['name', 'שם התפילה', 'text'],
+    ['weekdays', 'רק בימים (ריק = כל הימים)', 'weekdays'], ['note', 'הערה (מוצגת מתחת לשם)', 'text'], ['time', 'שעה', 'time']],
+};
+
 const NAV = [
   ['', [['home', 'סקירה']]],
-  ['זמנים ותוכן', [['prayers', 'תפילות'], ['lessons', 'שיעורים'], ['announcements', 'הודעות'], ['slides', 'תמונות שלי'], ['halachot', 'הלכה יומית']]],
+  ['זמנים ותוכן', [['prayers', 'תפילות'], ['holidayPrayers', 'תפילות החגים'], ['lessons', 'שיעורים'], ['announcements', 'הודעות'], ['slides', 'תמונות שלי'], ['halachot', 'הלכה יומית']]],
   ['אנשים ומועדים', [['dedications', 'לעילוי נשמת'], ['memorials', 'אזכרות'], ['birthdays', 'ימי הולדת']]],
   ['הגדרות', [['shul', 'בית הכנסת'], ['display', 'תצוגה ועיצוב'], ['backup', 'גיבוי']]],
 ];
@@ -385,8 +398,8 @@ function fieldHtml(item, [key, label, type, opts], path) {
     input = `<select id="${id}" data-k="${key}" data-type="schedule">
       <optgroup label="קבוע">${o('weekday', 'ימות החול')}${o('friday', 'ערב שבת')}${o('shabbat', 'שבת ומוצאי שבת')}</optgroup>
       <optgroup label="כל הימים מסוג">${o('rosh-chodesh', 'כל ראש חודש')}${o('erev-yomtov', 'כל ערב חג')}${o('yomtov', 'כל יום טוב')}${o('chol-hamoed', 'כל חול המועד')}${o('fast', 'כל תענית')}</optgroup>
-      <optgroup label="חג או מועד מסוים – מוצג בלוח שבוע לפני">${HOLIDAY_DAYS.map(([k, l]) => o(`h:${k}`, l)).join('')}</optgroup>
-      ${cur === 'h:' ? o('h:', '— בחר חג —') : ''}</select>`;
+      ${cur.startsWith('h:') ? `<optgroup label="חג מסוים">${o(cur, HOLIDAY_LABEL[cur.slice(2)] || 'חג')}</optgroup>` : ''}</select>
+      <small class="muted">לתפילות של חג מסוים (ראש השנה, פורים…) – לשונית "תפילות החגים".</small>`;
   }
   else if (type === 'hebdate') {
     const [dk, mk] = opts; const d = item[dk] || '', m = item[mk] || '';
@@ -554,9 +567,10 @@ function summaryHtml(def, it) {
 function renderList(key, opts = null) {
   freshPanel();
   const def = LISTS[key];
-  const arr = (DATA[key] ||= []);
+  const arr = (DATA[def.data || key] ||= []); // כמה לשוניות יכולות להציג חלקים שונים מאותה רשימה (תפילות / תפילות החגים)
   const f = (filters[key] || '').trim();
-  const visible = arr.map((it, i) => [it, i]).filter(([it]) => !f || JSON.stringify(it).includes(f));
+  const mine = arr.map((it, i) => [it, i]).filter(([it]) => !def.filter || def.filter(it));
+  const visible = mine.filter(([it]) => !f || JSON.stringify(it).includes(f));
   const itemHtml = ([it, i]) => `
     <details class="item" data-i="${i}" data-id="${esc(it.id)}" ${openIds.has(it.id) ? 'open' : ''}>
       <summary><span class="grip" title="גרור לשינוי הסדר" aria-label="גרור לשינוי הסדר">${icon('grip')}</span>${summaryHtml(def, it)}</summary>
@@ -569,16 +583,14 @@ function renderList(key, opts = null) {
       </div>
     </details>`;
   let listHtml;
-  if (!arr.length) listHtml = def.noAdd ? '' : `<div class="empty-state">${icon(key)}<div>עוד אין ${def.label}.</div><button class="btn primary" data-add>${icon('plus')}הוסף ${def.single}</button></div>`;
+  if (!mine.length) listHtml = def.noAdd ? '' : `<div class="empty-state">${icon(key)}<div>עוד אין ${def.label}.</div><button class="btn primary" data-add>${icon('plus')}הוסף ${def.single}</button></div>`;
   else if (!visible.length) listHtml = `<div class="empty-state">לא נמצא "${esc(f)}"</div>`;
   else if (def.group) {
-    const groups = new Map(SCHEDULES.map(([k]) => [k, []]));
-    visible.forEach((x) => { const g = x[0][def.group] || 'weekday'; if (!groups.has(g)) groups.set(g, []); groups.get(g).push(x); });
-    if (groups.get('holiday')?.length) { // בתוך החגים – לפי סדר השנה
-      const order = Object.fromEntries(HOLIDAY_DAYS.map(([k], i) => [k, i]));
-      groups.get('holiday').sort((a, b) => (order[a[0].holiday] ?? 99) - (order[b[0].holiday] ?? 99));
-    }
-    listHtml = [...groups].filter(([, xs]) => xs.length).map(([g, xs]) => `<div class="group-title">${esc(g === 'holiday' ? 'חגים ומועדים – מוצגים בלוח שבוע לפני החג' : SCHED_HE[g] || g)}</div>${xs.map(itemHtml).join('')}`).join('');
+    const GROUPS = def.groups || SCHEDULES;
+    const glabel = Object.fromEntries(GROUPS);
+    const groups = new Map(GROUPS.map(([k]) => [k, []]));
+    visible.forEach((x) => { const g = x[0][def.group] || def.groupDefault || 'weekday'; if (!groups.has(g)) groups.set(g, []); groups.get(g).push(x); });
+    listHtml = [...groups].filter(([, xs]) => xs.length).map(([g, xs]) => `<div class="group-title">${esc(glabel[g] || g)}</div>${xs.map(itemHtml).join('')}`).join('');
   } else listHtml = visible.map(itemHtml).join('');
 
   $('#panel').innerHTML = `
@@ -629,7 +641,7 @@ function renderList(key, opts = null) {
       if (act === 'dup' && key === 'slides') { const c = { ...structuredClone(arr[i]), id: uid(), path: null }; arr.splice(i + 1, 0, c); openIds.add(c.id); setDirty(); renderList(key); updateCounts(); return; }
       if (act === 'dup') { const c = { ...structuredClone(arr[i]), id: uid() }; arr.splice(i + 1, 0, c); openIds.add(c.id); setDirty(); renderList(key); updateCounts(); return; }
       // הזזה – בתוך אותה קבוצה (בתפילות: אותו לוח)
-      const same = (j) => !def.group || (arr[j][def.group] || 'weekday') === (arr[i][def.group] || 'weekday');
+      const same = (j) => (!def.filter || def.filter(arr[j])) && (!def.group || (arr[j][def.group] || def.groupDefault || 'weekday') === (arr[i][def.group] || def.groupDefault || 'weekday'));
       let j = i;
       do { j += act === 'up' ? -1 : 1; } while (j >= 0 && j < arr.length && !same(j));
       if (j < 0 || j >= arr.length) return;
@@ -638,7 +650,7 @@ function renderList(key, opts = null) {
     });
   });
   if (!f) makeSortable(p.querySelector('.list'), '.item', (order) => { reorder(arr, order); setDirty(); renderList(key); },
-    (a, b) => !def.group || (arr[+a.dataset.i][def.group] || 'weekday') === (arr[+b.dataset.i][def.group] || 'weekday'));
+    (a, b) => !def.group || (arr[+a.dataset.i][def.group] || def.groupDefault || 'weekday') === (arr[+b.dataset.i][def.group] || def.groupDefault || 'weekday'));
   // אחרי שהגלילה של freshPanel חזרה למקומה (microtask) – ממקמים את הפריט הרלוונטי
   if (opts) queueMicrotask(() => {
     const id = opts.focusId || opts.anchorId;
@@ -709,7 +721,7 @@ function renderHome() {
   fit(); new ResizeObserver(fit).observe(pv);
   $('#panel').querySelectorAll('[data-go]').forEach((b) => b.onclick = () => {
     tab = b.dataset.go; renderNav();
-    if (b.hasAttribute('data-new') && LISTS[tab]) { const it = LISTS[tab].blank(); DATA[tab].push(it); openIds.add(it.id); setDirty(); renderList(tab, { focusId: it.id }); updateCounts(); }
+    if (b.hasAttribute('data-new') && LISTS[tab]) { const it = LISTS[tab].blank(); (DATA[LISTS[tab].data || tab] ||= []).push(it); openIds.add(it.id); setDirty(); renderList(tab, { focusId: it.id }); updateCounts(); }
     else renderPanel();
   });
 }
@@ -833,7 +845,7 @@ function renderBackup() {
 }
 
 // ---------- ניווט ----------
-function countOf(k) { return Array.isArray(DATA?.[k]) ? DATA[k].length : null; }
+function countOf(k) { const d = LISTS[k]; const a = DATA?.[d?.data || k]; return Array.isArray(a) ? (d?.filter ? a.filter(d.filter).length : a.length) : null; }
 function renderNav() {
   const nav = $('#tabs');
   nav.hidden = false;

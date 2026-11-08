@@ -460,10 +460,11 @@ function bindRichText(rt) {
     ta.focus(); ta.setSelectionRange(r.before.length, r.before.length + r.sel.length);
     ta.dispatchEvent(new Event('input', { bubbles: true }));
   };
+  // הסימון נשאר על המילים עצמן (בלי הסימנים) – כך לחיצה נוספת מבטלת/מחליפה במקום לעטוף שוב
   const wrap = (open, close) => apply((before, sel, after) => {
     if (before.endsWith(open) && after.startsWith(close)) return { before: before.slice(0, -open.length), sel, after: after.slice(close.length) }; // כבר מעוצב – מסיר
     if (sel.startsWith(open) && sel.endsWith(close) && sel.length > open.length + close.length) return { before, sel: sel.slice(open.length, -close.length), after };
-    return { before, sel: open + sel + close, after };
+    return { before: before + open, sel, after: close + after };
   });
   rt.querySelectorAll('button').forEach((btn) => {
     btn.addEventListener('pointerdown', (e) => e.preventDefault()); // שומר על הסימון בתיבה
@@ -471,12 +472,14 @@ function bindRichText(rt) {
     btn.addEventListener('click', () => {
       if (btn.dataset.wrap) wrap(btn.dataset.wrap, btn.dataset.wrap);
       else if (btn.dataset.color) apply((before, sel, after) => {
-        const m = before.match(/\[\[(\w+):$/);
-        if (m && after.startsWith(']]')) { // כבר צבוע – מחליף צבע או מסיר אם זה אותו צבע
-          const base = before.slice(0, -m[0].length);
-          return m[1] === btn.dataset.color ? { before: base, sel, after: after.slice(2) } : { before: `${base}[[${btn.dataset.color}:`, sel, after };
-        }
-        return { before, sel: `[[${btn.dataset.color}:${sel}]]`, after };
+        const color = btn.dataset.color;
+        let b = before, a = after, s = sel, prev = null, m;
+        // מקלף צבעים קודמים – מבפנים ומבחוץ – כדי שלא ייווצרו צבעים בתוך צבעים
+        while ((m = s.match(/^\[\[(\w+):([\s\S]*)\]\]$/))) { prev ||= m[1]; s = m[2]; }
+        while ((m = b.match(/\[\[(\w+):$/)) && a.startsWith(']]')) { prev ||= m[1]; b = b.slice(0, -m[0].length); a = a.slice(2); }
+        s = s.replace(/\[\[\w+:|\]\]/g, '');
+        if (prev === color) return { before: b, sel: s, after: a }; // אותו צבע שוב – מסיר
+        return { before: `${b}[[${color}:`, sel: s, after: `]]${a}` };
       });
       else if ('clear' in btn.dataset) apply((before, sel, after) => {
         let b2 = before, a2 = after;

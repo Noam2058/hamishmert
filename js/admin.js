@@ -360,7 +360,7 @@ function fieldHtml(item, [key, label, type, opts], path) {
     const off = +(t.offset || 0), round = +(t.round || 0), basis = t.basis || 'day';
     const opt = (list, cur) => list.map(([k, l]) => `<option value="${k}" ${String(cur) === String(k) ? 'selected' : ''}>${l}</option>`).join('');
     const weekly = !['friday', 'shabbat'].includes(item.schedule);
-    const ex = (dir) => { const m = 5 * 60 + 38, st = round || 5; const r = dir === 'up' ? Math.ceil(m / st) * st : dir === 'nearest' ? Math.round(m / st) * st : Math.floor(m / st) * st; return `05:38 ← ${minToHhmm(r)}`; };
+    const ex = (dir) => { const m = 5 * 60 + 38, st = round || 5; const r = dir === 'up' ? Math.ceil(m / st) * st : dir === 'nearest' ? Math.round(m / st) * st : Math.floor(m / st) * st; return `05:38 יהיה ${minToHhmm(r)}`; };
     const advOpen = advIds.has(item.id) || round > 0 || (weekly && basis !== 'day');
     input = `<div class="timebox" data-k="${key}" data-type="time">
       <div class="tb-main">
@@ -396,7 +396,7 @@ function fieldHtml(item, [key, label, type, opts], path) {
       <select data-f="size" aria-label="גודל">${ANN_SIZES.map(([k, l]) => `<option value="${k}" ${f.size === k ? 'selected' : ''}>גודל: ${l}</option>`).join('')}</select>
       <select data-f="font" aria-label="גופן">${ANN_FONTS.map(([k, l, fam]) => `<option value="${k}" ${f.font === k ? 'selected' : ''} style="font-family:'${fam}'">גופן: ${l}</option>`).join('')}</select>
       <span class="swatches" role="radiogroup" aria-label="רקע">${ANN_BGS.map(([k, l, c]) => `<label title="רקע: ${l}"><input type="radio" data-f="bg" name="${id}-bg" value="${k}" ${f.bg === k ? 'checked' : ''}><i class="sw ${k === 'auto' ? 'auto' : ''}" style="${c ? `background:${c}` : ''}"></i></label>`).join('')}</span>
-    </div><small class="muted">בתוך הטקסט אפשר גם להדגיש מילים בודדות: <b>**מודגש**</b> · <u>__קו תחתון__</u></small>`;
+    </div><small class="muted">להדגשת מילים בודדות בתוך הטקסט: כוכביות כפולות משני הצדדים (<bdi dir="rtl">**כך**</bdi>). לקו תחתון: קווים תחתונים כפולים (<bdi dir="rtl">__כך__</bdi>).</small>`;
   }
   const full = type === 'textarea' || type === 'time' || type === 'weekdays' || type === 'fit' || type === 'annfmt' ? ' full' : '';
   return `<div class="fld${full}"><span>${esc(label)}</span>${input}</div>`;

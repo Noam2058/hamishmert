@@ -93,7 +93,9 @@ export const SCREENS = {
     const gr = greetingFor(ctx);
     if (!gr) return null;
     let img = '';
-    try { img = greetingArt(gr.kind, { lit: gr.lit }); } catch { /* */ }
+    // ספר התורה במסך הכניסה – תמונה אמיתית (img/torah.webp); בחגים – האיורים המצוירים
+    if (gr.kind === 'torah') img = 'img/torah.webp';
+    else { try { img = greetingArt(gr.kind, { lit: gr.lit }); } catch { /* */ } }
     return `<div class="greet">
       ${img ? `<img class="art" src="${img}" alt="">` : ''}
       <div class="words"><div class="gt">${esc(gr.title)}</div>${flourish}<div class="gs">${esc(gr.sub || '')}</div>

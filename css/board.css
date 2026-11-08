@@ -490,3 +490,5 @@ html, body, #viewport { touch-action: manipulation; -webkit-tap-highlight-color:
 .mo-ch { font: 700 44px var(--display); color: var(--ink-soft); }
 .mo-rc { font: 700 46px var(--display); } .mo-rc span { font: 600 32px var(--body); color: var(--ink-soft); margin-inline-start: 10px; }
 .mo-note { font: 600 28px var(--body); color: var(--ink-soft); margin-top: 8px; }
+/* ספר התורה במסך הכניסה (תמונה) – מעט קטן יותר מהאיורים, כדי שלא יגע בכותרת ובפס */
+.greet .art[src$="torah.webp"] { max-height: 740px; justify-self: center; width: auto; max-width: 100%; }

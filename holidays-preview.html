@@ -32,8 +32,9 @@
 import { holidayOccurrences } from './js/holidays.js';
 import { HDate } from './js/lib.js';
 const q = location.search.replace(/^\?/, '');
-const occ = holidayOccurrences(new Date(), 400, true);
-const first = (k) => occ.find((o) => o.key === k);
+const occ = holidayOccurrences(new Date(), 800, true);
+// מעדיפים יום שאינו שבת (בשבת הלוח מציג את עיצוב השבת), ובחנוכה – יום באמצע החג
+const first = (k) => { const all = occ.filter((o) => o.key === k); const pool = k === 'chanuka' ? all.slice(2) : all; return pool.find((o) => o.date.getDay() !== 6 && o.date.getDay() !== 5) || pool.find((o) => o.date.getDay() !== 6) || all[0]; };
 const ymd = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 // [שם, תאריך, שעה, שקופיות]
 const items = [];

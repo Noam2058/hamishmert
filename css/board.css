@@ -431,8 +431,10 @@ html, body, #viewport { touch-action: manipulation; -webkit-tap-highlight-color:
 .halacha { min-height: 0; justify-content: safe center; } /* בלי overflow:hidden – אחרת הסמל המעוטר בראש הכרטיס נחתך */
 .halacha > * { flex-shrink: 0; } /* בלי כיווץ – אחרת הטקסט גולש על שורת המקור */
 /* מסך משולב: מרווח גדול יותר מהעיטורים התחתונים, שורות מעט צפופות יותר */
-.g-combined > .card { padding-bottom: 104px; }
-.g-combined .rows.compact .row { padding: 6px 6px; }
+.g-combined > .card { padding-bottom: 96px; }
+/* רשימה ארוכה (זמני היום) – השורות מתפרסות על כל הגובה הפנוי, במרווחים שווים */
+.g-combined .card > .rows:has(.row:nth-child(6)) { flex: 1; justify-content: space-evenly; margin-top: -10px; }
+.g-combined .card > .rows:has(.row:nth-child(6)) .row { padding: 4px 6px; }
 /* שינויים בתפילה – כתובת על קלף: כל שינוי בשורה, ביניהם עיטור זהב */
 .body.changes { flex: 1; display: flex; flex-direction: column; justify-content: center; }
 .chg-list { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 0; }

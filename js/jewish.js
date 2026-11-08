@@ -1,6 +1,6 @@
 // מנוע לוח השנה העברי: זמני היום, תאריך, פרשה, הפטרה, חגים ושינויים בתפילה.
 import {
-  HDate, Zmanim, GeoLocation, Location, HebrewCalendar, getSedra, DailyLearning, flags,
+  HDate, Zmanim, GeoLocation, Location, HebrewCalendar, getSedra, DailyLearning, flags, Molad,
   gematriya, getLeyningOnDate,
   DafYomiEvent, MishnaYomiIndex, MishnaYomiEvent, NachYomiIndex, NachYomiEvent,
   dailyRambam1, DailyRambamEvent, chofetzChaim, ChofetzChaimEvent, dailyPsalms, PsalmsEvent,
@@ -315,6 +315,27 @@ export function dayTags(hd, holidays, dow, holidaysTomorrow = []) {
   else tags.push('weekday');
   if (dow === 0) tags.push('sunday');
   return tags;
+}
+
+// ---------- מולד וראש חודש (לשבת מברכים) ----------
+const DAY_NAMES = ['ראשון', 'שני', 'שלישי', 'רביעי', 'חמישי', 'שישי', 'שבת'];
+/** המולד וימי ראש החודש של החודש שאחרי השבת sat (HDate) */
+export function moladInfo(sat) {
+  let d = sat.next();
+  for (let i = 0; i < 31 && d.getDate() !== 1; i++) d = d.next();
+  const m = new Molad(d.getFullYear(), d.getMonth());
+  const month = renderHeb(d).replace(/^\S+\s+/, ''); // "א׳ כסלו" → "כסלו"
+  const rc = [];
+  const prev = d.prev();
+  if (prev.getDate() === 30) rc.push(prev);
+  rc.push(d);
+  const civ = (h) => { const g = h.greg(); return `${g.getDate()}.${g.getMonth() + 1}`; };
+  return {
+    month, dow: m.getDow(), dayName: DAY_NAMES[m.getDow()],
+    hour: m.getHour(), minutes: m.getMinutes(), chalakim: m.getChalakim(),
+    time: `${String(m.getHour()).padStart(2, '0')}:${String(m.getMinutes()).padStart(2, '0')}`,
+    rc: rc.map((h) => ({ dayName: DAY_NAMES[h.getDay()], heb: renderHeb(h), civil: civ(h) })),
+  };
 }
 
 // ---------- הלימוד היומי ----------

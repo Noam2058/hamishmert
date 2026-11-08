@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>דף שבועי להדפסה</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Frank+Ruhl+Libre:wght@500;700;900&family=Assistant:wght@500;600;700;800&display=swap">
+<link rel="stylesheet" href="css/print.css">
+<script src="config.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.js"></script>
+</head>
+<body>
+<div class="toolbar no-print">
+  <a class="tb-btn" id="back" href="admin.html">→ חזרה לממשק</a>
+  <span class="tb-sep"></span>
+  <button class="tb-btn" data-week="0">השבוע</button>
+  <button class="tb-btn" data-week="1">השבוע הבא</button>
+  <span class="tb-sep"></span>
+  <label class="tb-check"><input type="checkbox" id="opt-anns" checked> הודעות</label>
+  <label class="tb-check"><input type="checkbox" id="opt-zmanim" checked> טבלת זמנים</label>
+  <span class="tb-grow"></span>
+  <button class="tb-btn primary" onclick="print()">🖨 הדפס / שמור כ-PDF</button>
+</div>
+<main id="sheet" class="sheet"><p class="loading">טוען…</p></main>
+<script type="module" src="js/print.js"></script>
+</body>
+</html>

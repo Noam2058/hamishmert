@@ -1,5 +1,5 @@
 // דף המתפללים: כל מה שבלוח, מסודר לטלפון.
-import { computeDay, fmtTime, minutesOf, ZMAN_LABEL, ZMANIM, inHebrewRange, yahrzeitIn, birthdayIn, renderHeb, minToHhmm } from './jewish.js';
+import { moladInfo, computeDay, fmtTime, minutesOf, ZMAN_LABEL, ZMANIM, inHebrewRange, yahrzeitIn, birthdayIn, renderHeb, minToHhmm } from './jewish.js';
 import { prayersForDay, weeklyPrayers, resolveTime, daysLabel } from './prayers.js';
 import { HDate } from './lib.js';
 import { load, subscribe } from './store.js';
@@ -22,10 +22,52 @@ const I = {
   scroll: '<path d="M6 3h9l3 3v15H6z"/><path d="M15 3v3h3M9 11h6M9 15h6"/>',
   calendar: '<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/>',
   people: '<circle cx="9" cy="8" r="3"/><path d="M3 20a6 6 0 0112 0M16 4a3 3 0 010 6M21 20a6 6 0 00-4-5.6"/>',
+  whatsapp: '<path d="M20 11.5a8.5 8.5 0 01-12.6 7.4L3 20l1.2-4.2A8.5 8.5 0 1120 11.5z"/><path d="M9 8.5c0 3.5 3 6.5 6.5 6.5l1-1.5-2-1-1 .8a4 4 0 01-2.3-2.3l.8-1-1-2z"/>',
+  calplus: '<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4M12 13v5M9.5 15.5h5"/>',
   share: '<circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.6 13.5l6.8 4M15.4 6.5l-6.8 4"/>',
   phone: '<rect x="7" y="2.5" width="10" height="19" rx="2"/><path d="M11 18h2"/>',
 };
 const icon = (k) => `<svg viewBox="0 0 24 24" aria-hidden="true">${I[k]}</svg>`;
+// ---------- קהילה: וואטסאפ ויומן ----------
+const BYDAY = ['SU', 'MO', 'TU', 'WE', 'TH', 'FR', 'SA'];
+const icsEsc = (t) => String(t || '').replace(/[\;,]/g, (c) => `\\${c}`).replace(/\n/g, '\\n');
+const VTZ = 'BEGIN:VTIMEZONE\r\nTZID:Asia/Jerusalem\r\nBEGIN:DAYLIGHT\r\nTZOFFSETFROM:+0200\r\nTZOFFSETTO:+0300\r\nTZNAME:IDT\r\nDTSTART:19700327T020000\r\nRRULE:FREQ=YEARLY;BYMONTH=3;BYMONTHDAY=23,24,25,26,27,28,29;BYDAY=FR\r\nEND:DAYLIGHT\r\nBEGIN:STANDARD\r\nTZOFFSETFROM:+0300\r\nTZOFFSETTO:+0200\r\nTZNAME:IST\r\nDTSTART:19701025T020000\r\nRRULE:FREQ=YEARLY;BYMONTH=10;BYDAY=-1SU\r\nEND:STANDARD\r\nEND:VTIMEZONE';
+/** קובץ יומן לשיעור קבוע – אירוע שבועי בימים שלו, מהפעם הקרובה */
+function lessonIcs(l, s, now) {
+  const days = l.weekdays?.length ? l.weekdays : [0, 1, 2, 3, 4, 5, 6];
+  let off = 0; const base = computeDay(now, s).civil;
+  while (off < 7 && !days.includes((base.getDay() + off) % 7)) off++;
+  const d = computeDay(new Date(base.getTime() + off * 86400000), s);
+  const min = resolveTime(l.time, d.civil, s, { candles: d.shabbat.candles, havdalah: d.shabbat.havdalah });
+  if (min == null) return null;
+  const c = d.civil, p2 = (n) => String(n).padStart(2, '0');
+  const dt = (m) => `${c.getFullYear()}${p2(c.getMonth() + 1)}${p2(c.getDate())}T${p2(Math.floor(m / 60) % 24)}${p2(m % 60)}00`;
+  const varies = l.time?.type === 'zman';
+  const desc = [l.teacher && `מעביר: ${l.teacher}`, l.note, varies && 'השעה משתנה לפי זמני היום – השעה המעודכנת בלוח ובדף המתפללים', location.href.split('#')[0]].filter(Boolean).join('\n');
+  return ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//shulboard//he', 'CALSCALE:GREGORIAN', VTZ, 'BEGIN:VEVENT',
+    `UID:${l.id || Math.random().toString(36).slice(2)}@shulboard`, `DTSTAMP:${new Date().toISOString().replace(/[-:]/g, '').slice(0, 15)}Z`,
+    `DTSTART;TZID=Asia/Jerusalem:${dt(min)}`, `DTEND;TZID=Asia/Jerusalem:${dt(min + 60)}`,
+    `RRULE:FREQ=WEEKLY;BYDAY=${days.map((x) => BYDAY[x]).join(',')}`,
+    `SUMMARY:${icsEsc(l.title)}`, `LOCATION:${icsEsc([s.name, s.city].filter(Boolean).join(', '))}`, `DESCRIPTION:${icsEsc(desc)}`,
+    'BEGIN:VALARM', 'TRIGGER:-PT15M', 'ACTION:DISPLAY', `DESCRIPTION:${icsEsc(l.title)}`, 'END:VALARM',
+    'END:VEVENT', 'END:VCALENDAR'].join('\r\n');
+}
+function downloadIcs(text, name) {
+  const url = URL.createObjectURL(new Blob([text], { type: 'text/calendar;charset=utf-8' }));
+  const a = document.createElement('a'); a.href = url; a.download = `${name.replace(/[\\/:*?"<>|]/g, '')}.ics`;
+  document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(url), 5000);
+}
+/** הודעת וואטסאפ עם זמני השבת */
+function shabbatText(s, sh, weekly, isShabbat) {
+  const lines = [`*${s.name || 'בית הכנסת'}*`];
+  if (sh.parsha) lines.push(sh.parshaIsChag ? sh.parsha : `שבת פרשת ${sh.parsha}${sh.date ? ` · ${renderHeb(sh.date)}` : ''}`);
+  lines.push('', `🕯️ ${sh.candlesLabel || 'הדלקת נרות'}: ${fmtTime(sh.candles, s.tz, 'floor')}`, `✨ צאת ${isShabbat ? 'השבת' : 'החג'}: ${fmtTime(sh.havdalah, s.tz, 'ceil')}`);
+  if (weekly.friday.length) lines.push('', '*ערב שבת*', ...weekly.friday.map((p) => `${p.name} – ${p.time}`));
+  if (weekly.shabbat.length) lines.push('', '*שבת*', ...weekly.shabbat.map((p) => `${p.name} – ${p.time}`));
+  lines.push('', `כל הזמנים וההודעות: ${location.href.split('#')[0]}`, 'שבת שלום! 🌿');
+  return lines.join('\n');
+}
+
 const row = (k, v, sub = '', cls = '') => `<div class="row ${cls}"><div class="k">${esc(k)}${sub ? `<small>${esc(sub)}</small>` : ''}</div><div class="v">${v}</div></div>`;
 const inText = (m) => { const mins = Math.max(0, Math.ceil(m)); return mins <= 0 ? 'עכשיו' : mins < 60 ? `בעוד ${mins} דק׳` : `בעוד ${Math.floor(mins / 60)} שע׳${mins % 60 ? ` ו-${mins % 60} דק׳` : ''}`; };
 const isoOf = (d, tz) => d.toLocaleDateString('en-CA', { timeZone: tz });
@@ -105,8 +147,12 @@ function render() {
         ${sh.haftarah && !sh.parshaIsChag ? `<div class="haft">הפטרה: ${esc(sh.haftarah)}</div>` : ''}
         ${specials.length ? `<div class="chips center">${specials.map((x) => `<span class="chip">${esc(x)}</span>`).join('')}</div>` : ''}
         <div class="two"><div><small>${esc(sh.candlesLabel || 'הדלקת נרות')}</small><b>${fmtTime(sh.candles, s.tz, 'floor')}</b></div><div><small>צאת ${isShabbat ? 'השבת' : 'החג'}</small><b>${fmtTime(sh.havdalah, s.tz, 'ceil')}</b></div></div>
+        ${(() => { if (!sh.mevarchim?.length || !sh.date) return ''; try { const m = moladInfo(sh.date); return `<div class="molad-box"><div class="sub-h">שבת מברכים – חודש ${esc(m.month)}</div>
+          <div class="rows">${row('המולד', `<span style="font:700 16px var(--body);direction:rtl">יום ${esc(m.dayName)} ${esc(m.time)} ו־${m.chalakim} חלקים</span>`)}
+          ${row('ראש חודש', `<span style="font:700 16px var(--body);direction:rtl">${m.rc.map((r) => `${r.dayName} (${r.heb})`).join(' ו')}</span>`)}</div></div>`; } catch { return ''; } })()}
         ${weekly.friday.length || weekly.shabbat.length ? `<div class="sub-h">ערב שבת</div><div class="rows">${weekly.friday.map((p) => row(p.name, esc(p.time), p.note)).join('')}</div>
           <div class="sub-h">שבת</div><div class="rows">${weekly.shabbat.map((p) => row(p.name, esc(p.time), p.note)).join('')}</div>` : ''}
+        <a class="btn wa" id="wa-shabbat" target="_blank" rel="noopener" href="https://wa.me/?text=${encodeURIComponent(shabbatText(s, sh, weekly, isShabbat))}">${icon('whatsapp')}שלח את זמני השבת בוואטסאפ</a>
       </section>
 
       ${hols.length ? `<section class="card" id="t-hol"><h2>${icon('calendar')}תפילות החג</h2>
@@ -140,7 +186,8 @@ function render() {
 
       ${day.learning?.length ? `<section class="card"><h2>${icon('book')}הלימוד היומי</h2><div class="rows">${day.learning.map((l) => row(l.label, `<span style="font:700 17px var(--body);direction:rtl">${esc(l.text)}</span>`)).join('')}</div></section>` : ''}
 
-      ${lessons.length ? `<section class="card" id="t-les"><h2>${icon('book')}שיעורים קבועים</h2><div class="rows">${lessons.map((l) => row(l.title, esc(l.timeStr), [daysLabel(l.weekdays), l.teacher, l.note].filter(Boolean).join(' · '))).join('')}</div></section>` : ''}
+      ${lessons.length ? `<section class="card" id="t-les"><h2>${icon('book')}שיעורים קבועים</h2><div class="rows">${lessons.map((l, i) => row(l.title, `${esc(l.timeStr)}<button type="button" class="ics" data-ics="${i}" title="הוסף ליומן" aria-label="הוסף את ${esc(l.title)} ליומן">${icon('calplus')}</button>`, [daysLabel(l.weekdays), l.teacher, l.note].filter(Boolean).join(' · '))).join('')}</div>
+        <div class="muted" style="font-size:13px">לחיצה על סמל היומן ליד השעה מוסיפה את השיעור ליומן בטלפון, עם תזכורת רבע שעה לפני.</div></section>` : ''}
 
       ${mem.length || bdays.length || hil.length ? `<section class="card people"><h2>${icon('people')}השבוע בקהילה</h2><div class="rows">
         ${mem.map((m) => row(`${m.name} ז״ל`, esc(renderHeb(m.hdate)), m.by ? `אזכרה · ${m.by}` : 'אזכרה')).join('')}
@@ -165,6 +212,7 @@ function render() {
 
   // אירועים
   $('.wrap').querySelectorAll('[data-img]').forEach((b) => b.onclick = () => { const v = $('#viewer'); v.querySelector('img').src = slides[+b.dataset.img].url; v.showModal?.(); });
+  $('.wrap').querySelectorAll('[data-ics]').forEach((b) => b.onclick = () => { const l = lessons[+b.dataset.ics]; const t = lessonIcs(l, s, new Date()); if (t) downloadIcs(t, l.title || 'שיעור'); });
   $('#t-zmanim details')?.addEventListener('toggle', (e) => { try { localStorage.setItem('m:z', e.target.open ? '1' : '0'); } catch {} });
   $('#share').onclick = async () => {
     const data = { title: s.name || 'בית הכנסת', text: `זמני תפילות והודעות – ${s.name || 'בית הכנסת'}`, url: location.href.split('#')[0] };

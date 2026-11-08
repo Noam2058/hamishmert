@@ -36,6 +36,7 @@ const I = {
   display: '<rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4"/>',
   backup: '<path d="M12 3v12M7 10l5 5 5-5"/><path d="M4 17v3h16v-3"/>',
   slides: '<rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="10" r="2"/><path d="M21 16l-5-5-9 9"/>',
+  print: '<path d="M6 9V3h12v6"/><rect x="3" y="9" width="18" height="8" rx="2"/><path d="M6 14h12v7H6z"/>',
   upload: '<path d="M12 16V4M7 9l5-5 5 5"/><path d="M4 16v4h16v-4"/>',
   grip: '<circle cx="9" cy="6" r="1.3"/><circle cx="15" cy="6" r="1.3"/><circle cx="9" cy="12" r="1.3"/><circle cx="15" cy="12" r="1.3"/><circle cx="9" cy="18" r="1.3"/><circle cx="15" cy="18" r="1.3"/>',
   plus: '<path d="M12 5v14M5 12h14"/>',
@@ -684,7 +685,7 @@ function renderHome() {
   const zrow = (k, l) => { const v = day?.zmanim?.[k]; return v ? `<div class="pill"><small>${l}</small><b>${fmtTime(v, tz, k === 'sunrise' ? 'ceil' : 'nearest')}</b></div>` : ''; };
   const q = location.search;
   $('#panel').innerHTML = `
-    ${head('סקירה', '', `<button class="btn" data-go="announcements" data-new>${icon('plus')}הודעה</button><button class="btn" data-go="memorials" data-new>${icon('plus')}אזכרה</button><button class="btn" data-go="lessons" data-new>${icon('plus')}שיעור</button>`)}
+    ${head('סקירה', '', `<a class="btn" href="print.html${esc(location.search)}" target="_blank" rel="noopener">${icon('print')}דף שבועי להדפסה</a><button class="btn" data-go="announcements" data-new>${icon('plus')}הודעה</button><button class="btn" data-go="memorials" data-new>${icon('plus')}אזכרה</button><button class="btn" data-go="lessons" data-new>${icon('plus')}שיעור</button>`)}
     <section class="card hero-today">
       <div><div class="sub">${esc(day ? day.weekday : '')}</div><div class="hd">${esc(day ? day.hebDate : '')}</div>
       <div class="sub">${esc(day?.gregDate || '')}${sh.parsha ? ` · פרשת ${esc(sh.parsha)}` : ''}${day?.events?.length ? ` · ${esc(day.events.join(' · '))}` : ''}</div></div>
@@ -921,6 +922,7 @@ $('#btn-signup').onclick = async () => {
 const q = location.search;
 $('#lnk-board').href = (window.SHUL_CONFIG?.boardPage || 'index.html') + q;
 $('#lnk-mobile').href = 'm.html' + q;
+$('#lnk-print').href = 'print.html' + q;
 window.__adminReady = true;
 enter().catch((e) => flash('שגיאה: ' + e.message, true));
 

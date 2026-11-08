@@ -1,6 +1,6 @@
 // המסכים של הלוח. כל מסך מחזיר HTML, מערך של שקפים, או null כשאין מה להציג.
 import { cachedHalacha, DEFAULT_START } from './halacha-sa.js';
-import { computeDay, minToHhmm, fmtTime, minutesOf, ZMAN_LABEL, ZMANIM, inHebrewRange, yahrzeitIn, birthdayIn, renderHeb, hhmmToMin } from './jewish.js';
+import { moladInfo, computeDay, minToHhmm, fmtTime, minutesOf, ZMAN_LABEL, ZMANIM, inHebrewRange, yahrzeitIn, birthdayIn, renderHeb, hhmmToMin } from './jewish.js';
 import { HDate } from './lib.js';
 import { daysLabel, resolveTime } from './prayers.js';
 import { cachedMishna } from './mishna.js';
@@ -155,6 +155,25 @@ export const SCREENS = {
         </section>
         <section class="card side"><div class="label">צאת ${isShabbat ? 'השבת' : 'החג'}</div><div class="time">${fmtTime(sh.havdalah, s.tz, 'ceil')}</div>
           <div class="label">${s.havdalahMins ? `${s.havdalahMins} דק' אחרי השקיעה` : 'צאת הכוכבים'}</div></section>
+      </div>`;
+  },
+
+  molad(ctx) {
+    const sh = ctx.day.shabbat;
+    if (!sh.mevarchim?.length || !sh.date) return null;
+    let m; try { m = moladInfo(sh.date); } catch { return null; }
+    const rcDays = m.rc.length > 1 ? `ביום ${m.rc[0].dayName} וביום ${m.rc[1].dayName}` : `ביום ${m.rc[0].dayName}`;
+    return `${title(`שבת מברכים – חודש ${m.month}`)}
+      <div class="grid g2 molad">
+        <section class="card"><h3>המולד</h3><div class="body mo">
+          <div class="mo-day">יום ${esc(m.dayName)}</div>
+          <div class="time">${esc(m.time)}</div>
+          <div class="mo-ch">ו־${m.chalakim} חלקים</div>
+          <div class="mo-note">לפי שעון ירושלים</div></div></section>
+        <section class="card"><h3>ראש חודש ${esc(m.month)}</h3><div class="body mo">
+          <div class="mo-day">${esc(rcDays)}</div>
+          ${m.rc.map((r) => `<div class="mo-rc"><b>${esc(r.heb)}</b> <span>${esc(r.civil)}</span></div>`).join('')}
+          <div class="mo-note">יהי רצון שיחדש עלינו חודש טוב</div></div></section>
       </div>`;
   },
 

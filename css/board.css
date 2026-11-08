@@ -456,3 +456,11 @@ html, body, #viewport { touch-action: manipulation; -webkit-tap-highlight-color:
 .card.hol .pillw { display: inline-block; font: 800 26px var(--body); color: var(--next-ink); background: color-mix(in srgb, var(--gold) 16%, transparent); padding: 2px 16px; border-radius: 999px; margin-inline-end: 6px; }
 .card.hol .pillw.now { background: var(--next-ink); color: #fff; }
 .card.hol > .rows { margin-block: auto; }
+/* מולד */
+.molad .card { justify-content: flex-start; }
+.molad .body.mo { flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; gap: 10px; }
+.mo-day { font: 900 56px/1.15 var(--display); }
+.molad .time { font: 900 120px/1 var(--display); color: var(--time-ink); font-variant-numeric: tabular-nums; direction: ltr; }
+.mo-ch { font: 700 44px var(--display); color: var(--ink-soft); }
+.mo-rc { font: 700 46px var(--display); } .mo-rc span { font: 600 32px var(--body); color: var(--ink-soft); margin-inline-start: 10px; }
+.mo-note { font: 600 28px var(--body); color: var(--ink-soft); margin-top: 8px; }

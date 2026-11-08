@@ -153,6 +153,7 @@ function stageScale() {
 }
 document.fonts?.ready.then(layoutTicker);
 document.fonts?.addEventListener?.('loadingdone', layoutTicker);
+document.fonts?.addEventListener?.('loadingdone', () => { if (current?.el) fitText(current.el); });
 addEventListener('resize', () => { clearTimeout(layoutTicker.t); layoutTicker.t = setTimeout(layoutTicker, 300); });
 
 // ---------- רוטציה ----------
@@ -209,6 +210,15 @@ function applyBg(item, index) {
   if (n) setTimeout(() => bgFor(n, (index + 1) % queue.length).catch(() => {}), 1500);
 }
 
+/** מקטין את הטקסט בכרטיס הלכה/משנה עד שהכרטיס כולו (כולל המקור והעיטורים) נכנס במקום */
+function fitText(root) {
+  root.querySelectorAll('.halacha .x').forEach((x) => {
+    const card = x.closest('.card');
+    let size = parseFloat(getComputedStyle(x).fontSize), guard = 0;
+    while (card.scrollHeight > card.clientHeight + 1 && size > 22 && guard++ < 40) { size -= 1.5; x.style.fontSize = `${size}px`; }
+  });
+}
+
 function show(next) {
   const host = $('#screens');
   const el = document.createElement('div');
@@ -216,6 +226,7 @@ function show(next) {
   $('#stage').classList.toggle('fullslide', !!next.full);
   el.innerHTML = next.html;
   host.appendChild(el);
+  fitText(el);
   void el.offsetWidth; // מאלץ ציור לפני המעבר
   el.classList.add('on');
   const prev = current;
@@ -246,7 +257,7 @@ function advance(step = 1) {
   let idx = queue.findIndex((x) => x.key === lastKey);
   qi = ((idx < 0 && step < 0 ? 0 : idx) + step + queue.length) % queue.length;
   if (queue.length === 1 && current?.key === queue[0].key) {
-    current.el.innerHTML = queue[0].html; // רענון תוכן בלי מעבר
+    current.el.innerHTML = queue[0].html; fitText(current.el); // רענון תוכן בלי מעבר
   } else {
     show(queue[qi]);
   }

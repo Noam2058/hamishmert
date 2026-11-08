@@ -178,7 +178,7 @@ export const SCREENS = {
   },
 
   neshama(ctx) {
-    return annSlides(ctx, ctx.data.dedications || [], title('לעילוי נשמת'));
+    return annSlides(ctx, ctx.data.dedications || [], '');
   },
 
   announcements(ctx) {

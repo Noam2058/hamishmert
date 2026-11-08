@@ -12,9 +12,13 @@ const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '
 const title = (t) => `<div class="screen-title"><span>${esc(t)}</span></div>`;
 const flourish = '<svg class="flourish" viewBox="0 0 260 18" aria-hidden="true"><path d="M0 9h100M160 9h100" stroke="currentColor" stroke-width="2"/><path d="M130 2l7 7-7 7-7-7z" fill="currentColor"/><circle cx="112" cy="9" r="3" fill="currentColor"/><circle cx="148" cy="9" r="3" fill="currentColor"/></svg>';
 /** שינויים בתפילה – רשימה מעוצבת: כל שינוי בשורה משלו, מופרד בעיטור זהב. extra: [{t, v}] (שעה/מידע נוסף) */
+const ribbon = (html, i = 0) => `<div class="ribbon c${i % 5}"><span class="rb-body">${html}</span></div>`;
+const capsule = (t) => `<div class="capsule"><span>${esc(t)}</span></div>`;
 const changesHtml = (changes, extra = []) => {
   if (!changes.length && !extra.length) return '<div class="chg-none">סדר התפילה הרגיל</div>';
-  return `<div class="chg-list">${changes.map((c) => `<div class="chg">${esc(c)}</div>`).join('')}${extra.map((x) => `<div class="chg extra">${esc(x.t)}${x.v ? ` <b>${esc(x.v)}</b>` : ''}</div>`).join('')}</div>`;
+  // כל שינוי – סרט צבעוני עם קצוות מסולסלים בזהב; הצבעים מתחלפים
+  let n = 0;
+  return `<div class="chg-list">${changes.map((c) => ribbon(esc(c), n++)).join('')}${extra.map((x) => ribbon(`${esc(x.t)}${x.v ? ` <b>${esc(x.v)}</b>` : ''}`, n++)).join('')}</div>`;
 };
 const candle = '<div class="candle" aria-hidden="true"><div class="flame"></div><div class="wax"></div></div>';
 
@@ -358,8 +362,11 @@ export const SCREENS = {
   learning(ctx) {
     const list = ctx.day.learning;
     if (!list.length) return null;
-    return `${title('הלימוד היומי')}<div class="grid" style="grid-template-columns:repeat(${Math.min(list.length, 3)},1fr);align-content:center">
-      ${list.map((l) => `<section class="card" style="text-align:center;align-items:center;justify-content:center;padding:44px 30px"><div class="label" style="font:700 34px var(--body);color:var(--ink-soft)">${esc(l.label)}</div><div style="font:900 62px/1.15 var(--display)">${esc(l.text)}</div></section>`).join('')}</div>`;
+    // כל לימוד: תווית זהב (שם הלימוד) ומתחתיה סרט צבעוני עם המקום היום
+    const cols = list.length > 3 ? 2 : 1;
+    const per = Math.ceil(list.length / cols);
+    const col = (items, off) => `<section class="card learn">${items.map((l, i) => `<div class="learn-item">${capsule(l.label)}${ribbon(esc(l.text), off + i + 1)}</div>`).join('')}</section>`;
+    return `${title('הלימוד היומי')}<div class="grid" style="grid-template-columns:repeat(${cols},1fr)">${col(list.slice(0, per), 0)}${cols > 1 ? col(list.slice(per), per) : ''}</div>`;
   },
 
   birthdays(ctx) {

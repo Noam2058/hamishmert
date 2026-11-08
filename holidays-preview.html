@@ -40,7 +40,8 @@ const items = [];
 const add = (name, date, time = '10:30', screens = 'greeting,combined,shabbat,zmanim') => { if (date) items.push([name, date, time, screens]); };
 const now = new Date();
 const nextDow = (dow) => { const d = new Date(now); d.setDate(d.getDate() + ((dow - d.getDay() + 7) % 7 || 7)); return d; };
-add('יום חול רגיל', nextDow(2), '10:30', 'greeting,combined,prayers,lessons');
+// יום חול רגיל – יום שלישי שאינו ראש חודש או חג
+{ let d = nextDow(2); for (let i = 0; i < 8; i++) { const h = new HDate(d); if (h.getDate() > 2 && h.getDate() < 29 && !occ.some((o) => o.date.toDateString() === d.toDateString())) break; d = new Date(d.getTime() + 7 * 86400000); } add('יום חול רגיל', d, '10:30', 'greeting,combined,prayers,lessons'); }
 add('ערב שבת', nextDow(5), '15:00', 'greeting,shabbat,combined');
 for (const [k, name, time, screens] of [
   ['rh1', 'ראש השנה', '10:30'], ['yk', 'יום כיפור', '11:00'], ['sukkot1', 'סוכות', '10:30'], ['shmini', 'שמחת תורה', '10:30'],

@@ -294,3 +294,20 @@ input[type="time"], input[type="date"] { -webkit-appearance: none; appearance: n
 input[type="time"]::-webkit-date-and-time-value, input[type="date"]::-webkit-date-and-time-value { text-align: right; min-height: 1.5em; }
 input, select, textarea { max-width: 100%; }
 .fld, .form-grid > *, .timebox, .tb-main, .tb-rel { min-width: 0; }
+.ann-pv.tc .t, .ann-pv.tc .b { color: var(--tc); }
+.ann-pv .b .big { font-size: 1.3em; line-height: 1.2; }
+.fmt-row { display: inline-flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.fmt-lbl { font: 800 13px var(--body); color: var(--soft); }
+.swatches .sw.auto-ink { background: linear-gradient(135deg, #1d2433 50%, #f3ecd9 50%); }
+/* סרגל עיצוב לחלק המסומן */
+.rt { display: flex; flex-direction: column; gap: 6px; }
+.rt-bar { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; padding: 6px 8px; border: 1px solid var(--line); border-bottom: 0; border-radius: 10px 10px 0 0; background: var(--surface-2); }
+.rt-bar + textarea { border-radius: 0 0 10px 10px; margin-top: -6px; }
+.rt-hint { font: 700 13px var(--body); color: var(--soft); margin-inline-end: 4px; }
+.rt-bar button { min-width: 36px; height: 34px; padding: 0 8px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); color: var(--ink); font: 800 16px var(--display); cursor: pointer; display: inline-grid; place-items: center; }
+.rt-bar button:hover { border-color: var(--gold); }
+.rt-bar button small { font-size: 11px; }
+.rt-colors { display: inline-flex; gap: 4px; }
+.rt-colors button { min-width: 30px; width: 30px; padding: 0; }
+.rt-colors i { width: 18px; height: 18px; border-radius: 50%; border: 1px solid rgba(0,0,0,.25); display: block; }
+.rt-bar .rt-clear { font: 700 13px var(--body); color: var(--soft); }

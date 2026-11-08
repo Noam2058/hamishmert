@@ -5,7 +5,7 @@ import { HDate } from './lib.js';
 import { daysLabel, resolveTime } from './prayers.js';
 import { cachedMishna } from './mishna.js';
 import { greetingArt } from './art.js';
-import { annActive, annBody, annClasses, annBig } from './ann.js';
+import { annActive, annBody, annClasses, annBig, annStyle } from './ann.js';
 
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const title = (t) => `<div class="screen-title"><span>${esc(t)}</span></div>`;
@@ -165,7 +165,7 @@ export const SCREENS = {
     const per = list.some((a) => (a.body || '').length > 140 || annBig(a)) ? 1 : 2;
     for (let i = 0; i < list.length; i += per) {
       slides.push(`<div class="ann-grid">${list.slice(i, i + per).map((a) => `
-        <section class="card ann ${esc(a.style || 'general')} ${annClasses(a)}">
+        <section class="card ann ${esc(a.style || 'general')} ${annClasses(a)}"${annStyle(a)}>
           ${a.style === 'memorial' ? candle : ''}
           ${a.title ? `<div class="t">${esc(a.title)}</div>${a.style !== 'memorial' ? flourish : ''}` : ''}
           <div class="b">${annBody(a.body)}</div>

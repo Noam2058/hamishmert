@@ -51,12 +51,26 @@ export function annWhen(a) {
   return `${civLabel(a.from) || '…'} – ${civLabel(a.to) || '…'}`;
 }
 
-/** טקסט ההודעה: **מודגש** ו-__קו תחתון__ */
+export const ANN_COLORS = [['auto', 'רגיל', ''], ['navy', 'כחול כהה', '#1b2f5c'], ['black', 'שחור', '#111111'], ['gold', 'זהב', '#9a6b12'], ['red', 'אדום', '#b3261e'],
+  ['green', 'ירוק', '#1f6b3a'], ['blue', 'כחול', '#1f5fb4'], ['purple', 'סגול', '#6a2c8a'], ['white', 'לבן', '#ffffff']];
+const COLOR_HEX = Object.fromEntries(ANN_COLORS.filter((c) => c[2]).map(([k, , h]) => [k, h]));
+
+/** טקסט ההודעה: **מודגש**, __קו תחתון__, ++גדול++ ו-[[red:צבע]] – על החלק שסומן בלבד */
 export function annBody(text) {
-  return esc(text).replace(/\*\*(.+?)\*\*/gs, '<b>$1</b>').replace(/__(.+?)__/gs, '<u>$1</u>');
+  let h = esc(text);
+  for (let i = 0; i < 3; i++) { // מאפשר קינון (צבע בתוך מודגש וכו')
+    h = h.replace(/\[\[(\w+):([\s\S]+?)\]\]/g, (m, c, t) => (COLOR_HEX[c] ? `<span style="color:${COLOR_HEX[c]}">${t}</span>` : t))
+      .replace(/\*\*([\s\S]+?)\*\*/g, '<b>$1</b>').replace(/__([\s\S]+?)__/g, '<u>$1</u>').replace(/\+\+([\s\S]+?)\+\+/g, '<span class="big">$1</span>');
+  }
+  return h;
+}
+/** סגנון צבע הטקסט של כל ההודעה */
+export function annStyle(a) {
+  const hex = COLOR_HEX[a.fmt?.color];
+  return hex ? ` style="--tc:${hex}"` : '';
 }
 
-export const ANN_DEFAULT_FMT = { align: 'center', size: 'm', bold: false, underline: false, font: 'body', bg: 'auto' };
+export const ANN_DEFAULT_FMT = { align: 'center', size: 'm', bold: false, underline: false, font: 'body', bg: 'auto', color: 'auto' };
 export const ANN_SIZES = [['s', 'קטן'], ['m', 'רגיל'], ['l', 'גדול'], ['xl', 'גדול מאוד']];
 export const ANN_FONTS = [['body', 'רגיל', 'Assistant'], ['display', 'קלאסי', 'Frank Ruhl Libre'], ['festive', 'חגיגי', 'Suez One']];
 export const ANN_BGS = [['auto', 'לפי הסגנון', ''], ['parchment', 'קלף', '#f6efdc'], ['white', 'לבן', '#ffffff'], ['gold', 'זהב', '#e9cf86'], ['sky', 'תכלת', '#d7e6f5'], ['mint', 'ירוק', '#d8ecd9'], ['rose', 'ורוד', '#f6dcdc'], ['blue', 'כחול לילה', '#1c3260'], ['wine', 'בורדו', '#6b1f2c'], ['dark', 'כהה', '#23283a']];
@@ -64,6 +78,6 @@ export const ANN_BGS = [['auto', 'לפי הסגנון', ''], ['parchment', 'קל
 /** מחלקות העיצוב של הודעה */
 export function annClasses(a) {
   const f = { ...ANN_DEFAULT_FMT, ...(a.fmt || {}) };
-  return [`al-${f.align}`, `sz-${f.size}`, `ff-${f.font}`, f.bold ? 'fw-b' : '', f.underline ? 'ul' : '', f.bg !== 'auto' ? `bg-${f.bg}` : ''].filter(Boolean).join(' ');
+  return [`al-${f.align}`, `sz-${f.size}`, `ff-${f.font}`, f.bold ? 'fw-b' : '', f.underline ? 'ul' : '', f.bg !== 'auto' ? `bg-${f.bg}` : '', COLOR_HEX[f.color] ? 'tc' : ''].filter(Boolean).join(' ');
 }
 export const annBig = (a) => ['l', 'xl'].includes(a.fmt?.size);

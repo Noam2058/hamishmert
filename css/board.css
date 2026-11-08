@@ -445,3 +445,6 @@ html, body, #viewport { touch-action: manipulation; -webkit-tap-highlight-color:
 .chg.extra b { font: 900 40px var(--display); color: var(--time-ink); font-variant-numeric: tabular-nums; margin-inline-start: 6px; }
 .chg-none { text-align: center; font: 600 34px var(--display); color: var(--ink-soft); }
 .g-combined .chg { font-size: 44px; }
+/* צבע טקסט שנבחר להודעה, והגדלה של חלק מסומן */
+.ann.tc .t, .ann.tc .b { color: var(--tc); }
+.ann .b .big { font-size: 1.3em; line-height: 1.2; }

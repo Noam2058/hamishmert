@@ -5,7 +5,7 @@ import { SCHEDULES, ZMAN_BASES, resolveTime, describeTime, prayersForDay, lesson
 import { ZMANIM, HEB_MONTHS, computeDay, minToHhmm, fmtTime, yahrzeitIn, birthdayIn, inHebrewRange, renderHeb } from './jewish.js';
 import { refForDate, heNum, DEFAULT_START } from './halacha-sa.js';
 import { SCENE_CHOICES } from './scenes.js';
-import { annActive, annWhen, annBody, annClasses, ANN_DEFAULT_FMT, ANN_SIZES, ANN_FONTS, ANN_BGS } from './ann.js';
+import { annActive, annWhen, annBody, annClasses, annStyle, ANN_DEFAULT_FMT, ANN_SIZES, ANN_FONTS, ANN_BGS, ANN_COLORS } from './ann.js';
 
 const $ = (s) => document.querySelector(s);
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -237,7 +237,7 @@ const LISTS = {
     rerender: ['dateMode'],
     preview: (it) => annPreviewHtml(it),
     fields: [['title', 'כותרת', 'text'], ['style', 'סגנון', 'select', [['general', 'רגיל'], ['simcha', 'שמחה'], ['memorial', 'אבל / אזכרה'], ['urgent', 'חשוב']]],
-      ['body', 'תוכן ההודעה', 'textarea'], ['fmt', 'עיצוב הטקסט והרקע', 'annfmt'],
+      ['fmt', 'עיצוב כל ההודעה', 'annfmt'], ['body', 'תוכן ההודעה', 'richtext'],
       ['dateMode', 'מתי להציג', 'select', [['civil', 'תמיד, או בין תאריכים לועזיים'], ['hebrew', 'לפי תאריך עברי – חוזר כל שנה']]],
       ['from', 'מתאריך (ריק = מעכשיו)', 'date', null, (it) => it.dateMode !== 'hebrew'], ['to', 'עד תאריך (ריק = תמיד)', 'date', null, (it) => it.dateMode !== 'hebrew'],
       ['hFrom', 'מיום (עברי)', 'hebdate', ['hFromDay', 'hFromMonth'], (it) => it.dateMode === 'hebrew'], ['hTo', 'עד יום (עברי, ריק = יום אחד)', 'hebdate', ['hToDay', 'hToMonth'], (it) => it.dateMode === 'hebrew']],
@@ -381,10 +381,20 @@ function fieldHtml(item, [key, label, type, opts], path) {
       <span class="seg"><label title="מודגש"><input type="checkbox" data-f="bold" ${f.bold ? 'checked' : ''}><b>B</b></label><label title="קו תחתון"><input type="checkbox" data-f="underline" ${f.underline ? 'checked' : ''}><u>U</u></label></span>
       <select data-f="size" aria-label="גודל">${ANN_SIZES.map(([k, l]) => `<option value="${k}" ${f.size === k ? 'selected' : ''}>גודל: ${l}</option>`).join('')}</select>
       <select data-f="font" aria-label="גופן">${ANN_FONTS.map(([k, l, fam]) => `<option value="${k}" ${f.font === k ? 'selected' : ''} style="font-family:'${fam}'">גופן: ${l}</option>`).join('')}</select>
-      <span class="swatches" role="radiogroup" aria-label="רקע">${ANN_BGS.map(([k, l, c]) => `<label title="רקע: ${l}"><input type="radio" data-f="bg" name="${id}-bg" value="${k}" ${f.bg === k ? 'checked' : ''}><i class="sw ${k === 'auto' ? 'auto' : ''}" style="${c ? `background:${c}` : ''}"></i></label>`).join('')}</span>
-    </div><small class="muted">להדגשת מילים בודדות בתוך הטקסט: כוכביות כפולות משני הצדדים (<bdi dir="rtl">**כך**</bdi>). לקו תחתון: קווים תחתונים כפולים (<bdi dir="rtl">__כך__</bdi>).</small>`;
+      <span class="fmt-row"><span class="fmt-lbl">צבע הטקסט</span><span class="swatches" role="radiogroup" aria-label="צבע הטקסט">${ANN_COLORS.map(([k, l, c]) => `<label title="צבע: ${l}"><input type="radio" data-f="color" name="${id}-tc" value="${k}" ${(f.color || 'auto') === k ? 'checked' : ''}><i class="sw ${k === 'auto' ? 'auto-ink' : ''}" style="${c ? `background:${c}` : ''}"></i></label>`).join('')}</span></span>
+      <span class="fmt-row"><span class="fmt-lbl">רקע</span><span class="swatches" role="radiogroup" aria-label="רקע">${ANN_BGS.map(([k, l, c]) => `<label title="רקע: ${l}"><input type="radio" data-f="bg" name="${id}-bg" value="${k}" ${f.bg === k ? 'checked' : ''}><i class="sw ${k === 'auto' ? 'auto' : ''}" style="${c ? `background:${c}` : ''}"></i></label>`).join('')}</span></span>
+    </div>`;
   }
-  const full = type === 'textarea' || type === 'time' || type === 'weekdays' || type === 'fit' || type === 'annfmt' ? ' full' : '';
+  else if (type === 'richtext') {
+    input = `<div class="rt"><div class="rt-bar" role="toolbar" aria-label="עיצוב החלק המסומן">
+        <span class="rt-hint">סמן מילים בטקסט ולחץ:</span>
+        <button type="button" data-wrap="**" title="מודגש"><b>B</b></button><button type="button" data-wrap="__" title="קו תחתון"><u>U</u></button><button type="button" data-wrap="++" title="גדול יותר">A<small>+</small></button>
+        <span class="rt-colors">${ANN_COLORS.filter((c) => c[2]).map(([k, l, c]) => `<button type="button" data-color="${k}" title="צבע: ${l}"><i style="background:${c}"></i></button>`).join('')}</span>
+        <button type="button" data-clear title="הסר עיצוב מהחלק המסומן" class="rt-clear">נקה</button></div>
+      <textarea id="${id}" data-k="${key}">${esc(v)}</textarea>
+      <small class="muted">הסימנים שמופיעים בטקסט (כמו <bdi>**</bdi> או <bdi>[[red:</bdi>) הם העיצוב – בתצוגה המקדימה ובלוח רואים את התוצאה.</small></div>`;
+  }
+  const full = type === 'textarea' || type === 'richtext' || type === 'time' || type === 'weekdays' || type === 'fit' || type === 'annfmt' ? ' full' : '';
   return `<div class="fld${full}"><span>${esc(label)}</span>${input}</div>`;
 }
 
@@ -405,7 +415,7 @@ function readField(el) {
   if (type === 'annfmt') {
     const q = (k) => el.querySelector(`[data-f="${k}"]`);
     return { align: el.querySelector('[data-f="align"]:checked')?.value || 'center', bold: q('bold').checked, underline: q('underline').checked,
-      size: q('size').value, font: q('font').value, bg: el.querySelector('[data-f="bg"]:checked')?.value || 'auto' };
+      size: q('size').value, font: q('font').value, bg: el.querySelector('[data-f="bg"]:checked')?.value || 'auto', color: el.querySelector('[data-f="color"]:checked')?.value || 'auto' };
   }
   if (el.type === 'checkbox') return el.checked;
   if (el.type === 'number') return el.value === '' ? '' : +el.value;
@@ -435,8 +445,51 @@ function calcText(item) {
   return `${describeTime(item.time)} · ${sd ? sd.label : 'היום'}: ${t || '—'}`;
 }
 
+/** סרגל עיצוב לחלק המסומן בתיבת טקסט: עוטף את הבחירה בסימנים (**, __, ++, [[צבע:…]]) */
+function bindRichText(rt) {
+  const ta = rt.querySelector('textarea');
+  const MARK = /\*\*|__|\+\+|\[\[\w+:|\]\]/g;
+  const apply = (fn) => {
+    let a = ta.selectionStart, b = ta.selectionEnd;
+    const s = ta.value;
+    while (a < b && /\s/.test(s[a])) a++; while (b > a && /\s/.test(s[b - 1])) b--; // בלי רווחים בקצוות
+    if (a === b) { flash('סמן קודם בתיבת הטקסט את המילים שתרצה לעצב'); ta.focus(); return; }
+    const [before, sel, after] = [s.slice(0, a), s.slice(a, b), s.slice(b)];
+    const r = fn(before, sel, after);
+    ta.value = r.before + r.sel + r.after;
+    ta.focus(); ta.setSelectionRange(r.before.length, r.before.length + r.sel.length);
+    ta.dispatchEvent(new Event('input', { bubbles: true }));
+  };
+  const wrap = (open, close) => apply((before, sel, after) => {
+    if (before.endsWith(open) && after.startsWith(close)) return { before: before.slice(0, -open.length), sel, after: after.slice(close.length) }; // כבר מעוצב – מסיר
+    if (sel.startsWith(open) && sel.endsWith(close) && sel.length > open.length + close.length) return { before, sel: sel.slice(open.length, -close.length), after };
+    return { before, sel: open + sel + close, after };
+  });
+  rt.querySelectorAll('button').forEach((btn) => {
+    btn.addEventListener('pointerdown', (e) => e.preventDefault()); // שומר על הסימון בתיבה
+    btn.addEventListener('mousedown', (e) => e.preventDefault());
+    btn.addEventListener('click', () => {
+      if (btn.dataset.wrap) wrap(btn.dataset.wrap, btn.dataset.wrap);
+      else if (btn.dataset.color) apply((before, sel, after) => {
+        const m = before.match(/\[\[(\w+):$/);
+        if (m && after.startsWith(']]')) { // כבר צבוע – מחליף צבע או מסיר אם זה אותו צבע
+          const base = before.slice(0, -m[0].length);
+          return m[1] === btn.dataset.color ? { before: base, sel, after: after.slice(2) } : { before: `${base}[[${btn.dataset.color}:`, sel, after };
+        }
+        return { before, sel: `[[${btn.dataset.color}:${sel}]]`, after };
+      });
+      else if ('clear' in btn.dataset) apply((before, sel, after) => {
+        let b2 = before, a2 = after;
+        // מסיר גם סימנים שצמודים לבחירה מבחוץ
+        for (let k = 0; k < 4; k++) { const mo = b2.match(/(\*\*|__|\+\+|\[\[\w+:)$/); const mc = a2.match(/^(\*\*|__|\+\+|\]\])/); if (!mo || !mc) break; b2 = b2.slice(0, -mo[0].length); a2 = a2.slice(mc[0].length); }
+        return { before: b2, sel: sel.replace(MARK, ''), after: a2 };
+      });
+    });
+  });
+}
+
 function annPreviewHtml(it) {
-  return `<div class="ann-pv ${esc(it.style || 'general')} ${annClasses(it)}">${it.title ? `<div class="t">${esc(it.title)}</div>` : ''}<div class="b">${annBody(it.body) || '<span class="muted">תוכן ההודעה…</span>'}</div></div>`;
+  return `<div class="ann-pv ${esc(it.style || 'general')} ${annClasses(it)}"${annStyle(it)}>${it.title ? `<div class="t">${esc(it.title)}</div>` : ''}<div class="b">${annBody(it.body) || '<span class="muted">תוכן ההודעה…</span>'}</div></div>`;
 }
 
 // ---------- רשימות ----------
@@ -508,6 +561,7 @@ function renderList(key, focusNew = false) {
     row.addEventListener('change', commit);
     // כל הקלדה נקלטת מיד – גם שעה, תאריך ומספר (באייפון 'change' מגיע רק כשיוצאים מהשדה)
     row.addEventListener('input', (e) => { if (e.target.matches('input:not([type=checkbox]):not([type=radio]),textarea') && e.target.dataset.t !== 'type') commit(e); });
+    row.querySelectorAll('.rt').forEach((rt) => bindRichText(rt));
     row.querySelectorAll('[data-act]').forEach((b) => b.onclick = () => {
       const act = b.dataset.act;
       if (act === 'del') {

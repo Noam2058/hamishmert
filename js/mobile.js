@@ -5,7 +5,7 @@ import { HDate } from './lib.js';
 import { load, subscribe } from './store.js';
 import { cachedHalacha, prefetchHalachot, DEFAULT_START } from './halacha-sa.js';
 import { sceneForSlide, renderScene } from './scenes.js';
-import { annActive, annBody, annClasses } from './ann.js';
+import { annActive, annBody, annClasses, annStyle } from './ann.js';
 import { cachedMishna, prefetchMishna } from './mishna.js';
 
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -107,7 +107,7 @@ function render() {
       </section>
 
       ${anns.length ? `<section class="card" id="t-ann"><h2>${icon('megaphone')}הודעות <span class="pill">${anns.length}</span></h2>
-        ${anns.map((a) => `<div class="ann ${esc(a.style || '')} ${annClasses(a)}">${a.title ? `<h3>${esc(a.title)}</h3>` : ''}<p>${annBody(a.body)}</p>${a.dateMode !== 'hebrew' && a.to ? `<div class="when">עד ${esc(a.to.split('-').reverse().join('.'))}</div>` : ''}</div>`).join('')}</section>` : ''}
+        ${anns.map((a) => `<div class="ann ${esc(a.style || '')} ${annClasses(a)}"${annStyle(a)}>${a.title ? `<h3>${esc(a.title)}</h3>` : ''}<p>${annBody(a.body)}</p>${a.dateMode !== 'hebrew' && a.to ? `<div class="when">עד ${esc(a.to.split('-').reverse().join('.'))}</div>` : ''}</div>`).join('')}</section>` : ''}
 
       ${slides.length ? `<section class="card" id="t-img"><h2>${icon('image')}מודעות ותמונות</h2>
         <div class="gallery">${slides.map((x, i) => `<button type="button" data-img="${i}" aria-label="הגדל: ${esc(x.title || x.caption || 'תמונה')}"><img src="${esc(x.url)}" alt="" loading="lazy">${x.title || x.caption ? `<span>${esc(x.title || x.caption)}</span>` : ''}</button>`).join('')}</div></section>` : ''}

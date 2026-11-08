@@ -10,6 +10,11 @@ import { annActive, annBody, annClasses, annBig } from './ann.js';
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const title = (t) => `<div class="screen-title"><span>${esc(t)}</span></div>`;
 const flourish = '<svg class="flourish" viewBox="0 0 260 18" aria-hidden="true"><path d="M0 9h100M160 9h100" stroke="currentColor" stroke-width="2"/><path d="M130 2l7 7-7 7-7-7z" fill="currentColor"/><circle cx="112" cy="9" r="3" fill="currentColor"/><circle cx="148" cy="9" r="3" fill="currentColor"/></svg>';
+/** שינויים בתפילה – רשימה מעוצבת: כל שינוי בשורה משלו, מופרד בעיטור זהב. extra: [{t, v}] (שעה/מידע נוסף) */
+const changesHtml = (changes, extra = []) => {
+  if (!changes.length && !extra.length) return '<div class="chg-none">סדר התפילה הרגיל</div>';
+  return `<div class="chg-list">${changes.map((c) => `<div class="chg">${esc(c)}</div>`).join('')}${extra.map((x) => `<div class="chg extra">${esc(x.t)}${x.v ? ` <b>${esc(x.v)}</b>` : ''}</div>`).join('')}</div>`;
+};
 const candle = '<div class="candle" aria-hidden="true"><div class="flame"></div><div class="wax"></div></div>';
 
 function prayerRows(list, nowMin, markNext = true, compact = false) {
@@ -96,13 +101,13 @@ export const SCREENS = {
     const tag = dayLabelForSchedule(day);
     const keys = (s.zmanimShown || []).slice(0, 9);
     const extra = [];
-    if (day.fast.length) extra.push(...day.fast.map((f) => `<span class="chip">${f.label} ${fmtTime(f.time, s.tz, f.label === 'סוף הצום' ? 'ceil' : 'floor')}</span>`));
-    if (day.omer) extra.push(`<span class="chip">היום ${day.omer.day} לעומר</span>`);
+    if (day.fast.length) extra.push(...day.fast.map((f) => ({ t: f.label, v: fmtTime(f.time, s.tz, f.label === 'סוף הצום' ? 'ceil' : 'floor') })));
+    if (day.omer) extra.push({ t: `היום ${day.omer.day} לעומר` });
     return `
       <div class="grid g-combined">
         <section class="card"><h3>תפילות היום ${tag ? `<span class="tag">${esc(tag)}</span>` : ''}</h3>${prayerRows(prayersToday, nowMin)}</section>
         <section class="card"><h3>זמני היום</h3>${zmanimRows(ctx, keys, true)}</section>
-        <section class="card"><h3>בתפילה היום</h3><div class="body changes">${day.changes.length || extra.length ? `<div class="chips">${day.changes.map((c) => `<span class="chip">${esc(c)}</span>`).join('')}${extra.join('')}</div>` : '<div class="empty">סדר התפילה הרגיל</div>'}</div></section>
+        <section class="card"><h3>בתפילה היום</h3><div class="body changes">${changesHtml(day.changes, extra)}</div></section>
       </div>`;
   },
 
@@ -126,8 +131,7 @@ export const SCREENS = {
       <div class="grid" style="grid-template-columns:1fr 1fr 0.9fr">
         <section class="card">${zmanimRows(ctx, keys.slice(0, half))}</section>
         <section class="card">${zmanimRows(ctx, keys.slice(half))}</section>
-        <section class="card"><h3>שינויים בתפילה</h3><div class="chips">${day.changes.map((c) => `<span class="chip">${esc(c)}</span>`).join('')}</div>
-          ${day.fast.length ? `<h3>הצום</h3><div class="rows compact">${day.fast.map((f) => `<div class="row"><div class="k">${f.label}</div><div class="v">${fmtTime(f.time, s.tz)}</div></div>`).join('')}</div>` : ''}</section>
+        <section class="card"><h3>שינויים בתפילה</h3><div class="body changes">${changesHtml(day.changes, day.fast.map((f) => ({ t: f.label, v: fmtTime(f.time, s.tz, f.label === 'סוף הצום' ? 'ceil' : 'floor') })))}</div></section>
       </div>`;
   },
 

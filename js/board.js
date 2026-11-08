@@ -214,8 +214,9 @@ function applyBg(item, index) {
 function fitText(root) {
   root.querySelectorAll('.halacha .x').forEach((x) => {
     const card = x.closest('.card');
+    const over = () => { const need = [...card.children].reduce((a, c) => a + c.offsetHeight, 0) + (card.children.length - 1) * parseFloat(getComputedStyle(card).rowGap || 0) + parseFloat(getComputedStyle(card).paddingTop) + parseFloat(getComputedStyle(card).paddingBottom); return need > card.clientHeight + 1 || card.scrollHeight > card.clientHeight + 1; };
     let size = parseFloat(getComputedStyle(x).fontSize), guard = 0;
-    while (card.scrollHeight > card.clientHeight + 1 && size > 22 && guard++ < 40) { size -= 1.5; x.style.fontSize = `${size}px`; }
+    while (over() && size > 20 && guard++ < 60) { size -= 1.5; x.style.fontSize = `${size}px`; }
   });
 }
 
@@ -226,7 +227,7 @@ function show(next) {
   $('#stage').classList.toggle('fullslide', !!next.full);
   el.innerHTML = next.html;
   host.appendChild(el);
-  fitText(el);
+  fitText(el); setTimeout(() => fitText(el), 600); setTimeout(() => fitText(el), 2500); // שוב אחרי טעינת גופנים
   void el.offsetWidth; // מאלץ ציור לפני המעבר
   el.classList.add('on');
   const prev = current;

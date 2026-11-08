@@ -428,5 +428,5 @@ html, body, #viewport { touch-action: manipulation; -webkit-tap-highlight-color:
 #viewport { cursor: pointer; -webkit-user-select: none; user-select: none; }
 .halacha.mishna .t .seder { display: block; font: 800 30px var(--body); color: var(--next-ink); letter-spacing: .02em; margin-bottom: 4px; }
 /* כרטיס הלכה/משנה לא גדל מעבר למקום הפנוי – הטקסט מוקטן אוטומטית כדי שייכנס (fitText ב-board.js) */
-.halacha { min-height: 0; overflow: hidden; }
-.halacha .x { min-height: 0; }
+.halacha { min-height: 0; overflow: hidden; justify-content: safe center; }
+.halacha > * { flex-shrink: 0; } /* בלי כיווץ – אחרת הטקסט גולש על שורת המקור */

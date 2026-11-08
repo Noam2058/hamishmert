@@ -679,7 +679,7 @@ function searchAll(q) {
     arr.forEach((it) => {
       if (def.filter && !def.filter(it)) return;
       const text = [it.name, it.title, it.teacher, it.body, it.text, it.note, it.by, it.caption, it.holiday && HOLIDAY_LABEL[it.holiday]].filter(Boolean).join(' ');
-      if (text.includes(q)) out.push({ k, id: it.id, title: it.name || it.title || it.caption || (it.body || '').split('\n')[0] || def.single, where: def.label });
+      if (text.includes(q)) out.push({ k, id: it.id, title: it.name || it.title || it.caption || (it.body || '').split('\n')[0] || def.single, where: [def.label, it.schedule === 'holiday' ? HOLIDAY_LABEL[it.holiday] : it.schedule && SCHED_HE[it.schedule], k === 'lessons' && daysText(it.weekdays)].filter(Boolean).join(' · ') });
     });
   }
   return out.slice(0, 30);

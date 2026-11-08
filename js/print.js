@@ -105,7 +105,8 @@ function fitPage() {
   const sheet = $('#sheet');
   sheet.style.zoom = '';
   const mm = 96 / 25.4;
-  const avail = (297 - 20) * mm - 4; // גובה עמוד A4 פחות שוליים (10 מ"מ מכל צד)
+  // גובה עמוד A4 פחות שוליים – עם מרווח ביטחון: ספארי (אייפד/אייפון/מק) מוסיף כותרת עליונה ותחתונה משלו
+  const avail = 250 * mm;
   const h = sheet.scrollHeight;
   const z = Math.min(1, avail / h);
   if (z < 1) sheet.style.zoom = String(Math.floor(z * 1000) / 1000);

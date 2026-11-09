@@ -9,7 +9,7 @@ import {
 // עברית בלי ניקוד, וגם הסרת ניקוד שנשאר (למשל בשמות פרשות)
 const HE = 'he-x-NoNikud';
 // חודש חשון נקרא "מרחשוון"
-export const heFix = (t) => String(t ?? '').replace(/(^|[^\u05D0-\u05EA])חשוו?ן/g, '$1מרחשוון');
+export const heFix = (t) => String(t ?? '').replace(/(^|[^\u05D0-\u05EA-])(?:מר)?חשוו?ן/g, '$1מר-חשוון');
 export const noNikud = (t) => heFix(String(t ?? '').replace(/[\u0591-\u05BD\u05BF-\u05C7]/g, ''));
 
 // ---------- עזרי זמן ----------
@@ -546,7 +546,7 @@ export function inHebrewRange(items, from, to, fn) {
 export const renderHeb = (h) => h ? heFix(h.renderGematriya(true)).replace(/\s*תש.*$|\s*ה'?תש.*$/, '') : '';
 
 export const HEB_MONTHS = [
-  ['Tishrei', 'תשרי'], ['Cheshvan', 'מרחשוון'], ['Kislev', 'כסלו'], ['Tevet', 'טבת'], ['Sh\'vat', 'שבט'],
+  ['Tishrei', 'תשרי'], ['Cheshvan', 'מר-חשוון'], ['Kislev', 'כסלו'], ['Tevet', 'טבת'], ['Sh\'vat', 'שבט'],
   ['Adar', 'אדר'], ['Adar I', 'אדר א'], ['Adar II', 'אדר ב'], ['Nisan', 'ניסן'], ['Iyyar', 'אייר'],
   ['Sivan', 'סיון'], ['Tamuz', 'תמוז'], ['Av', 'אב'], ['Elul', 'אלול'],
 ];

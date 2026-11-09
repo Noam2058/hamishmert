@@ -351,7 +351,7 @@ export const SCREENS = {
     const ms = Math.max(0, target - now);
     const h = Math.floor(ms / 3600000), m = Math.floor(ms / 60000) % 60, sec = Math.floor(ms / 1000) % 60;
     const pad = (n) => String(n).padStart(2, '0');
-    return `<section class="card netz"><div class="lbl">${label}</div><div class="count">${h ? h + ':' : ''}${pad(m)}:${pad(sec)}</div><div class="sub">${sub}</div></section>`;
+    return `<section class="card netz"><div class="lbl">${label}</div><div class="count">${h ? h + ':' : ''}${pad(m)}:${pad(sec)}</div><div class="unit">${h ? 'שעות · דקות · שניות' : 'דקות · שניות'}</div><div class="sub">${sub}</div></section>`;
   },
 
   omer(ctx) {

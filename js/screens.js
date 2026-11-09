@@ -140,7 +140,7 @@ function greetingFor(ctx) {
       const n = day.hd.deltaDays(new HDate(24, 'Kislev', day.hd.getFullYear()));
       const lit = Math.min(8, Math.max(1, day.afterSunset ? n + 1 : n));
       const nights = ['', 'הראשון', 'השני', 'השלישי', 'הרביעי', 'החמישי', 'השישי', 'השביעי', 'השמיני'];
-      return { kind: 'chanuka', lit, title: 'חנוכה שמח', sub: `נר ${nights[lit]} של חנוכה${lit === 8 ? ' · זאת חנוכה' : ''}` };
+      return { kind: 'chanuka', lit, title: 'חנוכה שמח', sub: `הנר ${nights[lit]} של חנוכה${lit === 8 ? ' · זאת חנוכה' : ''}` };
     }
     case 'purim': return { kind: 'purim', title: 'פורים שמח', sub: 'משלוח מנות איש לרעהו ומתנות לאביונים' };
     case 'pesach': return { kind: 'pesach', title: 'חג כשר ושמח', sub: /Chol/.test(descs) ? 'מועדים לשמחה' : 'זמן חרותנו' };

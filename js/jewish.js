@@ -477,6 +477,8 @@ function buildDay(civil, s) {
     gregDate: civil.toLocaleDateString('he-IL', { day: 'numeric', month: 'long', year: 'numeric' }),
     weekday: weekdayHe(dow),
     events: holidays.map((e) => noNikud(e.render(HE))),
+    // ערב חג אמיתי בלבד (לא "ערב" של יום זיכרון/אירוע קטן)
+    erevChag: !(hol.some((e) => e.getFlags() & flags.CHAG)) ? (holT.find((e) => e.getFlags() & flags.CHAG) ? noNikud(holT.find((e) => e.getFlags() & flags.CHAG).render(HE)) : '') : '',
     eventsTomorrow: holidaysTomorrow.map((e) => noNikud(e.render(HE))),
     shabbat: {
       date: sat, parsha, parshaIsChag, haftarah, specialShabbat, mevarchim,

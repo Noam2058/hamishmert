@@ -65,10 +65,16 @@ function renderHeader() {
   $('#greg').textContent = day.gregDate;
   const sh = day.shabbat;
   $('#parsha').innerHTML = sh.parshaIsChag ? escapeHtml(sh.parsha) : `<small>פרשת השבוע</small>${escapeHtml(sh.parsha)}`;
-  const evs = day.afterSunset ? day.next.events : day.events;
+  // חנוכה: ביום – "ערב חנוכה" / "חנוכה – יום N"; בלילה – כמה נרות מדליקים הלילה (האירוע של היום האזרחי)
+  const isCh = (e) => /^חנוכה/.test(e);
+  const chDay = chanukaDay(day.hd);
+  const chToday = day.events.filter(isCh);
+  const evs = day.afterSunset
+    ? [...chToday.filter((e) => /נר/.test(e)), ...day.next.events.filter((e) => !isCh(e))]
+    : [...(chToday.length ? [chDay ? `חנוכה – יום ${'אבגדהוזח'[chDay - 1]}׳` : 'ערב חנוכה'] : []), ...day.events.filter((e) => !isCh(e))];
   const extra = [];
   if (day.dow === 5 && !day.afterSunset) extra.push('ערב שבת קודש');
-  if (day.eventsTomorrow.length && !day.afterSunset && !evs.length) extra.push(`ערב ${day.eventsTomorrow[0]}`);
+  if (day.erevChag && !day.afterSunset && !evs.some((e) => /^ערב/.test(e))) extra.push(`ערב ${day.erevChag}`);
   $('#event').textContent = [...evs, ...extra].slice(0, 2).join(' · ');
 }
 const WD = ['ראשון', 'שני', 'שלישי', 'רביעי', 'חמישי', 'שישי', 'שבת'];

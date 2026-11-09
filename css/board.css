@@ -555,4 +555,3 @@ html, body, #viewport { touch-action: pan-x pan-y; }
   background: linear-gradient(180deg, color-mix(in srgb, var(--gold) 90%, #fff), color-mix(in srgb, var(--gold) 80%, #000)); box-shadow: 0 4px 10px rgba(0,0,0,.2); }
 /* כרטיס יחיד במסך (נץ, ספירת העומר, הלכה…) – מקום לעיטור שמעליו */
 .screen > .card:first-child { margin-top: 30px; }
-.netz .unit { font: 700 30px var(--body); color: var(--ink-soft); letter-spacing: 4px; margin-top: -6px; }

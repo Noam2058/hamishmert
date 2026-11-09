@@ -110,19 +110,19 @@ main#screens { position: relative; z-index: 1; padding: 54px 64px 26px; }
 .card h3 { margin: 0; font: 900 44px/1.15 var(--display); color: var(--ink); display: flex; align-items: center; justify-content: center; text-align: center; flex-wrap: wrap; gap: 14px; padding-bottom: 14px; border-bottom: 2px solid color-mix(in srgb, var(--gold) 55%, transparent); }
 .card h3 .tag { font: 700 22px var(--body); background: var(--chip); color: var(--chip-ink); padding: 5px 14px; border-radius: 999px; }
 .rows { display: flex; flex-direction: column; width: 100%; max-width: 600px; margin-inline: auto; }
-.row { display: flex; justify-content: space-between; align-items: baseline; gap: 24px; padding: 16px 6px; border-bottom: 1px dashed color-mix(in srgb, var(--ink) 22%, transparent); }
+.row { display: flex; justify-content: space-between; align-items: baseline; gap: 24px; padding: calc(16px * var(--rz, 1)) 6px; border-bottom: 1px dashed color-mix(in srgb, var(--ink) 22%, transparent); }
 .row:last-child { border-bottom: 0; }
-.row .k { font: 700 36px/1.2 var(--body); min-width: 0; }
-.row .k small { display: block; margin-top: 4px; font: 500 24px/1.25 var(--body); color: var(--ink-soft); }
-.row .v { font: 900 48px/1 var(--display); font-variant-numeric: tabular-nums; direction: ltr; white-space: nowrap; color: var(--time-ink); }
+.row .k { font: 700 calc(36px * var(--rz, 1))/1.2 var(--body); min-width: 0; }
+.row .k small { display: block; margin-top: 4px; font: 500 calc(24px * var(--rz, 1))/1.25 var(--body); color: var(--ink-soft); }
+.row .v { font: 900 calc(48px * var(--rz, 1))/1 var(--display); font-variant-numeric: tabular-nums; direction: ltr; white-space: nowrap; color: var(--time-ink); }
 .row.past .k { color: var(--ink-soft); }
 .row.past .v { color: var(--time-ink); }
 .row.next .k, .row.next .v { color: var(--next-ink); }
 .row.next { background: color-mix(in srgb, var(--next-ink) 9%, transparent); border-radius: 12px; }
 .row.next .k::after { content: "  ◄ הבא"; font: 700 22px var(--body); }
-.rows.compact .row { padding: 11px 6px; }
-.rows.compact .row .k { font-size: 30px; }
-.rows.compact .row .v { font-size: 38px; }
+.rows.compact .row { padding: calc(11px * var(--rz, 1)) 6px; }
+.rows.compact .row .k { font-size: calc(30px * var(--rz, 1)); }
+.rows.compact .row .v { font-size: calc(38px * var(--rz, 1)); }
 .chips { display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; }
 .chip { font: 700 28px/1.2 var(--body); background: var(--chip); color: var(--chip-ink); padding: 8px 18px; border-radius: 14px; }
 .muted { color: var(--ink-soft); }
@@ -403,9 +403,9 @@ footer.ticker { contain: layout paint; }
 .card.split > .sect > .body { flex: 1; display: flex; flex-direction: column; justify-content: center; min-height: 0; }
 /* מקום לעיטורי הפינות בתחתית, ושורות קומפקטיות צפופות יותר – כדי שהרשימה לא תיכנס מתחת לעיטור */
 .grid > .card { padding-bottom: 70px; }
-.rows.compact .row { padding: 8px 6px; }
-.rows.compact .row .k { font-size: 29px; }
-.rows.compact .row .v { font-size: 36px; }
+.rows.compact .row { padding: calc(8px * var(--rz, 1)) 6px; }
+.rows.compact .row .k { font-size: calc(29px * var(--rz, 1)); }
+.rows.compact .row .v { font-size: calc(36px * var(--rz, 1)); }
 /* רקע שנבחר להודעה גובר על רקע הסגנון ועל השקיפות של מסך עם ציור */
 #stage .card.ann[class*="bg-"] { background: radial-gradient(ellipse at 50% 45%, transparent 55%, rgba(0,0,0,.12) 100%), linear-gradient(180deg, var(--parchment), var(--parchment-2)); }
 /* בתפילה היום – במסך המשולב */

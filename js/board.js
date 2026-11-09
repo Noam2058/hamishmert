@@ -224,6 +224,16 @@ function fitText(root) {
     let fs = parseFloat(getComputedStyle(list).getPropertyValue('--rb-fs')) || 40, guard = 0;
     while (over() && fs > 20 && guard++ < 40) { fs -= 1.5; list.style.setProperty('--rb-fs', `${fs}px`); }
   });
+  // רשימות תפילות/זמנים: אם יש הרבה שורות – מקטינים עד שהכול נכנס בכרטיס
+  root.querySelectorAll('.card > .rows').forEach((rows) => {
+    const card = rows.parentElement, scr = card.closest('.screen');
+    rows.style.removeProperty('--rz');
+    const pb = parseFloat(getComputedStyle(card).paddingBottom) || 0;
+    const over = () => rows.offsetTop + rows.offsetHeight > card.clientHeight - Math.min(pb, 40) + 1 || card.scrollHeight > card.clientHeight + 1
+      || (scr && card.getBoundingClientRect().bottom > scr.getBoundingClientRect().bottom + 1);
+    let z = 1, guard = 0;
+    while (over() && z > 0.5 && guard++ < 30) { z -= 0.04; rows.style.setProperty('--rz', z.toFixed(2)); }
+  });
   root.querySelectorAll('.halacha .x').forEach((x) => {
     const card = x.closest('.card');
     const over = () => { const need = [...card.children].reduce((a, c) => a + c.offsetHeight, 0) + (card.children.length - 1) * parseFloat(getComputedStyle(card).rowGap || 0) + parseFloat(getComputedStyle(card).paddingTop) + parseFloat(getComputedStyle(card).paddingBottom); return need > card.clientHeight + 1 || card.scrollHeight > card.clientHeight + 1; };

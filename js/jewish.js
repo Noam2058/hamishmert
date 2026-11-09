@@ -210,7 +210,7 @@ export function chanukaDay(hd) {
 // אירועים אמיתיים של היום (בלי "ערב ...", בלי ערב חנוכה ובלי תענית בכורות)
 const realDescs = (holidays) => holidays.map((e) => e.getDesc())
   .filter((d) => !/^Erev |Chanukah: 1 Candle|Ta'anit Bechorot/.test(d));
-const PUBLIC_FAST = /Ta'anit Esther|Tzom Gedaliah|Tzom Tammuz|Asara B'Tevet|Tish'a B'Av|Yom Kippur/;
+const PUBLIC_FAST = /Ta'anit Esther|Tzom Gedaliah|Tzom Tammuz|Asara B'Tevet|Tish'a B'Av|Yom Kippur(?! Katan)/;
 
 export function tefilaChanges(hd, s, holidays) {
   const il = !!s.il, nusach = s.nusach || 'sefard';
@@ -227,7 +227,7 @@ export function tefilaChanges(hd, s, holidays) {
   if (has(/Rosh Chodesh|Pesach|Sukkot|Shavuot|Shmini Atzeret|Simchat Torah/)) out.push('יעלה ויבוא');
   if (chanukaDay(hd)) out.push('על הניסים (חנוכה)');
   if (has(/^Purim|Shushan Purim/)) out.push('על הניסים (פורים)');
-  if (has(PUBLIC_FAST) && !has(/Yom Kippur/)) out.push('עננו (בתפילת מנחה)');
+  if (has(PUBLIC_FAST) && !has(/Yom Kippur(?! Katan)/)) out.push('עננו (בתפילת מנחה)');
 
   try {
     let h = HebrewCalendar.hallel(hd, il);
@@ -257,7 +257,7 @@ export function seasonKey(hd, holidays, dow, isAfternoonFriday) {
   const all = holidays.map((e) => e.getDesc()).join('|');
   const descs = realDescs(holidays).join('|');
   const m = hd.getMonth(), d = hd.getDate();
-  if (/Yom Kippur/.test(all) || (m === 7 && d <= 10) || /Rosh Hashana/.test(descs)) return 'yamim-noraim';
+  if (/Yom Kippur(?! Katan)/.test(all) || (m === 7 && d <= 10) || /Rosh Hashana/.test(descs)) return 'yamim-noraim';
   if (/Sukkot|Shmini Atzeret|Simchat Torah/.test(all)) return 'sukkot';
   if (chanukaDay(hd)) return 'chanuka';
   if (/Purim/.test(descs)) return 'purim';
@@ -275,7 +275,7 @@ export function holidayKey(hd, holidays, dow, isAfternoonFriday) {
   const all = holidays.map((e) => e.getDesc()).join('|');
   const descs = realDescs(holidays).join('|');
   const m = hd.getMonth(), d = hd.getDate();
-  if (/Yom Kippur/.test(all)) return 'yom-kippur';
+  if (/Yom Kippur(?! Katan)/.test(all)) return 'yom-kippur';
   if (/Rosh Hashana/.test(all)) return 'rosh-hashana';
   if (m === 7 && d <= 10) return 'yamim-noraim';
   if (/Shmini Atzeret|Simchat Torah/.test(all)) return 'simchat-torah';

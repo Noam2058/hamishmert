@@ -210,6 +210,9 @@ export function chanukaDay(hd) {
 // אירועים אמיתיים של היום (בלי "ערב ...", בלי ערב חנוכה ובלי תענית בכורות)
 const realDescs = (holidays) => holidays.map((e) => e.getDesc())
   .filter((d) => !/^Erev |Chanukah: 1 Candle|Ta'anit Bechorot/.test(d));
+// אירועים "קטנים" ששמם דומה לחג אמיתי – לא משפיעים על עיצוב, סוג היום ושינויי התפילה
+const MINOR = /Katan|LaBehemot|Pesach Sheni|Leil Selichot/;
+export const majorOnly = (holidays) => holidays.filter((e) => !MINOR.test(e.getDesc()));
 const PUBLIC_FAST = /Ta'anit Esther|Tzom Gedaliah|Tzom Tammuz|Asara B'Tevet|Tish'a B'Av|Yom Kippur(?! Katan)/;
 
 export function tefilaChanges(hd, s, holidays) {
@@ -281,7 +284,7 @@ export function holidayKey(hd, holidays, dow, isAfternoonFriday) {
   if (/Shmini Atzeret|Simchat Torah/.test(all)) return 'simchat-torah';
   if (/Sukkot/.test(all)) return 'sukkot';
   if (chanukaDay(hd)) return 'chanuka';
-  if (/Purim/.test(descs) || /Erev Purim/.test(all)) return 'purim';
+  if (/Purim/.test(descs)) return 'purim';
   if (/Pesach/.test(all)) return 'pesach';
   if (/Shavuot/.test(all)) return 'shavuot';
   if (/Lag BaOmer/.test(all)) return 'lag-baomer';
@@ -389,7 +392,13 @@ export function computeDay(now, s) {
   // החלק שתלוי בשעה: אחרי השקיעה התאריך העברי מתחלף
   const afterSunset = base.zmanim.sunset && now >= base.zmanim.sunset;
   const evening = afterSunset ? base.next : null;
-  return { ...base, now, afterSunset, evening };
+  // מצאת הכוכבים: העיצוב והברכה לפי היום העברי הבא (ליל חג, ליל חנוכה, מוצאי שבת/חג חוזרים לחול).
+  // בשבת – רק אחרי ההבדלה, כדי שלא יוצג עיצוב חול לפני צאת השבת
+  const tz8 = base.zmanim.tzeit;
+  const holyNow = (base.dow === 6 || base.tags.includes('yomtov')) && base.shabbat.havdalah && now < base.shabbat.havdalah; // שבת/חג עצמו לפני ההבדלה
+  const night = !!(tz8 && now >= tz8 && !holyNow);
+  if (night) return { ...base, now, afterSunset, evening, night, season: base.next.season, holiday: base.next.holiday, nightTags: base.next.tags };
+  return { ...base, now, afterSunset, evening, night };
 }
 
 function buildDay(civil, s) {
@@ -459,6 +468,8 @@ function buildDay(civil, s) {
 
   const isAfternoonFriday = dow === 5; // ערכת שבת כבר מיום שישי
   const hdNext = hd.next();
+  const hol = majorOnly(holidays), holT = majorOnly(holidaysTomorrow);
+  const dowNext = (dow + 1) % 7;
 
   return {
     civil, tz, hd, dow, holidays, holidaysTomorrow, zmanim,
@@ -476,14 +487,18 @@ function buildDay(civil, s) {
     fast: fastToday,
     omer: om ? { day: om, ...omerText(om, s.nusach) } : null,
     omerTonight: omTomorrow ? { day: omTomorrow, ...omerText(omTomorrow, s.nusach) } : null,
-    changes: tefilaChanges(hd, s, holidays),
-    tags: dayTags(hd, holidays, dow, holidaysTomorrow),
-    season: seasonKey(hd, holidays, dow, isAfternoonFriday),
-    holiday: holidayKey(hd, holidays, dow, isAfternoonFriday),
+    changes: tefilaChanges(hd, s, hol),
+    tags: dayTags(hd, hol, dow, holT),
+    season: seasonKey(hd, hol, dow, isAfternoonFriday),
+    holiday: holidayKey(hd, hol, dow, isAfternoonFriday),
     learning: dailyLearning(hd, s.learning),
     next: {
       hd: hdNext, hebDate: hdNext.renderGematriya(true),
       events: holidaysTomorrow.map((e) => noNikud(e.render(HE))),
+      // לעיצוב ולברכה בלילה (אחרי צאת הכוכבים היום העברי הבא כבר התחיל)
+      tags: dayTags(hdNext, holT, dowNext, []),
+      season: seasonKey(hdNext, holT, dowNext, false),
+      holiday: holidayKey(hdNext, holT, dowNext, false),
     },
   };
 }

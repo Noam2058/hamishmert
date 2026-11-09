@@ -98,8 +98,11 @@ function dayLabelForSchedule(day) {
 
 function greetingFor(ctx) {
   const { day, display } = ctx;
-  const descs = day.holidays.map((e) => e.getDesc()).join('|');
-  const m = day.hd.getMonth(), d = day.hd.getDate();
+  // בלילה (אחרי צאת הכוכבים) – לפי היום העברי הבא
+  const hd = day.night ? day.next.hd : day.hd;
+  const descs = (day.night ? day.holidaysTomorrow : day.holidays).map((e) => e.getDesc()).join('|');
+  const tags = day.night ? day.nightTags : day.tags;
+  const m = hd.getMonth(), d = hd.getDate();
   const sh = day.shabbat;
   const parsha = sh.parshaIsChag ? sh.parsha : `פרשת ${sh.parsha}`;
   switch (day.season) {
@@ -123,7 +126,7 @@ function greetingFor(ctx) {
       if (day.holiday === 'lag-baomer') return { kind: 'torah', title: 'ל"ג בעומר שמח', sub: 'הילולא דרבי שמעון בר יוחאי' };
       if (day.holiday === 'yom-haatzmaut') return { kind: 'torah', title: 'חג עצמאות שמח', sub: 'ראשית צמיחת גאולתנו' };
       if (day.holiday === 'yom-yerushalayim') return { kind: 'torah', title: 'יום ירושלים שמח', sub: 'ירושלים הבנויה כעיר שחוברה לה יחדיו' };
-      if (day.tags.includes('rosh-chodesh')) return { kind: 'torah', title: 'חודש טוב', sub: day.events.join(' · ') };
+      if (tags.includes('rosh-chodesh')) return { kind: 'torah', title: 'חודש טוב', sub: (day.night ? day.next.events : day.events).filter((e) => /ראש חודש/.test(e)).join(' · ') || 'ראש חודש' };
       if (day.season === 'elul') return { kind: 'yamim-noraim', title: 'חודש אלול', sub: 'ימי רחמים וסליחות' };
       return { kind: 'torah', title: 'ברוכים הבאים', sub: `${day.afterSunset ? day.next.hebDate : day.hebDate} · ${parsha}` }; // כל יום; לכיבוי – מכבים את מסך הברכה ברשימת המסכים
   }

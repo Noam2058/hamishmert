@@ -36,7 +36,11 @@ await state('2-offline-reload');
 await sleep(30000);
 await state('3-offline-running');
 // 4. בלי אינטרנט ושעון שחזר אחורה לדצמבר 2025 (כמו סטרימר בלי סוללה)
-await page.clock.install({ time: new Date('2025-12-16T10:00:00+02:00') });
+await page.addInitScript(() => {
+  const RD = Date, OFF = new RD('2025-12-16T10:00:00+02:00').getTime() - RD.now();
+  class FD extends RD { constructor(...a) { if (a.length) super(...a); else super(RD.now() + OFF); } static now() { return RD.now() + OFF; } }
+  window.Date = FD;
+});
 await page.reload(); await sleep(9000);
 await state('4-offline-bad-clock');
 // 5. השעון עדיין שגוי אבל האינטרנט חזר – הלוח אמור לתקן לבד

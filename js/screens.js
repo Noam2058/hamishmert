@@ -201,7 +201,7 @@ export const SCREENS = {
       <div class="grid g-combined">
         <section class="card"><h3>תפילות היום ${tag ? `<span class="tag">${esc(tag)}</span>` : ''}</h3>${prayerRows(upcomingFirst(prayersToday, nowMin, 8), nowMin)}</section>
         <section class="card"><h3>זמני היום</h3>${zmanimRows(ctx, keys, true)}</section>
-        <section class="card"><h3>בתפילה היום</h3><div class="body changes">${changesHtml(day.changes, extra)}</div></section>
+        <section class="card"><h3>${day.afterSunset ? 'בתפילה מהערב' : 'בתפילה היום'}</h3><div class="body changes">${changesHtml(day.changes, extra)}</div></section>
       </div>`;
   },
 

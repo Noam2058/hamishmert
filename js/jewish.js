@@ -217,10 +217,13 @@ const MINOR = /Katan|LaBehemot|Pesach Sheni|Leil Selichot/;
 export const majorOnly = (holidays) => holidays.filter((e) => !MINOR.test(e.getDesc()));
 const PUBLIC_FAST = /Ta'anit Esther|Tzom Gedaliah|Tzom Tammuz|Asara B'Tevet|Tish'a B'Av|Yom Kippur(?! Katan)/;
 
-export function tefilaChanges(hd, s, holidays) {
+/** night=true: מהשקיעה – השינויים של היום העברי הבא (hd = מחר).
+ *  "משיב הרוח" מתחלף במוסף (ביום) – לכן בלילה לפי היום האזרחי; "ותן טל ומטר" מתחיל בערבית – לפי מחר */
+export function tefilaChanges(hd, s, holidays, night = false) {
   const il = !!s.il, nusach = s.nusach || 'sefard';
   const out = [];
-  const { geshem, matar } = rainSeason(hd, il, hd.greg());
+  const { matar } = rainSeason(hd, il, hd.greg());
+  const { geshem } = night ? rainSeason(hd.prev(), il, hd.prev().greg()) : rainSeason(hd, il, hd.greg());
   out.push(geshem ? 'משיב הרוח ומוריד הגשם' : (il || nusach !== 'ashkenaz' ? 'מוריד הטל' : 'אין אומרים משיב הרוח'));
   if (nusach === 'edot') out.push(matar ? 'ברך עלינו' : 'ברכנו');
   else out.push(matar ? 'ותן טל ומטר לברכה' : 'ותן ברכה');
@@ -252,7 +255,7 @@ export function tefilaChanges(hd, s, holidays) {
   // לדוד ה' אורי: מר"ח אלול עד הושענא רבה (אשכנז: עד שמיני עצרת)
   const ledavidEnd = nusach === 'ashkenaz' ? 22 : 21;
   if (m === 6 || (m === 7 && d <= ledavidEnd)) out.push('לדוד ה\' אורי');
-  if (omerDay(hd.next())) out.push('ספירת העומר בערב');
+  if (night ? omerDay(hd) : omerDay(hd.next())) out.push(night ? 'ספירת העומר הלילה' : 'ספירת העומר בערב');
   return out;
 }
 
@@ -388,12 +391,14 @@ export function computeDay(now, s) {
   const tz = s.tz || 'Asia/Jerusalem';
   const civil = civilNoon(now, tz);
   const key = civil.toDateString() + JSON.stringify([s.lat, s.lon, s.il, s.nusach, s.candleMins, s.havdalahDeg, s.useElevation, s.learning]);
-  const base = cache.get(key) || buildDay(civil, s);
+  let base = cache.get(key) || buildDay(civil, s);
   if (!cache.has(key)) { cache.clear(); cache.set(key, base); }
 
   // החלק שתלוי בשעה: אחרי השקיעה התאריך העברי מתחלף
   const afterSunset = base.zmanim.sunset && now >= base.zmanim.sunset;
   const evening = afterSunset ? base.next : null;
+  // שינויים בתפילה מתחלפים כבר בשקיעה (ערבית שייכת ליום הבא)
+  if (afterSunset) base = { ...base, changes: base.next.changes };
   // מצאת הכוכבים: העיצוב והברכה לפי היום העברי הבא (ליל חג, ליל חנוכה, מוצאי שבת/חג חוזרים לחול).
   // בשבת – רק אחרי ההבדלה, כדי שלא יוצג עיצוב חול לפני צאת השבת
   const tz8 = base.zmanim.tzeit;
@@ -501,6 +506,7 @@ function buildDay(civil, s) {
       events: holidaysTomorrow.map((e) => noNikud(e.render(HE))),
       // לעיצוב ולברכה בלילה (אחרי צאת הכוכבים היום העברי הבא כבר התחיל)
       tags: dayTags(hdNext, holT, dowNext, []),
+      changes: tefilaChanges(hdNext, s, holT, true),
       season: seasonKey(hdNext, holT, dowNext, false),
       holiday: holidayKey(hdNext, holT, dowNext, false),
     },

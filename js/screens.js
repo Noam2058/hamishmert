@@ -427,7 +427,7 @@ export const SCREENS = {
       return { ...l, off, min, time: min == null ? '' : minToHhmm(min), days: daysLabel(l.weekdays), today: off === 0, dow: (day.civil.getDay() + off) % 7 };
     }).sort((a, b) => a.off - b.off || (a.min ?? 9999) - (b.min ?? 9999));
     const DN = ['ראשון', 'שני', 'שלישי', 'רביעי', 'חמישי', 'שישי'];
-    const when = (l) => (l.today ? 'היום' : l.off === 1 ? 'מחר' : l.dow === 6 ? 'בשבת' : `ביום ${DN[l.dow]}`);
+    const when = (l) => (l.today ? 'היום' : l.dow === 6 ? 'בשבת' : `ביום ${DN[l.dow]}`);
     if (list.length <= 3) {
       return `${title('שיעורי תורה')}<div class="grid lessons-cards" style="grid-template-columns:repeat(${list.length},1fr)">${list.map((l) => `
         <section class="card lesson${l.today ? ' today' : ''}"><span class="when">${esc(when(l))}</span>

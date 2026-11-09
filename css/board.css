@@ -536,3 +536,22 @@ html, body, #viewport { touch-action: pan-x pan-y; }
 /* כרטיס רחב עם הרבה תפילות – שני טורים (מימין לשמאל, מלמעלה למטה) */
 .rows.two { display: grid; grid-auto-flow: column; grid-template-columns: 1fr 1fr; column-gap: 64px; max-width: none; }
 .rows.two .row { min-width: 0; }
+
+/* פרשת השבוע – כרטיס מרכזי */
+.hero .ps { gap: 12px; }
+.ps-date { font: 800 28px/1 var(--body); color: color-mix(in srgb, var(--gold) 70%, var(--ink)); padding: 10px 26px; border-radius: 999px;
+  border: 2px solid color-mix(in srgb, var(--gold) 70%, transparent); background: color-mix(in srgb, var(--gold) 10%, transparent); }
+.ps-art { width: 280px; height: auto; margin: 6px 0 2px; filter: drop-shadow(0 6px 10px rgba(0,0,0,.18)); }
+.ps-k { font: 800 34px/1 var(--display); letter-spacing: 3px; color: color-mix(in srgb, var(--gold) 75%, var(--ink)); }
+.ps-name { font: 900 132px/1.02 var(--display); color: var(--ink); text-shadow: 0 2px 0 color-mix(in srgb, var(--gold) 35%, transparent); }
+.ps-name.mid { font-size: 104px; }
+.ps-name.long { font-size: 76px; }
+.ps-haf { display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 14px 44px 18px; border-radius: 22px;
+  background: color-mix(in srgb, var(--gold) 11%, transparent); border: 2px solid color-mix(in srgb, var(--gold) 50%, transparent); }
+.ps-haf span { font: 800 26px/1 var(--body); color: var(--ink-soft); letter-spacing: 2px; }
+.ps-haf b { font: 900 50px/1.1 var(--display); color: var(--ink); }
+.ps-chips { display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; }
+.ps-chips span { font: 800 28px/1 var(--display); color: #fff8e6; padding: 10px 22px; border-radius: 12px;
+  background: linear-gradient(180deg, color-mix(in srgb, var(--gold) 90%, #fff), color-mix(in srgb, var(--gold) 80%, #000)); box-shadow: 0 4px 10px rgba(0,0,0,.2); }
+/* כרטיס יחיד במסך (נץ, ספירת העומר, הלכה…) – מקום לעיטור שמעליו */
+.screen > .card:first-child { margin-top: 30px; }

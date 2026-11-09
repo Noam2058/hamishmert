@@ -102,6 +102,18 @@ function dayLabelForSchedule(day) {
   return day.dow === 6 ? 'שבת' : day.dow === 5 ? 'ערב שבת' : '';
 }
 
+// ספר תורה פתוח – לשקופית פרשת השבוע
+const SCROLL_SVG = `<svg class="ps-art" viewBox="0 0 320 120" aria-hidden="true"><defs>
+  <linearGradient id="ps-w" x1="0" x2="1"><stop offset="0" stop-color="#5a2f14"/><stop offset=".5" stop-color="#a8673a"/><stop offset="1" stop-color="#4a250f"/></linearGradient>
+  <linearGradient id="ps-m" x1="0" x2="1"><stop offset="0" stop-color="#8f6a22"/><stop offset=".45" stop-color="#f3d98c"/><stop offset="1" stop-color="#9c7322"/></linearGradient>
+  <linearGradient id="ps-p" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fffaf0"/><stop offset="1" stop-color="#efe2c4"/></linearGradient></defs>
+  <path d="M58 22 Q160 10 262 22 L262 98 Q160 86 58 98 Z" fill="url(#ps-p)" stroke="#c9a85a" stroke-width="2"/>
+  <g stroke="#7b6a4a" stroke-width="3" stroke-linecap="round" opacity=".55">
+    ${[0, 1, 2, 3, 4].map((i) => `<line x1="76" y1="${34 + i * 13}" x2="150" y2="${32 + i * 13}"/><line x1="170" y1="${32 + i * 13}" x2="244" y2="${34 + i * 13}"/>`).join('')}</g>
+  ${[40, 280].map((x) => `<rect x="${x - 6}" y="2" width="12" height="18" rx="5" fill="url(#ps-m)"/><rect x="${x - 6}" y="100" width="12" height="18" rx="5" fill="url(#ps-m)"/>
+  <rect x="${x - 18}" y="14" width="36" height="92" rx="16" fill="url(#ps-w)"/><rect x="${x - 18}" y="16" width="36" height="6" rx="3" fill="url(#ps-m)"/><rect x="${x - 18}" y="98" width="36" height="6" rx="3" fill="url(#ps-m)"/>`).join('')}
+</svg>`;
+
 // ---------- המסכים ----------
 
 function greetingFor(ctx) {
@@ -235,11 +247,14 @@ export const SCREENS = {
       <div class="hero">
         <section class="card side sb-card">${capsule(sh.candlesLabel)}${CANDLES_SVG}<div class="time">${fmtTime(sh.candles, s.tz, 'floor')}</div>
           <div class="sb-sub">${sh.candlesDate ? `יום ${['ראשון', 'שני', 'שלישי', 'רביעי', 'חמישי', 'שישי', 'שבת'][sh.candlesDate.getDay()]} · ${esc(renderHeb(sh.candlesDate))}` : ''}</div></section>
-        <section class="card center">
-          <div class="label">${isShabbat ? 'שבת קודש' : esc(holidayName || 'חג שמח')}</div>
-          <div class="big">${head}</div>${flourish}
-          ${sh.haftarah && !sh.parshaIsChag ? `<div class="label">הפטרה</div><div class="mid">${esc(sh.haftarah)}</div>` : ''}
-          ${sh.specialShabbat.length || sh.mevarchim.length ? `<div class="chips" style="justify-content:center">${[...sh.specialShabbat, ...sh.mevarchim].map((x) => `<span class="chip">${esc(x)}</span>`).join('')}</div>` : ''}
+        <section class="card center ps">
+          <div class="ps-date">${isShabbat ? 'שבת קודש' : esc(holidayName || 'חג שמח')}${sh.date ? ` · ${esc(renderHeb(sh.date).replace(/ תש\S+$/, ''))}` : ''}</div>
+          ${SCROLL_SVG}
+          ${sh.parshaIsChag ? '' : '<div class="ps-k">פרשת השבוע</div>'}
+          <div class="ps-name${sh.parsha.length > 14 ? ' long' : sh.parsha.length > 9 ? ' mid' : ''}">${sh.parshaIsChag ? head : esc(sh.parsha)}</div>
+          ${flourish}
+          ${sh.haftarah && !sh.parshaIsChag ? `<div class="ps-haf"><span>הפטרה</span><b>${esc(sh.haftarah)}</b></div>` : ''}
+          ${sh.specialShabbat.length || sh.mevarchim.length ? `<div class="ps-chips">${[...sh.specialShabbat, ...sh.mevarchim].map((x) => `<span>${esc(x)}</span>`).join('')}</div>` : ''}
         </section>
         <section class="card side sb-card">${capsule(`צאת ${isShabbat ? 'השבת' : 'החג'}`)}${HAVDALAH_SVG}<div class="time">${fmtTime(sh.havdalah, s.tz, 'ceil')}</div>
           <div class="sb-sub">${s.havdalahMins ? `${s.havdalahMins} דק' אחרי השקיעה` : 'צאת הכוכבים · הבדלה'}</div></section>
@@ -318,14 +333,21 @@ export const SCREENS = {
 
   netz(ctx) {
     const { day, s, display } = ctx;
-    const sr = day.zmanim.sunrise, shma = day.zmanim.shmaGRA;
-    if (!sr || !shma) return null;
+    const sr = day.zmanim.sunrise, gra = day.zmanim.shmaGRA, mga = day.zmanim.shmaMGA;
+    if (!sr) return null;
     const now = ctx.now;
     const win = +(display.netzWindowMin || 60) * 60000;
+    const which = display.shmaZman || 'gra';
+    const shmaWin = +(display.shmaWindowMin || 0) * 60000; // 0 = מהנץ ועד סוף הזמן
     let target, label, sub;
-    if (now < sr && sr - now <= win) { target = sr; label = 'הנץ החמה בעוד'; sub = `הנץ היום: <b>${fmtTime(sr, s.tz, 'ceil')}</b>`; }
-    else if (now >= sr && now < shma) { target = shma; label = 'סוף זמן קריאת שמע (גר"א) בעוד'; sub = `מג"א: <b>${fmtTime(day.zmanim.shmaMGA, s.tz, 'floor')}</b> · גר"א: <b>${fmtTime(shma, s.tz, 'floor')}</b>`; }
-    else return null;
+    const shmaSub = `מג"א: <b>${fmtTime(mga, s.tz, 'floor')}</b> · גר"א: <b>${fmtTime(gra, s.tz, 'floor')}</b>`;
+    if (display.netzCountdown !== false && now < sr && sr - now <= win) { target = sr; label = 'הנץ החמה בעוד'; sub = `הנץ היום: <b>${fmtTime(sr, s.tz, 'ceil')}</b>`; }
+    else if (display.shmaCountdown !== false) {
+      const list = (which === 'mga' ? [mga] : which === 'both' ? [mga, gra] : [gra]).filter(Boolean);
+      const t = list.find((x) => now < x);
+      if (!t || now < (shmaWin ? t - shmaWin : sr)) return null;
+      target = t; label = `סוף זמן קריאת שמע (${t === mga ? 'מג"א' : 'גר"א'}) בעוד`; sub = shmaSub;
+    } else return null;
     const ms = Math.max(0, target - now);
     const h = Math.floor(ms / 3600000), m = Math.floor(ms / 60000) % 60, sec = Math.floor(ms / 1000) % 60;
     const pad = (n) => String(n).padStart(2, '0');

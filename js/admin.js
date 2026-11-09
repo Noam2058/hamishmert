@@ -904,10 +904,19 @@ function renderDisplay() {
           <span class="btns" style="display:flex;gap:4px"><button class="icon" data-act="up" aria-label="הזז למעלה">${icon('up')}</button><button class="icon" data-act="down" aria-label="הזז למטה">${icon('down')}</button></span>
         </div>`).join('')}</div>
       <p class="note">למסך שני עם תוכן אחר: הוסף לכתובת הלוח <code>?screens=memorials,announcements</code></p></section>
+    ${(() => { const ns = d.screens.find((x) => x.type === 'netz') || { enabled: false, seconds: 14 }; return `
+    <section class="card"><h2>שעון נץ וסוף זמן קריאת שמע</h2><div class="form-grid">
+      <label class="fld check"><input data-ns="enabled" type="checkbox" ${ns.enabled ? 'checked' : ''}><span>להציג את השקופית בבוקר</span></label>
+      <label class="fld"><span>כמה זמן להציג אותה (שניות)</span><input data-ns="seconds" type="number" min="4" value="${esc(ns.seconds)}"></label>
+      <label class="fld check"><input data-d="netzCountdown" type="checkbox" ${d.netzCountdown !== false ? 'checked' : ''}><span>ספירה לאחור לנץ החמה</span></label>
+      <label class="fld"><span>להתחיל כמה דקות לפני הנץ</span><input data-d="netzWindowMin" type="number" min="5" value="${esc(d.netzWindowMin)}"></label>
+      <label class="fld check"><input data-d="shmaCountdown" type="checkbox" ${d.shmaCountdown !== false ? 'checked' : ''}><span>ספירה לאחור לסוף זמן קריאת שמע</span></label>
+      <label class="fld"><span>לפי איזה זמן</span>${sel('shmaZman', [['gra', 'גר"א'], ['mga', 'מגן אברהם'], ['both', 'שניהם – קודם מג"א ואחריו גר"א']], d.shmaZman || 'gra')}</label>
+      <label class="fld"><span>מתי להתחיל</span>${sel('shmaWindowMin', [['0', 'מהנץ ועד סוף הזמן'], ['120', 'שעתיים לפני הסוף'], ['90', 'שעה וחצי לפני הסוף'], ['60', 'שעה לפני הסוף'], ['30', 'חצי שעה לפני הסוף']], String(d.shmaWindowMin || 0))}</label>
+    </div><p class="note">השקופית מופיעה רק כשיש ספירה פעילה (לפני הנץ או עד סוף זמן קריאת שמע), ונעלמת לבד אחר כך.</p></section>`; })()}
     <section class="card"><h2>הגדרות נוספות</h2><div class="form-grid">
       <label class="fld"><span>זמן ברירת מחדל למסך (שניות)</span><input data-d="defaultSeconds" type="number" min="4" value="${esc(d.defaultSeconds)}"></label>
       <label class="fld"><span>ביצועים (לסטרימר)</span><select data-d="performance">${[['auto', 'אוטומטי – חסכוני במכשיר חלש'], ['lite', 'חסכוני תמיד (חלק יותר בסטרימר)'], ['full', 'מלא – כל האפקטים']].map(([k, l]) => `<option value="${k}" ${(d.performance || 'auto') === k ? 'selected' : ''}>${l}</option>`).join('')}</select></label>
-      <label class="fld"><span>שעון נץ – כמה דקות לפני הנץ</span><input data-d="netzWindowMin" type="number" min="5" value="${esc(d.netzWindowMin)}"></label>
       <label class="fld check"><input data-d="ticker" type="checkbox" ${d.ticker ? 'checked' : ''}><span>פס גולל בתחתית</span></label>
       <label class="fld check"><input data-o="enabled" type="checkbox" ${d.offHours.enabled ? 'checked' : ''}><span>כיבוי המסך בלילה</span></label>
       <label class="fld"><span>כיבוי מהשעה</span><input data-o="from" type="time" value="${esc(d.offHours.from)}"></label>
@@ -917,9 +926,19 @@ function renderDisplay() {
   const upd = (e) => {
     const el = e.target;
     const val = el.type === 'checkbox' ? el.checked : el.type === 'number' ? +el.value : el.value;
-    if (el.dataset.d) d[el.dataset.d] = val;
+    if (el.dataset.d) d[el.dataset.d] = el.dataset.d === 'shmaWindowMin' ? +val : val;
+    else if (el.dataset.ns) {
+      const i = d.screens.findIndex((x) => x.type === 'netz');
+      if (i < 0) return;
+      d.screens[i][el.dataset.ns] = val;
+      const row = p.querySelector(`.screen-row[data-i="${i}"]`);
+      const twin = row?.querySelector(`[data-sc="${el.dataset.ns}"]`);
+      if (twin) { if (twin.type === 'checkbox') twin.checked = val; else twin.value = val; }
+      if (el.dataset.ns === 'enabled') row?.classList.toggle('off', !val);
+    }
     else if (el.dataset.o) d.offHours[el.dataset.o] = val;
-    else if (el.dataset.sc) { const row = el.closest('.screen-row'); d.screens[+row.dataset.i][el.dataset.sc] = val; if (el.dataset.sc === 'enabled') row.classList.toggle('off', !val); }
+    else if (el.dataset.sc) { const row = el.closest('.screen-row'); d.screens[+row.dataset.i][el.dataset.sc] = val; if (el.dataset.sc === 'enabled') row.classList.toggle('off', !val);
+      if (d.screens[+row.dataset.i].type === 'netz') { const t = p.querySelector(`[data-ns="${el.dataset.sc}"]`); if (t) { if (t.type === 'checkbox') t.checked = val; else t.value = val; } } }
     else return;
     setDirty();
   };

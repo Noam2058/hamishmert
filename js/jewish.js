@@ -8,7 +8,9 @@ import {
 
 // עברית בלי ניקוד, וגם הסרת ניקוד שנשאר (למשל בשמות פרשות)
 const HE = 'he-x-NoNikud';
-export const noNikud = (t) => String(t ?? '').replace(/[\u0591-\u05BD\u05BF-\u05C7]/g, '');
+// חודש חשון נקרא "מרחשוון"
+export const heFix = (t) => String(t ?? '').replace(/(^|[^\u05D0-\u05EA])חשוו?ן/g, '$1מרחשוון');
+export const noNikud = (t) => heFix(String(t ?? '').replace(/[\u0591-\u05BD\u05BF-\u05C7]/g, ''));
 
 // ---------- עזרי זמן ----------
 
@@ -473,7 +475,7 @@ function buildDay(civil, s) {
 
   return {
     civil, tz, hd, dow, holidays, holidaysTomorrow, zmanim,
-    hebDate: hd.renderGematriya(true),
+    hebDate: heFix(hd.renderGematriya(true)),
     gregDate: civil.toLocaleDateString('he-IL', { day: 'numeric', month: 'long', year: 'numeric' }),
     weekday: weekdayHe(dow),
     events: holidays.map((e) => noNikud(e.render(HE))),
@@ -495,7 +497,7 @@ function buildDay(civil, s) {
     holiday: holidayKey(hd, hol, dow, isAfternoonFriday),
     learning: dailyLearning(hd, s.learning),
     next: {
-      hd: hdNext, hebDate: hdNext.renderGematriya(true),
+      hd: hdNext, hebDate: heFix(hdNext.renderGematriya(true)),
       events: holidaysTomorrow.map((e) => noNikud(e.render(HE))),
       // לעיצוב ולברכה בלילה (אחרי צאת הכוכבים היום העברי הבא כבר התחיל)
       tags: dayTags(hdNext, holT, dowNext, []),
@@ -541,10 +543,10 @@ export function inHebrewRange(items, from, to, fn) {
   return res.sort((a, b) => a.hdate.deltaDays(b.hdate));
 }
 
-export const renderHeb = (h) => h ? h.renderGematriya(true).replace(/\s*תש.*$|\s*ה'?תש.*$/, '') : '';
+export const renderHeb = (h) => h ? heFix(h.renderGematriya(true)).replace(/\s*תש.*$|\s*ה'?תש.*$/, '') : '';
 
 export const HEB_MONTHS = [
-  ['Tishrei', 'תשרי'], ['Cheshvan', 'חשון'], ['Kislev', 'כסלו'], ['Tevet', 'טבת'], ['Sh\'vat', 'שבט'],
+  ['Tishrei', 'תשרי'], ['Cheshvan', 'מרחשוון'], ['Kislev', 'כסלו'], ['Tevet', 'טבת'], ['Sh\'vat', 'שבט'],
   ['Adar', 'אדר'], ['Adar I', 'אדר א'], ['Adar II', 'אדר ב'], ['Nisan', 'ניסן'], ['Iyyar', 'אייר'],
   ['Sivan', 'סיון'], ['Tamuz', 'תמוז'], ['Av', 'אב'], ['Elul', 'אלול'],
 ];

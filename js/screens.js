@@ -77,6 +77,14 @@ function prayerRows(list, nowMin, markNext = true, compact = false) {
   return `<div class="rows${compact ? ' compact' : ''}">${rows.join('')}</div>`;
 }
 
+/** במסך המשולב יש מקום מוגבל: כשיש הרבה תפילות – מוותרים על אלה שכבר עברו (משאירים את האחרונה שעברה) */
+function upcomingFirst(list, nowMin, max) {
+  if (list.length <= max) return list;
+  const firstUp = list.findIndex((p) => p.min == null || p.min >= nowMin - 5);
+  const start = firstUp < 0 ? Math.max(0, list.length - max) : Math.max(0, Math.min(firstUp - 1, list.length - max));
+  return list.slice(start, start + max);
+}
+
 function zmanimRows(ctx, keys, compact) {
   const { day, s } = ctx;
   const nowMin = minutesOf(ctx.now, s.tz);
@@ -179,7 +187,7 @@ export const SCREENS = {
     if (day.omer) extra.push({ t: `היום ${day.omer.day} לעומר` });
     return `
       <div class="grid g-combined">
-        <section class="card"><h3>תפילות היום ${tag ? `<span class="tag">${esc(tag)}</span>` : ''}</h3>${prayerRows(prayersToday, nowMin)}</section>
+        <section class="card"><h3>תפילות היום ${tag ? `<span class="tag">${esc(tag)}</span>` : ''}</h3>${prayerRows(upcomingFirst(prayersToday, nowMin, 8), nowMin)}</section>
         <section class="card"><h3>זמני היום</h3>${zmanimRows(ctx, keys, true)}</section>
         <section class="card"><h3>בתפילה היום</h3><div class="body changes">${changesHtml(day.changes, extra)}</div></section>
       </div>`;

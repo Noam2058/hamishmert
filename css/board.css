@@ -532,3 +532,7 @@ html, body, #viewport { touch-action: pan-x pan-y; }
 .welcome .w-frame { padding: 90px 120px 84px; gap: 22px; }
 .welcome .w-title { font-size: 168px; }
 .sb-card .side-art.wide { width: 300px; height: 182px; }
+
+/* כרטיס רחב עם הרבה תפילות – שני טורים (מימין לשמאל, מלמעלה למטה) */
+.rows.two { display: grid; grid-auto-flow: column; grid-template-columns: 1fr 1fr; column-gap: 64px; max-width: none; }
+.rows.two .row { min-width: 0; }

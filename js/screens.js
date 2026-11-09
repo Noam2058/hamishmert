@@ -105,6 +105,15 @@ function greetingFor(ctx) {
   const m = hd.getMonth(), d = hd.getDate();
   const sh = day.shabbat;
   const parsha = sh.parshaIsChag ? sh.parsha : `פרשת ${sh.parsha}`;
+  // חגים "קטנים" – גוברים גם על ברכת השבת (למשל יום ירושלים או ראש חודש ביום שישי)
+  const special = () => {
+    if (day.holiday === 'tu-bishvat') return { kind: 'shavuot', title: 'ט"ו בשבט שמח', sub: 'ראש השנה לאילנות' };
+    if (day.holiday === 'lag-baomer') return { kind: 'torah', title: 'ל"ג בעומר שמח', sub: 'הילולא דרבי שמעון בר יוחאי' };
+    if (day.holiday === 'yom-haatzmaut') return { kind: 'torah', title: 'חג עצמאות שמח', sub: 'ראשית צמיחת גאולתנו' };
+    if (day.holiday === 'yom-yerushalayim') return { kind: 'torah', title: 'יום ירושלים שמח', sub: 'ירושלים הבנויה כעיר שחוברה לה יחדיו' };
+    return null;
+  };
+  if (/Erev Rosh Hashana/.test(descs)) return { kind: 'yamim-noraim', title: 'שנה טובה ומתוקה', sub: 'כתיבה וחתימה טובה' };
   switch (day.season) {
     case 'chanuka': {
       // הנר הראשון מודלק בערב כ"ד כסלו; טבת באותה שנה עברית כמו כסלו
@@ -120,12 +129,12 @@ function greetingFor(ctx) {
     case 'yamim-noraim':
       if (m === 7 && d >= 3) return { kind: 'yamim-noraim', title: 'גמר חתימה טובה', sub: 'עשרת ימי תשובה' };
       return { kind: 'yamim-noraim', title: 'שנה טובה ומתוקה', sub: 'כתיבה וחתימה טובה' };
-    case 'shabbat': return { kind: 'shabbat', title: day.dow === 6 || day.dow === 5 ? 'שבת שלום ומבורך' : 'שבת שלום', sub: parsha };
+    case 'shabbat':
+      if (special()) return special();
+      if (day.dow === 5 && !day.night && tags.includes('rosh-chodesh')) return { kind: 'torah', title: 'חודש טוב', sub: day.events.filter((e) => /ראש חודש/.test(e)).join(' · ') || 'ראש חודש' };
+      return { kind: 'shabbat', title: day.dow === 6 || day.dow === 5 ? 'שבת שלום ומבורך' : 'שבת שלום', sub: parsha };
     default:
-      if (day.holiday === 'tu-bishvat') return { kind: 'shavuot', title: 'ט"ו בשבט שמח', sub: 'ראש השנה לאילנות' };
-      if (day.holiday === 'lag-baomer') return { kind: 'torah', title: 'ל"ג בעומר שמח', sub: 'הילולא דרבי שמעון בר יוחאי' };
-      if (day.holiday === 'yom-haatzmaut') return { kind: 'torah', title: 'חג עצמאות שמח', sub: 'ראשית צמיחת גאולתנו' };
-      if (day.holiday === 'yom-yerushalayim') return { kind: 'torah', title: 'יום ירושלים שמח', sub: 'ירושלים הבנויה כעיר שחוברה לה יחדיו' };
+      if (special()) return special();
       if (tags.includes('rosh-chodesh')) return { kind: 'torah', title: 'חודש טוב', sub: (day.night ? day.next.events : day.events).filter((e) => /ראש חודש/.test(e)).join(' · ') || 'ראש חודש' };
       if (day.season === 'elul') return { kind: 'yamim-noraim', title: 'חודש אלול', sub: 'ימי רחמים וסליחות' };
       return { kind: 'torah', title: 'ברוכים הבאים', sub: `${day.afterSunset ? day.next.hebDate : day.hebDate} · ${parsha}` }; // כל יום; לכיבוי – מכבים את מסך הברכה ברשימת המסכים
@@ -181,11 +190,18 @@ export const SCREENS = {
     const nowMin = minutesOf(ctx.now, s.tz);
     const special = ['yomtov', 'fast', 'chol-hamoed', 'rosh-chodesh', 'erev-yomtov', 'chanuka'].some((t) => day.tags.includes(t));
     const cols = [];
-    if (special) cols.push(`<section class="card"><h3>היום <span class="tag">${esc(dayLabelForSchedule(day))}</span></h3>${prayerRows(prayersToday, nowMin)}</section>`);
-    cols.push(`<section class="card"><h3>ימות החול</h3>${prayerRows(weekly.weekday, null, false)}${ctx.data.lessons?.length ? '' : ''}</section>`);
-    cols.push(`<section class="card"><h3>ערב שבת</h3>${prayerRows(weekly.friday, null, false)}</section>`);
-    cols.push(`<section class="card"><h3>שבת קודש</h3>${prayerRows(weekly.shabbat, null, false)}</section>`);
-    return `${title('זמני התפילות')}<div class="grid g${Math.min(cols.length, 3) === 3 ? 3 : 2}" style="grid-template-columns:repeat(${cols.length},1fr)">${cols.join('')}</div>`;
+    const weight = (l) => l.reduce((a, p) => a + 1 + (p.note ? 0.45 : 0) + (p.name.length > 16 ? 0.35 : 0), 0);
+    if (special) cols.push({ w: weight(prayersToday), html: `<section class="card"><h3>היום <span class="tag">${esc(dayLabelForSchedule(day))}</span></h3>${prayerRows(prayersToday, nowMin)}</section>` });
+    cols.push({ w: weight(weekly.weekday), html: `<section class="card"><h3>ימות החול</h3>${prayerRows(weekly.weekday, null, false)}</section>` });
+    cols.push({ w: weight(weekly.friday), html: `<section class="card"><h3>ערב שבת</h3>${prayerRows(weekly.friday, null, false)}</section>` });
+    cols.push({ w: weight(weekly.shabbat), html: `<section class="card"><h3>שבת קודש</h3>${prayerRows(weekly.shabbat, null, false)}</section>` });
+    const grid = (cs) => `${title('זמני התפילות')}<div class="grid g${cs.length >= 3 ? 3 : 2}" style="grid-template-columns:repeat(${cs.length},1fr)">${cs.map((c) => c.html).join('')}</div>`;
+    // הרבה תפילות: מפצלים לשתי שקופיות (חול / שבת) – כרטיסים רחבים יותר, והשורות נשארות קריאות
+    const maxW = Math.max(...cols.map((c) => c.w));
+    const crowded = cols.length >= 4 ? maxW > 6.5 : maxW > 7.5;
+    if (!crowded) return grid(cols);
+    const n = cols.length - 2;
+    return [{ html: grid(cols.slice(0, n)), key: 'weekday' }, { html: grid(cols.slice(n)), key: 'shabbat' }];
   },
 
   zmanim(ctx) {

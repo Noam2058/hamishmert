@@ -224,15 +224,21 @@ function fitText(root) {
     let fs = parseFloat(getComputedStyle(list).getPropertyValue('--rb-fs')) || 40, guard = 0;
     while (over() && fs > 20 && guard++ < 40) { fs -= 1.5; list.style.setProperty('--rb-fs', `${fs}px`); }
   });
-  // רשימות תפילות/זמנים: אם יש הרבה שורות – מקטינים עד שהכול נכנס בכרטיס
+  // רשימות תפילות/זמנים: אם יש הרבה שורות – מקטינים עד שהכול נכנס בכרטיס; בכרטיס רחב – עוברים לשני טורים
+  const limitEl = $('#screens');
   root.querySelectorAll('.card > .rows').forEach((rows) => {
-    const card = rows.parentElement, scr = card.closest('.screen');
-    rows.style.removeProperty('--rz');
+    const card = rows.parentElement;
+    rows.style.removeProperty('--rz'); rows.classList.remove('two'); rows.style.removeProperty('grid-template-rows');
     const pb = parseFloat(getComputedStyle(card).paddingBottom) || 0;
     const over = () => rows.offsetTop + rows.offsetHeight > card.clientHeight - Math.min(pb, 40) + 1 || card.scrollHeight > card.clientHeight + 1
-      || (scr && card.getBoundingClientRect().bottom > scr.getBoundingClientRect().bottom + 1);
-    let z = 1, guard = 0;
-    while (over() && z > 0.5 && guard++ < 30) { z -= 0.04; rows.style.setProperty('--rz', z.toFixed(2)); }
+      || (limitEl && card.getBoundingClientRect().bottom > limitEl.getBoundingClientRect().bottom + 1);
+    const shrink = (floor) => { let z = 1, guard = 0; rows.style.removeProperty('--rz'); while (over() && z > floor && guard++ < 30) { z -= 0.03; rows.style.setProperty('--rz', z.toFixed(2)); } return z; };
+    const z = shrink(0.6);
+    if ((z < 0.8 || over()) && card.offsetWidth >= 760 && rows.children.length >= 6) {
+      rows.classList.add('two');
+      rows.style.gridTemplateRows = `repeat(${Math.ceil(rows.children.length / 2)}, auto)`;
+      shrink(0.6);
+    }
   });
   root.querySelectorAll('.halacha .x').forEach((x) => {
     const card = x.closest('.card');

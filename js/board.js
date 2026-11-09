@@ -11,7 +11,41 @@ const params = new URLSearchParams(location.search);
 const onlyScreens = params.get('screens')?.split(',').filter(Boolean);
 const fakeStart = params.get('date') ? new Date(params.get('date')) : null; // בדיקות: ?date=2026-12-14T17:30
 const realStart = Date.now();
-const nowDate = () => (fakeStart ? new Date(fakeStart.getTime() + (Date.now() - realStart)) : new Date());
+// שעון: כשיש אינטרנט מתקנים לפי שעון השרת (מכשירי סטרימר בלי סוללה מאבדים את השעה אחרי הפעלה מחדש)
+let clockOffset = 0, clockSynced = false, clockBad = false;
+const nowDate = () => (fakeStart ? new Date(fakeStart.getTime() + (Date.now() - realStart)) : new Date(Date.now() + clockOffset));
+const LAST_GOOD = 'shulboard:lastGoodTime';
+async function syncClock() {
+  if (fakeStart) return;
+  try {
+    const t0 = Date.now();
+    const r = await fetch(`version.txt?clock=${t0}`, { cache: 'no-store' });
+    const t1 = Date.now();
+    const srv = Date.parse(r.headers.get('date') || '');
+    if (!r.ok || !srv) return;
+    const off = srv + 500 + (t1 - t0) / 2 - t1;
+    clockOffset = Math.abs(off) > 90000 ? off : 0; // רק סטייה של יותר מדקה וחצי
+    clockSynced = true;
+  } catch { /* אין חיבור */ }
+}
+/** אחרי הפעלה מחדש בלי אינטרנט: אם השעון "חזר אחורה" לפני הפעם האחרונה שהלוח רץ – השעה לא מכוונת */
+function checkClock() {
+  if (fakeStart) return;
+  const now = nowDate().getTime();
+  let last = 0; try { last = +localStorage.getItem(LAST_GOOD) || 0; } catch { /* */ }
+  const bad = !clockSynced && (now < last - 10 * 60000 || new Date(now).getFullYear() < 2025);
+  if (!bad) { try { localStorage.setItem(LAST_GOOD, String(now)); } catch { /* */ } }
+  if (bad !== clockBad) {
+    clockBad = bad;
+    const el = document.getElementById('clockwarn');
+    if (el) {
+      el.hidden = !bad;
+      el.innerHTML = bad ? `<div><b>השעון של המכשיר לא מכוון</b><p>המכשיר מראה ${new Date(now).toLocaleDateString('he-IL')} ${new Date(now).toLocaleTimeString('he-IL', { hour: '2-digit', minute: '2-digit' })}, לפני הפעם האחרונה שהלוח פעל – לכן הזמנים בלוח לא נכונים.</p><p>חברו את המכשיר לאינטרנט (הלוח יתקן לבד), או כוונו תאריך ושעה בהגדרות המכשיר.</p></div>` : '';
+    }
+    return true;
+  }
+  return false;
+}
 
 const $ = (sel) => document.querySelector(sel);
 let DATA = null;
@@ -363,6 +397,8 @@ function markSync(source) {
 
 async function start() {
   fit();
+  await Promise.race([syncClock(), new Promise((r) => setTimeout(r, 3000))]);
+  checkClock();
   const r = await load();
   DATA = r.data;
   applySlidePreview();
@@ -383,17 +419,20 @@ async function start() {
   addEventListener('online', () => { document.body.classList.remove('offline'); renderSync(); });
   keepAwake();
   scheduleDailyReload();
+  setInterval(async () => { if (!clockSynced || Math.random() < 0.1) await syncClock(); if (checkClock()) advance(); }, 60000);
+  addEventListener('online', async () => { await syncClock(); if (checkClock()) advance(); });
   watchVersion();
 }
 
 // עדכון קוד: כל 5 דקות בודק את version.txt, ואם עלתה גרסה חדשה – מרענן את הלוח לבד
 async function watchVersion() {
   const get = () => fetch('version.txt', { cache: 'no-store' }).then((r) => (r.ok ? r.text() : null)).then((t) => t?.trim() || null).catch(() => null);
-  const mine = await get();
-  if (!mine) return;
+  let mine = await get();
   setInterval(async () => {
     const v = await get();
-    if (!v || v === mine) return;
+    if (!v) return;
+    if (!mine) { mine = v; return; } // עלה בלי אינטרנט – מתחילים לעקוב מהחיבור הראשון
+    if (v === mine) return;
     try { for (const k of await caches.keys()) await caches.delete(k); } catch {} // בלי שאריות מגרסה קודמת
     try { (await navigator.serviceWorker?.getRegistration())?.update(); } catch {}
     location.reload();
@@ -412,7 +451,7 @@ async function keepAwake() {
 function scheduleDailyReload() {
   // רענון מלא פעם ביום ב-03:17 כדי לקבל עדכוני קוד ולנקות זיכרון
   setInterval(() => {
-    const p = tzParts(new Date(), DATA.synagogue.tz);
+    const p = tzParts(nowDate(), DATA.synagogue.tz);
     if (p.hh === 3 && p.mm === 17 && navigator.onLine) location.reload();
   }, 60000);
 }

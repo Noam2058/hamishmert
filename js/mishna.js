@@ -61,7 +61,7 @@ export async function prefetchMishna(s, force = false) {
   last = Date.now();
   let got = false;
   const today = computeDay(new Date(), s).hd;
-  for (let d = 0; d < 8; d++) {
+  for (let d = 0; d < 14; d++) {
     let refs; try { refs = mishnaYomiRefs(today.add(d)); } catch { continue; }
     for (const r of refs) {
       if (ls.get(KEY(r))) continue;

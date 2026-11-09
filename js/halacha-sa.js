@@ -105,7 +105,7 @@ export async function prefetchHalachot(todayIso, startIso, force = false) {
   if (!force && Date.now() - lastPrefetch < 3600000) return false;
   lastPrefetch = Date.now();
   let got = false;
-  for (let d = 0; d < 8; d++) {
+  for (let d = 0; d < 14; d++) {
     const iso = new Date(Date.parse(`${todayIso}T12:00:00Z`) + d * 86400000).toISOString().slice(0, 10);
     const r = refForDate(iso, startIso);
     if (ls.get(KEY(r)) && ls.get(TITLE_KEY(r.book, r.siman)) != null) continue;

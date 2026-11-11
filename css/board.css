@@ -573,3 +573,10 @@ html, body, #viewport { touch-action: pan-x pan-y; }
 .row .k small { margin-top: 0; display: flex; gap: 8px; align-items: baseline; font: 600 calc(21px * var(--rz, 1))/1.3 var(--body); color: var(--ink-soft); text-wrap: balance; }
 .row .k small::before { content: "◆"; font-size: .65em; color: var(--gold); transform: translateY(-1px); flex-shrink: 0; }
 .row.next .k::after { align-self: flex-start; }
+/* כרטיסים צרים (4 טורים): זמן וגופן קצת קטנים יותר כדי שהשם לא יישבר לשורות */
+.rows { container-type: inline-size; }
+@container (max-width: 340px) {
+  .row { gap: 12px; padding-inline: 2px; }
+  .row .k { font-size: calc(31px * var(--rz, 1)); }
+  .row .v { font-size: calc(40px * var(--rz, 1)); }
+}

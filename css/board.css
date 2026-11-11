@@ -583,3 +583,5 @@ html, body, #viewport { touch-action: pan-x pan-y; }
 /* פס גלילה בשכבה נפרדת – שלא יגמגם כשמאחוריו יש רקע מונפש */
 footer.ticker { isolation: isolate; transform: translateZ(0); }
 .ticker .run { backface-visibility: hidden; transform: translateZ(0); }
+/* שורות הגריד לא גדלות מעבר לגובה השקופית (אחרת הכרטיסים נחתכים מלמטה) – התוכן מוקטן ע"י fitText */
+.grid { grid-auto-rows: minmax(0, 1fr); }

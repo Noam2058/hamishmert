@@ -196,6 +196,7 @@ function stageScale() {
 document.fonts?.ready.then(layoutTicker);
 document.fonts?.addEventListener?.('loadingdone', layoutTicker);
 document.fonts?.addEventListener?.('loadingdone', () => { if (current?.el) fitText(current.el); });
+addEventListener('resize', () => { if (current?.el) setTimeout(() => fitText(current.el), 300); });
 addEventListener('resize', () => { clearTimeout(layoutTicker.t); layoutTicker.t = setTimeout(layoutTicker, 300); });
 
 // ---------- רוטציה ----------

@@ -565,7 +565,8 @@ html, body, #viewport { touch-action: pan-x pan-y; }
 
 /* שורת תפילה: שם, תגית (מה שבסוגריים) והערה */
 .row { align-items: center; }
-.row .k { display: flex; flex-direction: column; align-items: flex-start; gap: calc(6px * var(--rz, 1)); }
+.row .k { flex: 1 1 0; display: flex; flex-direction: column; align-items: flex-start; gap: calc(6px * var(--rz, 1)); }
+.row .v { flex-shrink: 0; }
 .row .k .nm { text-wrap: balance; }
 .row .k .pq { font: 700 calc(21px * var(--rz, 1))/1 var(--body); color: color-mix(in srgb, var(--gold) 72%, var(--ink)); padding: calc(5px * var(--rz, 1)) calc(12px * var(--rz, 1));
   border-radius: 999px; background: color-mix(in srgb, var(--gold) 14%, transparent); border: 1px solid color-mix(in srgb, var(--gold) 45%, transparent); white-space: nowrap; }

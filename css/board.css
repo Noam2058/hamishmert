@@ -580,3 +580,6 @@ html, body, #viewport { touch-action: pan-x pan-y; }
   .row .k { font-size: calc(31px * var(--rz, 1)); }
   .row .v { font-size: calc(40px * var(--rz, 1)); }
 }
+/* פס גלילה בשכבה נפרדת – שלא יגמגם כשמאחוריו יש רקע מונפש */
+footer.ticker { isolation: isolate; transform: translateZ(0); }
+.ticker .run { backface-visibility: hidden; transform: translateZ(0); }

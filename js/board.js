@@ -436,9 +436,12 @@ async function watchVersion() {
     if (!v) return;
     if (!mine) { mine = v; return; } // עלה בלי אינטרנט – מתחילים לעקוב מהחיבור הראשון
     if (v === mine) return;
-    try { for (const k of await caches.keys()) await caches.delete(k); } catch {} // בלי שאריות מגרסה קודמת
-    try { (await navigator.serviceWorker?.getRegistration())?.update(); } catch {}
-    location.reload();
+    mine = v;
+    // מחכים קצת – שכל הקבצים החדשים יגיעו לשרתי ההפצה – ואז מרעננים
+    setTimeout(async () => {
+      try { (await navigator.serviceWorker?.getRegistration())?.update(); } catch {}
+      location.reload();
+    }, 90 * 1000);
   }, 5 * 60 * 1000);
 }
 

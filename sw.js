@@ -1,5 +1,5 @@
 // Service Worker: שומר את קוד הלוח, הספריות והגופנים כדי שהלוח יעבוד גם בלי אינטרנט.
-const VERSION = 'shulboard-v11';
+const VERSION = 'shulboard-v12';
 // ספריות חיצוניות – נשמרות כבר בהתקנה, כדי שהלוח יעלה גם בלי אינטרנט
 const CDN = [
   'https://cdn.jsdelivr.net/npm/@hebcal/core@5.10.1/+esm',
@@ -52,7 +52,10 @@ self.addEventListener('fetch', (e) => {
   }
   // קבצי האתר והגדרות הגופנים: מהרשת קודם, ומהמטמון כשאין חיבור
   // cache: 'no-cache' – בודק מול השרת אם יש גרסה חדשה (בקשה קטנה), כדי שעדכון קוד יגיע ללוח מיד
-  e.respondWith(fetch(e.request, { cache: url.origin === location.origin ? 'reload' : 'no-cache' }).then((res) => {
+  // קבצי האתר: עם פרמטר חד-פעמי, כדי לעקוף גם את מטמון ה-CDN של GitHub Pages (אחרי פריסה הוא מגיש לפעמים גרסה ישנה כמה דקות)
+  const same = url.origin === location.origin;
+  const net = same ? new Request(`${url.href}${url.search ? '&' : '?'}_sw=${Date.now()}`, { cache: 'reload', credentials: 'same-origin' }) : new Request(e.request, { cache: 'no-cache' });
+  e.respondWith(fetch(net).then((res) => {
     const copy = res.clone();
     caches.open(VERSION).then((c) => c.put(e.request, copy));
     return res;

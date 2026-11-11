@@ -423,6 +423,7 @@ export const SCREENS = {
     const nowMin = minutesOf(ctx.now, s.tz);
     // לכל שיעור: היום הקרוב שבו הוא מתקיים והשעה באותו יום
     const at = (off) => { try { const d = off ? computeDay(new Date(ctx.now.getTime() + off * 86400000), s) : day; return d; } catch { return null; } };
+    const dayKey = (l) => (l.weekdays?.length ? Math.min(...l.weekdays) : -1);
     const list = all.map((l) => {
       const days = l.weekdays?.length ? l.weekdays : [0, 1, 2, 3, 4, 5, 6];
       const next = (from) => { let o = from; while (o < from + 7 && !days.includes((day.civil.getDay() + o) % 7)) o++; return o; };
@@ -431,7 +432,8 @@ export const SCREENS = {
       // שיעור של היום שכבר הסתיים (יותר משעה) – מציגים את הפעם הבאה
       if (off === 0 && min != null && min < nowMin - 60) { off = next(1); min = timeAt(off); }
       return { ...l, off, min, time: min == null ? '' : minToHhmm(min), days: daysLabel(l.weekdays), today: off === 0, dow: (day.civil.getDay() + off) % 7 };
-    }).sort((a, b) => a.off - b.off || (a.min ?? 9999) - (b.min ?? 9999));
+    // סדר קבוע לפי ימי השבוע (ראשון ← שבת, מימין לשמאל), ובתוך היום לפי השעה
+    }).sort((a, b) => dayKey(a) - dayKey(b) || (a.min ?? 9999) - (b.min ?? 9999));
     const DN = ['ראשון', 'שני', 'שלישי', 'רביעי', 'חמישי', 'שישי'];
     const when = (l) => (l.today ? 'היום' : l.dow === 6 ? 'בשבת' : `ביום ${DN[l.dow]}`);
     if (list.length <= 3) {

@@ -74,6 +74,8 @@ function buildCtx() {
   ctx = {
     now, day, s, data: DATA, display: DATA.display, todayIso,
     prayersToday: prayersForDay(day, DATA, s),
+    // אותו יום בלוח הרגיל (בלי ראש חודש/צום/חג) – כדי לדעת אם יש בכלל שינוי היום
+    prayersRegular: prayersForDay(day, DATA, s, day.civil, [day.dow === 6 ? 'shabbat' : day.dow === 5 ? 'friday' : 'weekday']),
     lessonsToday: lessonsForDay(DATA, s, day.civil, lctx),
     weekly: weeklyPrayers(day, DATA, s),
   };

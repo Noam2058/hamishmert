@@ -195,7 +195,7 @@ export const SCREENS = {
   combined(ctx) {
     const { day, s, prayersToday, lessonsToday } = ctx;
     const nowMin = minutesOf(ctx.now, s.tz);
-    const tag = dayLabelForSchedule(day);
+    const tag = day.night ? '' : dayLabelForSchedule(day);
     const keys = (s.zmanimShown || []).slice(0, 9);
     const extra = [];
     if (day.fast.length) extra.push(...day.fast.map((f) => ({ t: f.label, v: fmtTime(f.time, s.tz, f.label === 'סוף הצום' ? 'ceil' : 'floor') })));
@@ -211,7 +211,10 @@ export const SCREENS = {
   prayers(ctx) {
     const { day, s, weekly, prayersToday } = ctx;
     const nowMin = minutesOf(ctx.now, s.tz);
-    const special = ['yomtov', 'fast', 'chol-hamoed', 'rosh-chodesh', 'erev-yomtov', 'chanuka'].some((t) => day.tags.includes(t));
+    // עמודת "היום" – רק כשהיום מיוחד, לוח התפילות שלו באמת שונה מהרגיל, והיום עוד לא נגמר (צאת הכוכבים)
+    const sig = (l) => (l || []).map((p) => `${p.name}|${p.time}`).join(';');
+    const special = !day.night && ['yomtov', 'fast', 'chol-hamoed', 'rosh-chodesh', 'erev-yomtov', 'chanuka'].some((t) => day.tags.includes(t))
+      && sig(prayersToday) !== sig(ctx.prayersRegular);
     const cols = [];
     const weight = (l) => l.reduce((a, p) => a + 1 + (p.note ? 0.45 : 0) + (p.name.length > 16 ? 0.35 : 0), 0);
     if (special) cols.push({ w: weight(prayersToday), html: `<section class="card"><h3>היום <span class="tag">${esc(dayLabelForSchedule(day))}</span></h3>${prayerRows(prayersToday, nowMin)}</section>` });

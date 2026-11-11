@@ -72,7 +72,10 @@ function prayerRows(list, nowMin, markNext = true, compact = false) {
       if (p.min < nowMin - 5) cls = 'past';
       else if (!nextMarked) { cls = 'next'; nextMarked = true; }
     }
-    return `<div class="row ${cls}"><div class="k">${esc(p.name)}${p.note ? `<small>${esc(p.note)}</small>` : ''}</div><div class="v">${p.time}</div></div>`;
+    // "ערבית (צאת הכוכבים)" → שם ראשי + תגית קטנה, כדי שהסוגריים לא יישברו לשורות
+    const m = /^(.*?)\s*\(([^)]+)\)\s*$/.exec(p.name.trim());
+    const nm = m && m[1] ? m[1] : p.name, tag = m && m[1] ? m[2] : '';
+    return `<div class="row ${cls}"><div class="k"><span class="nm">${esc(nm)}</span>${tag ? `<span class="pq">${esc(tag)}</span>` : ''}${p.note ? `<small>${esc(p.note)}</small>` : ''}</div><div class="v">${p.time}</div></div>`;
   });
   return `<div class="rows${compact ? ' compact' : ''}">${rows.join('')}</div>`;
 }

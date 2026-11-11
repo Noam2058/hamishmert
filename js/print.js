@@ -22,7 +22,7 @@ function render() {
   const base = week ? sunday : new Date(Math.max(now, sunday));
   const day = computeDay(base, s);
   const sh = day.shabbat;
-  const weekly = weeklyPrayers(day, DATA, s);
+  const weekly = weeklyPrayers(day, DATA, s, true);
   const isShabbat = sh.candlesDate && sh.candlesDate.getDay() === 5;
   const days = Array.from({ length: 7 }, (_, i) => new Date(sunday.getTime() + i * 86400000));
   const dayInfo = days.map((d) => ({ d, cd: computeDay(d, s), z: zmanimFor(d, s) }));

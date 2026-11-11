@@ -80,7 +80,7 @@ function rowsFor(prayers, tags, dow, hkeys = []) {
 }
 
 /** רשימת התפילות ליום (day מגיע מ-computeDay) */
-export function prayersForDay(day, data, s, civil = day.civil, tags = day.tags) {
+export function prayersForDay(day, data, s, civil = day.civil, tags = day.tags, fridayMorning = true) {
   const ctx = { candles: day.shabbat.candles, havdalah: day.shabbat.havdalah };
   let hkeys = [];
   try { if ((data.prayers || []).some((p) => p.schedule === 'holiday')) hkeys = holidayKeysOn(civil, s.il !== false); } catch { /* */ }
@@ -88,7 +88,7 @@ export function prayersForDay(day, data, s, civil = day.civil, tags = day.tags) 
   const res = (r) => { const min = resolveTime(r.time, civil, s, ctx); return { id: r.id, name: r.name, note: r.note || '', min, time: min == null ? '--:--' : minToHhmm(min) }; };
   const out = rows.map(res);
   // ערב שבת: הבוקר הוא כמו יום חול – תפילות החול של הבוקר (לפני 12:00) נכנסות, אם לא הוגדרה בערב שבת תפילה באותו שם
-  if (tags.includes('friday') && !tags.includes('shabbat') && !tags.includes('yomtov')) {
+  if (fridayMorning && tags.includes('friday') && !tags.includes('shabbat') && !tags.includes('yomtov')) {
     const names = new Set(out.map((r) => r.name.trim()));
     const dow = civil.getDay();
     for (const p of (data.prayers || []).filter((x) => x.schedule === 'weekday' && (!x.weekdays?.length || x.weekdays.includes(dow)))) {
@@ -101,7 +101,8 @@ export function prayersForDay(day, data, s, civil = day.civil, tags = day.tags) 
 }
 
 /** תפילות חול (לפי יום ראשון של השבוע) ותפילות השבת הקרובה */
-export function weeklyPrayers(day, data, s) {
+// fridayMorning: האם להוסיף לערב שבת את תפילות הבוקר של החול (בלוח ובדף המתפללים לא – הן כבר מופיעות בימות החול; בדף ההדפסה כן)
+export function weeklyPrayers(day, data, s, fridayMorning = false) {
   const civil = day.civil;
   const sunday = addDays(civil, -civil.getDay());
   const friday = addDays(sunday, 5);
@@ -109,7 +110,7 @@ export function weeklyPrayers(day, data, s) {
   const weekdayCivil = civil.getDay() <= 4 ? civil : sunday;
   return {
     weekday: prayersForDay(day, data, s, weekdayCivil, ['weekday']),
-    friday: prayersForDay(day, data, s, friday, ['friday']),
+    friday: prayersForDay(day, data, s, friday, ['friday'], fridayMorning),
     shabbat: prayersForDay(day, data, s, saturday, ['shabbat']),
   };
 }

@@ -273,7 +273,7 @@ function fitText(root) {
     const card = rows.parentElement;
     rows.style.removeProperty('--rz'); rows.classList.remove('two'); rows.style.removeProperty('grid-template-rows');
     const pb = parseFloat(getComputedStyle(card).paddingBottom) || 0;
-    const over = () => rows.offsetTop + rows.offsetHeight > card.clientHeight - Math.min(pb, 40) + 1 || card.scrollHeight > card.clientHeight + 1
+    const over = () => rows.offsetTop + rows.offsetHeight > card.clientHeight - Math.max(0, pb - 12) + 1 || card.scrollHeight > card.clientHeight + 1
       || (limitEl && card.getBoundingClientRect().bottom > limitEl.getBoundingClientRect().bottom + 1);
     const shrink = (floor) => { let z = 1, guard = 0; rows.style.removeProperty('--rz'); while (over() && z > floor && guard++ < 30) { z -= 0.03; rows.style.setProperty('--rz', z.toFixed(2)); } return z; };
     const z = shrink(0.6);

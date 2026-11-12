@@ -508,3 +508,76 @@ body:has(#login:not([hidden])) { background: #0b1428; }
 }
 .lg-lamp { top: 34px; }
 @media (min-width: 861px) { .lg-row { margin-top: 96px; } }
+
+/* ================= שכבת עיצוב: כחול-זהב-קלף (בהשראת מסך הכניסה והלוח) ================= */
+:root { --gold-1: #f3d98a; --gold-2: #d4ad55; --gold-3: #a8822f;
+  --pattern: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='72' height='72'%3E%3Cpath d='M36 22l6 10h12l-6 10 6 10H42l-6 10-6-10H18l6-10-6-10h12z' fill='none' stroke='%23a8822f' stroke-opacity='.07' stroke-width='1'/%3E%3C/svg%3E"); }
+body { background-image: var(--pattern); background-attachment: fixed; }
+@media (prefers-color-scheme: dark) { :root { --pattern: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='72' height='72'%3E%3Cpath d='M36 22l6 10h12l-6 10 6 10H42l-6 10-6-10H18l6-10-6-10h12z' fill='none' stroke='%23e3c475' stroke-opacity='.05' stroke-width='1'/%3E%3C/svg%3E"); } }
+
+/* פס עליון – כחול עמוק עם וילון זהב */
+.topbar { background: linear-gradient(180deg, #1a2b55, #101b38); border-bottom: 0; box-shadow: 0 8px 18px rgba(10,16,32,.25); }
+.topbar::before { content: ""; position: absolute; inset: 0; background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='72' height='72'%3E%3Cpath d='M36 22l6 10h12l-6 10 6 10H42l-6 10-6-10H18l6-10-6-10h12z' fill='none' stroke='%23e3c475' stroke-opacity='.08' stroke-width='1'/%3E%3C/svg%3E"); pointer-events: none; }
+.topbar::after { content: ""; position: absolute; left: 0; right: 0; bottom: -9px; height: 10px; pointer-events: none;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='10'%3E%3Cpath d='M0 0Q20 18 40 0' fill='%23101b38' stroke='%23d9b45e' stroke-width='1.6'/%3E%3C/svg%3E") repeat-x; background-size: 40px 10px; }
+.topbar > * { position: relative; z-index: 1; }
+.brand-name { background: linear-gradient(180deg, #fff4cf, #e3c475 70%); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.logo { border-radius: 50%; background: radial-gradient(circle at 35% 30%, #fff1c2, #e3c475 45%, #a8822f); box-shadow: 0 0 0 2px #101b38, 0 0 0 3.5px #c9a24f; }
+.status { display: inline-flex; align-items: center; gap: 6px; padding: 5px 12px; border-radius: 999px; border: 1px solid rgba(227,196,117,.3); background: rgba(255,255,255,.05); }
+.status::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: #72c597; }
+.status.dirty { border-color: rgba(240,207,122,.6); background: rgba(240,207,122,.12); }
+.status.dirty::before { background: #f0cf7a; animation: lgFlicker 1.4s ease-in-out infinite; }
+
+/* תפריט צד */
+.nav { top: 70px; height: calc(100vh - 70px); background: color-mix(in srgb, var(--surface) 92%, transparent); backdrop-filter: none; }
+.nav .group { display: flex; align-items: center; gap: 8px; color: var(--gold); letter-spacing: .06em; }
+.nav .group::before { content: ""; width: 6px; height: 6px; background: var(--gold); transform: rotate(45deg); opacity: .8; }
+.nav .group::after { content: ""; flex: 1; height: 1px; background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--gold) 40%, transparent)); }
+.nav button { transition: background .15s, color .15s; }
+.nav button svg { color: var(--gold); }
+.nav button[aria-selected="true"] { background: linear-gradient(180deg, var(--gold-1), var(--gold-2) 60%, var(--gold-3)); color: #14213d; box-shadow: 0 4px 12px rgba(168,130,47,.35), inset 0 1px 0 rgba(255,255,255,.5); }
+.nav button[aria-selected="true"] svg { color: #14213d; }
+.nav button[aria-selected="true"] .count { background: rgba(20,33,61,.15); }
+
+/* כותרת עמוד עם קישוט זהב */
+.page-head h1 { position: relative; padding-bottom: 12px; }
+.page-head h1::after { content: ""; position: absolute; inset-inline-start: 0; bottom: 0; width: 140px; height: 9px;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='9'%3E%3Cpath d='M0 4.5H58M82 4.5H140' stroke='%23c9a24f' stroke-width='1.4'/%3E%3Cpath d='M70 0.5L74 4.5L70 8.5L66 4.5Z' fill='%23c9a24f'/%3E%3Ccircle cx='62' cy='4.5' r='1.6' fill='%23c9a24f'/%3E%3Ccircle cx='78' cy='4.5' r='1.6' fill='%23c9a24f'/%3E%3C/svg%3E") no-repeat; }
+html[dir="rtl"] .page-head h1::after { transform: scaleX(-1); }
+
+/* כרטיסים ופריטים */
+.card, .item { border-color: color-mix(in srgb, var(--gold) 22%, var(--line)); }
+.card { position: relative; border-radius: 16px; }
+.card::before { content: ""; position: absolute; top: 0; left: 18px; right: 18px; height: 2px; border-radius: 2px; background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--gold) 55%, transparent), transparent); pointer-events: none; }
+.card h2 svg { color: var(--gold); }
+.item { border-radius: 14px; transition: box-shadow .15s, border-color .15s; }
+.item:hover { box-shadow: 0 2px 4px rgba(20,33,61,.06), 0 10px 24px rgba(20,33,61,.09); }
+.item[open] { box-shadow: inset 4px 0 0 var(--gold), var(--shadow); }
+html[dir="rtl"] .item[open] { box-shadow: inset -4px 0 0 var(--gold), var(--shadow); }
+
+/* כפתורים ראשיים – זהב */
+.btn.primary, button.primary { background: linear-gradient(180deg, var(--gold-1), var(--gold-2) 60%, var(--gold-3)); color: #14213d; border-color: var(--gold-3); box-shadow: 0 4px 12px rgba(168,130,47,.3), inset 0 1px 0 rgba(255,255,255,.5); }
+.btn.primary:hover { filter: brightness(1.04); }
+
+/* סקירה */
+.hero-today { background: radial-gradient(ellipse at 20% 0%, #26407a, #14213d 70%); box-shadow: 0 14px 34px rgba(20,33,61,.25); outline: 2px double rgba(227,196,117,.45); outline-offset: -8px; }
+.hero-today::before { background: none; }
+.hero-today::after { content: ""; position: absolute; inset: 0; background: var(--pattern); opacity: 1; pointer-events: none; filter: brightness(2.5); }
+.hero-today > * { position: relative; z-index: 1; }
+.hero-today .hd { background: linear-gradient(180deg, #fff4cf, #e3c475); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.hero-today .pill { border: 1px solid rgba(227,196,117,.35); background: rgba(255,255,255,.06); }
+@media (min-width: 861px) { .hero-search, .hero-results { display: none !important; } }
+.tiles { grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); }
+.tile { border-color: color-mix(in srgb, var(--gold) 25%, var(--line)); transition: transform .15s, box-shadow .15s, border-color .15s; }
+.tile svg { width: 26px; height: 26px; padding: 10px; box-sizing: content-box; border-radius: 50%; background: color-mix(in srgb, var(--gold) 14%, transparent); }
+.tile:hover { transform: translateY(-3px); box-shadow: 0 12px 24px rgba(20,33,61,.12); }
+.dash .span3 { grid-column: 1 / -1; }
+.pv-foot { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; font-size: 14px; }
+.pv-foot b { color: var(--ink); }
+.pv-btns { display: flex; gap: 8px; }
+.netz-state { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.netz-state b { font-weight: 800; }
+.span-all { grid-column: 1 / -1; }
+.screen-row.flash { animation: rowFlash 2.2s ease; }
+@keyframes rowFlash { 0%, 60% { background: color-mix(in srgb, var(--gold) 30%, transparent); box-shadow: 0 0 0 2px var(--gold); } }
+.savebar { border-top: 2px solid var(--gold); }

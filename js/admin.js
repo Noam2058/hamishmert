@@ -53,10 +53,9 @@ const icon = (k) => `<svg viewBox="0 0 24 24" aria-hidden="true">${I[k] || ''}</
 // ---------- מצב שמירה ----------
 function setDirty(v = true) {
   dirty = v;
-  $('#btn-save').disabled = !v;
-  $('#btn-save').textContent = v ? 'שמור' : 'נשמר ✓';
   $('#savebar').hidden = !v;
-  const st = $('#status'); st.hidden = !v; st.textContent = 'לא נשמר'; st.classList.toggle('dirty', v);
+  // מצב השמירה בפס העליון (רק תצוגה – השמירה עצמה בפס התחתון שמופיע כשיש שינויים)
+  const st = $('#status'); st.hidden = false; st.textContent = v ? 'יש שינויים שלא נשמרו' : 'הכל שמור'; st.classList.toggle('dirty', v);
 }
 function flash(text, err = false) {
   const m = $('#msg'); m.textContent = text; m.className = 'toast' + (err ? ' err' : ''); m.hidden = false;
@@ -795,8 +794,7 @@ function renderHome() {
     </section>
 
     <div class="tiles">${tiles.map(([k, l, ic, isNew]) => `<button class="tile" data-go="${k}" ${isNew ? 'data-new' : ''}>${icon(ic)}<span>${l}</span></button>`).join('')}
-      <a class="tile" href="print.html${esc(q)}" target="_blank" rel="noopener">${icon('print')}<span>דף שבועי להדפסה</span></a>
-      <a class="tile" href="holidays-preview.html${esc(q)}" target="_blank" rel="noopener">${icon('display')}<span>הלוח בחגים</span></a></div>
+</div>
 
     ${att.length ? `<section class="card attn"><h2>${icon('hilulot')}דורש תשומת לב <span class="tag">${att.length}</span></h2>
       <div class="attn-list">${att.map((a, i) => `<div class="attn-row"><span>${esc(a.text)}</span><button class="btn sm" data-attn="${i}">${esc(a.btn)}</button></div>`).join('')}</div></section>` : ''}
@@ -812,19 +810,10 @@ function renderHome() {
         ${lessons.length ? `<div class="sub-h">שיעורים היום</div><div class="mini-rows">${lessons.map((l) => `<div class="mini-row"><span>${esc(l.title)}${l.teacher ? ` · ${esc(l.teacher)}` : ''}</span><b>${esc(l.timeStr)}</b></div>`).join('')}</div>` : ''}
         <button class="btn sm" data-go="prayers">עריכת תפילות</button></section>
 
-      <section class="card span2"><h2>${icon('display')}כך נראה הלוח עכשיו <span class="tag">חי</span></h2>
+      <section class="card span3"><h2>${icon('display')}כך נראה הלוח עכשיו <span class="tag">חי</span></h2>
         <div class="preview" id="pv"><iframe title="תצוגה מקדימה של הלוח" src="index.html${q ? q + '&' : '?'}preview" loading="lazy" tabindex="-1"></iframe></div>
-        <p class="note">שינויים מופיעים כאן אחרי שמירה. <a href="index.html${esc(q)}" target="_blank" rel="noopener">פתח במסך מלא</a></p></section>
-
-      <section class="card"><h2>${icon('announcements')}מוצג עכשיו</h2>
-        <div class="mini-rows">
-          <div class="mini-row"><span>הודעות</span><b>${anns.length}</b></div>
-          <div class="mini-row"><span>הקדשות לעילוי נשמת</span><b>${(DATA.dedications || []).filter((a) => { try { return annActive(a, isoToday(), todayDay().hd); } catch { return false; } }).length}</b></div>
-          <div class="mini-row"><span>תמונות</span><b>${(DATA.slides || []).filter((x) => x.enabled !== false && activeRange(x)).length}</b></div>
-          <div class="mini-row"><span>שקופיות פעילות בסבב</span><b>${(DATA.display.screens || []).filter((x) => x.enabled).length}</b></div>
-        </div>
-        ${anns.length ? `<div class="sub-h">הודעות</div><div class="mini-rows">${anns.slice(0, 5).map((a) => `<div class="mini-row"><span>${esc(a.title || (a.body || '').split('\n')[0])}</span><span class="muted">${esc(annWhen(a))}</span></div>`).join('')}</div>` : ''}
-        <button class="btn sm" data-go="display">שקופיות וסדר</button></section>
+        <div class="pv-foot"><span class="muted">מוצגים עכשיו: <b>${(DATA.display.screens || []).filter((x) => x.enabled).length}</b> שקופיות בסבב · <b>${anns.length}</b> הודעות · <b>${(DATA.slides || []).filter((x) => x.enabled !== false && activeRange(x)).length}</b> תמונות. שינויים מופיעים כאן אחרי שמירה.</span>
+          <span class="pv-btns"><button class="btn sm" data-go="display">סדר השקופיות</button><a class="btn sm" href="index.html${esc(q)}" target="_blank" rel="noopener">מסך מלא ↗</a></span></div></section>
     </div>`;
   const pv = $('#pv');
   const fit = () => { const f = pv?.querySelector('iframe'); if (f) f.style.transform = `scale(${pv.clientWidth / 1920})`; };
@@ -906,8 +895,7 @@ function renderDisplay() {
       <p class="note">למסך שני עם תוכן אחר: הוסף לכתובת הלוח <code>?screens=memorials,announcements</code></p></section>
     ${(() => { const ns = d.screens.find((x) => x.type === 'netz') || { enabled: false, seconds: 14 }; return `
     <section class="card"><h2>שעון נץ וסוף זמן קריאת שמע</h2><div class="form-grid">
-      <label class="fld check"><input data-ns="enabled" type="checkbox" ${ns.enabled ? 'checked' : ''}><span>להציג את השקופית בבוקר</span></label>
-      <label class="fld"><span>כמה זמן להציג אותה (שניות)</span><input data-ns="seconds" type="number" min="4" value="${esc(ns.seconds)}"></label>
+      <div class="fld span-all"><span>הפעלה ומשך ההצגה</span><div class="netz-state"><b>${ns.enabled ? `פעילה · ${esc(ns.seconds)} שניות` : 'כבויה'}</b><button type="button" class="btn sm" id="go-netz-row">שינוי ברשימת המסכים ↑</button></div></div>
       <label class="fld check"><input data-d="netzCountdown" type="checkbox" ${d.netzCountdown !== false ? 'checked' : ''}><span>ספירה לאחור לנץ החמה</span></label>
       <label class="fld"><span>להתחיל כמה דקות לפני הנץ</span><input data-d="netzWindowMin" type="number" min="5" value="${esc(d.netzWindowMin)}"></label>
       <label class="fld check"><input data-d="shmaCountdown" type="checkbox" ${d.shmaCountdown !== false ? 'checked' : ''}><span>ספירה לאחור לסוף זמן קריאת שמע</span></label>
@@ -927,23 +915,18 @@ function renderDisplay() {
     const el = e.target;
     const val = el.type === 'checkbox' ? el.checked : el.type === 'number' ? +el.value : el.value;
     if (el.dataset.d) d[el.dataset.d] = el.dataset.d === 'shmaWindowMin' ? +val : val;
-    else if (el.dataset.ns) {
-      const i = d.screens.findIndex((x) => x.type === 'netz');
-      if (i < 0) return;
-      d.screens[i][el.dataset.ns] = val;
-      const row = p.querySelector(`.screen-row[data-i="${i}"]`);
-      const twin = row?.querySelector(`[data-sc="${el.dataset.ns}"]`);
-      if (twin) { if (twin.type === 'checkbox') twin.checked = val; else twin.value = val; }
-      if (el.dataset.ns === 'enabled') row?.classList.toggle('off', !val);
-    }
     else if (el.dataset.o) d.offHours[el.dataset.o] = val;
     else if (el.dataset.sc) { const row = el.closest('.screen-row'); d.screens[+row.dataset.i][el.dataset.sc] = val; if (el.dataset.sc === 'enabled') row.classList.toggle('off', !val);
-      if (d.screens[+row.dataset.i].type === 'netz') { const t = p.querySelector(`[data-ns="${el.dataset.sc}"]`); if (t) { if (t.type === 'checkbox') t.checked = val; else t.value = val; } } }
+      if (d.screens[+row.dataset.i].type === 'netz') { const ns = d.screens[+row.dataset.i]; const t = p.querySelector('.netz-state b'); if (t) t.textContent = ns.enabled ? `פעילה · ${ns.seconds} שניות` : 'כבויה'; } }
     else return;
     setDirty();
   };
   p.addEventListener('change', upd); p.addEventListener('input', upd);
   makeSortable(p.querySelector('.screen-list'), '.screen-row', (order) => { reorder(d.screens, order); setDirty(); renderDisplay(); });
+  p.querySelector('#go-netz-row')?.addEventListener('click', () => {
+    const i = d.screens.findIndex((x) => x.type === 'netz'); const row = p.querySelector(`.screen-row[data-i="${i}"]`);
+    if (!row) return; row.scrollIntoView({ behavior: 'smooth', block: 'center' }); row.classList.add('flash'); setTimeout(() => row.classList.remove('flash'), 2200);
+  });
   p.querySelectorAll('[data-act]').forEach((b) => b.onclick = () => {
     const i = +b.closest('.screen-row').dataset.i, j = b.dataset.act === 'up' ? i - 1 : i + 1;
     if (j < 0 || j >= d.screens.length) return;
@@ -986,7 +969,7 @@ function renderNav() {
   nav.innerHTML = `<label class="nav-search">${icon('search')}<input id="gsearch" type="search" placeholder="חיפוש בכל הלוח…" autocomplete="off"></label><div class="gresults" id="gresults" hidden></div>` + NAV.map(([g, items]) => `${g ? `<div class="group">${g}</div>` : ''}${items.map(([k, l]) => {
     const n = LISTS[k] ? countOf(k) : null;
     return `<button role="tab" aria-selected="${k === tab}" data-tab="${k}">${icon(k)}<span>${l}</span>${n ? `<span class="count" data-count="${k}">${n}</span>` : ''}</button>`;
-  }).join('')}`).join('') + `<div class="nav-motto">${MOTTO}</div>`;
+  }).join('')}`).join('');
   nav.querySelectorAll('button[data-tab]').forEach((b) => b.onclick = () => { tab = b.dataset.tab; renderNav(); renderPanel(); b.scrollIntoView({ inline: 'center', block: 'nearest' }); });
   bindSearch($('#gsearch'), $('#gresults'));
   try { history.replaceState(null, '', `#${tab}`); } catch {}
@@ -1004,8 +987,7 @@ async function doSave() {
   // יציאה מהשדה הפעיל כדי שהערך האחרון ייקלט לפני השמירה
   const act = document.activeElement;
   if (act && act.matches?.('input,textarea,select')) { act.dispatchEvent(new Event('change', { bubbles: true })); act.blur(); await new Promise((r) => setTimeout(r, 0)); }
-  const b = $('#btn-save');
-  b.disabled = true; b.textContent = 'שומר…'; $('#btn-save2').disabled = true;
+  $('#btn-save2').disabled = true; $('#status').textContent = 'שומר…';
   try {
     await save(DATA); SAVED = structuredClone(DATA); setDirty(false);
     setTimeout(checkVersion, 1500);
@@ -1069,7 +1051,6 @@ async function enter() {
   if (restore && Date.now() - restore.t < 60000) { renderedTab = tab; requestAnimationFrame(() => scrollTo({ top: restore.y, behavior: 'instant' })); }
 }
 
-$('#btn-save').onclick = doSave;
 $('#btn-save2').onclick = doSave;
 $('#btn-undo').onclick = () => { pendingDeletes = []; DATA = structuredClone(SAVED); setDirty(false); renderNav(); renderPanel(); flash('השינויים בוטלו'); };
 $('#login-form').onsubmit = async (e) => {

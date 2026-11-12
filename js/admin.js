@@ -1031,6 +1031,13 @@ async function loginScene() {
       const z = d.zmanim, f = (k, r) => (z[k] ? fmtTime(z[k], syn.tz, r) : null);
       const chips = [['הנץ', f('sunrise', 'ceil')], ['סוף ק"ש', f('shmaGRA', 'floor')], ['שקיעה', f('sunset', 'floor')], ['צאת הכוכבים', f('tzeit', 'ceil')]].filter((x) => x[1]);
       $('#lg-chips').innerHTML = chips.map(([l, t]) => `<span>${l}<b>${t}</b></span>`).join('');
+      const sh = d.shabbat;
+      if (sh?.parsha) {
+        $('#lg-shabbat').hidden = false;
+        $('#lg-shabbat').innerHTML = `<div class="p"><small>${d.dow === 6 && !d.afterSunset ? 'השבת' : 'השבת הקרובה'}</small>${sh.parshaIsChag ? esc(sh.parsha) : 'פרשת ' + esc(sh.parsha)}</div>`
+          + (sh.candles ? `<div class="t"><small>הדלקת נרות</small><b>${fmtTime(sh.candles, syn.tz, 'floor')}</b></div>` : '')
+          + (sh.havdalah ? `<div class="t"><small>צאת השבת</small><b>${fmtTime(sh.havdalah, syn.tz, 'ceil')}</b></div>` : '');
+      }
     } catch { /* */ }
   };
   tick();

@@ -103,14 +103,17 @@ function render() {
 /** דף אחד: אם התוכן גבוה מעמוד A4 – מקטינים את כולו כדי שייכנס */
 function fitPage() {
   const sheet = $('#sheet');
-  sheet.style.zoom = '';
   const mm = 96 / 25.4;
-  // גובה עמוד A4 פחות שוליים – עם מרווח ביטחון: ספארי (אייפד/אייפון/מק) מוסיף כותרת עליונה ותחתונה משלו
-  const avail = 250 * mm;
-  const h = sheet.scrollHeight;
-  const z = Math.min(1, avail / h);
-  if (z < 1) sheet.style.zoom = String(Math.floor(z * 1000) / 1000);
-  $('#fitinfo').textContent = z < 1 ? `הוקטן ל-${Math.round(z * 100)}% כדי להיכנס בעמוד אחד` : 'נכנס בעמוד אחד';
+  // הדף ממלא עמוד A4 שלם (297 מ"מ) – עם מרווח ביטחון קטן. מגדילים או מקטינים את התוכן כך שימלא את העמוד:
+  // פורסים ברוחב 210/z ומגדילים פי z – הרוחב הסופי תמיד 210 מ"מ, והגובה מגיע בדיוק לגובה העמוד
+  const target = 289 * mm;
+  const at = (z) => { sheet.style.width = `${210 / z}mm`; sheet.style.zoom = String(z); return sheet.getBoundingClientRect().height; };
+  let lo = 0.55, hi = 1.45;
+  if (at(hi) <= target) lo = hi;
+  else for (let i = 0; i < 14; i++) { const mid = (lo + hi) / 2; if (at(mid) <= target) lo = mid; else hi = mid; }
+  const z = Math.floor(lo * 1000) / 1000;
+  at(z);
+  $('#fitinfo').textContent = `מותאם לעמוד A4 אחד (${Math.round(z * 100)}%)`;
 }
 addEventListener('beforeprint', fitPage);
 document.fonts?.ready.then(() => { if (DATA) fitPage(); });

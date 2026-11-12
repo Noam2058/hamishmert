@@ -1,5 +1,6 @@
 /* דף שבועי להדפסה – A4 לאורך, לבן עם כחול וזהב */
-@page { size: A4 portrait; margin: 10mm; }
+/* בלי שוליים של הדפדפן – כך הוא לא מדפיס כתובת, תאריך וכותרת בראש ובתחתית הדף. השוליים נמצאים בתוך הדף עצמו */
+@page { size: A4 portrait; margin: 0; }
 .tb-info { font-size: 12.5px; color: #c8cfe0; }
 * { box-sizing: border-box; }
 :root { --ink: #16223b; --soft: #5b6475; --gold: #a8822f; --gold-l: #f4ead0; --line: #e2d8bf; --navy: #1b3a6b; }
@@ -10,8 +11,8 @@ body { margin: 0; background: #e9e4d8; color: var(--ink); font: 500 11pt/1.4 "As
 .tb-btn.primary { background: #e3c475; color: #14213d; border-color: #e3c475; }
 .tb-sep { width: 1px; height: 22px; background: rgba(255,255,255,.2); } .tb-grow { flex: 1; }
 .tb-check { display: inline-flex; align-items: center; gap: 5px; }
-.sheet { width: 190mm; min-height: 0; margin: 18px auto; background: #fff; padding: 6mm 7mm; box-shadow: 0 6px 28px rgba(0,0,0,.18); display: flex; flex-direction: column; gap: 4.5mm;
-  border: 0; outline: 1.2mm double var(--gold); outline-offset: -2mm; }
+.sheet { width: 210mm; min-height: 0; margin: 18px auto; background: #fff; padding: 9mm 10mm; box-shadow: 0 6px 28px rgba(0,0,0,.18); display: flex; flex-direction: column; gap: 4.5mm;
+  border: 0; outline: 1.2mm double var(--gold); outline-offset: -5mm; }
 .loading { text-align: center; color: var(--soft); }
 .head { display: flex; align-items: center; justify-content: space-between; gap: 6mm; border-bottom: 0.6mm solid var(--gold); padding: 3mm 3mm 3mm; }
 .shul { font: 900 22pt/1.1 "Frank Ruhl Libre", serif; color: var(--navy); }
@@ -46,7 +47,7 @@ table { width: 100%; border-collapse: collapse; }
 @media print {
   body { background: #fff; }
   .no-print { display: none !important; }
-  .sheet { margin: 0 auto; box-shadow: none; width: 190mm; min-height: 0; padding: 6mm 7mm; outline-offset: -2mm; break-inside: avoid; page-break-inside: avoid; page-break-after: avoid; }
+  .sheet { margin: 0; box-shadow: none; min-height: 0; padding: 9mm 10mm; outline-offset: -5mm; break-inside: avoid; page-break-inside: avoid; page-break-after: avoid; }
   body > :not(.sheet) { display: none !important; }
   body { margin: 0; }
   html, body { height: auto; }

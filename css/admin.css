@@ -218,10 +218,7 @@ details.adv[open] > summary::before { transform: rotate(45deg); }
 .toast { position: fixed; z-index: 40; top: 84px; left: 50%; transform: translateX(-50%); max-width: calc(100% - 24px); padding: 11px 18px; border-radius: 12px; font-weight: 700; box-shadow: var(--shadow);
   background: color-mix(in srgb, var(--ok) 14%, var(--surface)); border: 1px solid color-mix(in srgb, var(--ok) 40%, transparent); }
 .toast.err { background: color-mix(in srgb, var(--danger) 14%, var(--surface)); border-color: color-mix(in srgb, var(--danger) 40%, transparent); }
-.login { grid-column: 1 / -1; display: grid; place-items: center; padding: 40px 16px; }
-.login-card { width: min(420px, 100%); background: var(--surface); border: 1px solid var(--line); border-radius: 20px; box-shadow: var(--shadow); padding: 30px 26px; text-align: center; }
-.login-card h1 { margin: 6px 0 2px; font: 900 28px var(--display); }
-.login-card form { margin-top: 18px; text-align: start; }
+
 
 /* ---------- מובייל ---------- */
 @media (max-width: 860px) {
@@ -378,8 +375,7 @@ html, body { overflow-x: clip; }
 .nav-motto .motto blockquote { font-size: 16.5px; }
 .nav-motto .motto figcaption { font-size: 11.5px; }
 @media (max-width: 860px) { .nav-motto { display: none; } }
-.login-card .motto { margin: 2px 0 14px; }
-.login-card .motto blockquote { font-size: 19px; }
+
 /* מסך רחב: התוכן ממורכז ומעט רחב יותר, במקום להיצמד לתפריט */
 .main { max-width: 1240px; margin-inline: auto; }
 @media (min-width: 1500px) { .main { padding-inline: 48px; } }
@@ -389,3 +385,81 @@ select { -webkit-appearance: none; appearance: none; min-height: 44px; padding-i
   background-repeat: no-repeat; background-size: 16px; background-position: left 12px center; }
 .fmtbar select, .rt-bar select { min-height: 40px; }
 input:not([type="checkbox"]):not([type="radio"]) { min-height: 44px; }
+
+/* ================= מסך כניסה ================= */
+body:has(#login:not([hidden])) .topbar { display: none; }
+body:has(#login:not([hidden])) { background: #0b1428; }
+.login { grid-column: 1 / -1; position: fixed; inset: 0; z-index: 30; display: grid; grid-template-columns: 1.15fr 1fr; overflow: auto;
+  background: radial-gradient(ellipse at 30% 40%, #1d3263 0%, #0f1a36 55%, #090f20 100%); color: #f3ecd9; }
+.login[hidden] { display: none; }
+.lg-stage { position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 22px; padding: 40px 24px; overflow: hidden; min-height: 100%; }
+.lg-stars { position: absolute; inset: 0; opacity: .5;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='64'%3E%3Cpath d='M32 18l6 10h12l-6 10 6 10H38l-6 10-6-10H14l6-10-6-10h12z' fill='none' stroke='%23e3c475' stroke-opacity='.10' stroke-width='1'/%3E%3C/svg%3E");
+  -webkit-mask-image: radial-gradient(ellipse at center, #000 30%, transparent 75%); mask-image: radial-gradient(ellipse at center, #000 30%, transparent 75%); }
+.lg-stage::after { content: ""; position: absolute; left: 50%; top: 38%; width: 560px; height: 560px; transform: translate(-50%, -50%); border-radius: 50%;
+  background: radial-gradient(circle, rgba(246,221,146,.22), transparent 65%); pointer-events: none; animation: lgPulse 6s ease-in-out infinite; }
+@keyframes lgPulse { 50% { opacity: .55; transform: translate(-50%, -50%) scale(1.06); } }
+.lg-lamp { position: absolute; top: 0; left: 50%; width: 56px; margin-left: -28px; transform-origin: 50% 0; animation: lgSwing 7s ease-in-out infinite; z-index: 2; }
+.lg-glow { animation: lgFlicker 2.4s ease-in-out infinite; transform-origin: 40px 92px; }
+@keyframes lgSwing { 0%, 100% { transform: rotate(-2.5deg); } 50% { transform: rotate(2.5deg); } }
+@keyframes lgFlicker { 0%, 100% { opacity: .9; } 40% { opacity: .65; } 60% { opacity: 1; } }
+.lg-ark { position: relative; z-index: 1; width: min(330px, 62vw); margin-top: 70px; filter: drop-shadow(0 18px 40px rgba(0,0,0,.55)); animation: lgRise 1.1s cubic-bezier(.2,.8,.2,1) both; }
+.lg-ark svg { width: 100%; height: auto; display: block; }
+@keyframes lgRise { from { opacity: 0; transform: translateY(24px) scale(.97); } }
+.lg-info { position: relative; z-index: 1; text-align: center; animation: lgRise 1.1s .15s cubic-bezier(.2,.8,.2,1) both; }
+.lg-shul { font: 900 30px/1.15 var(--display); background: linear-gradient(180deg, #fff4cf, #e3c475 60%, #b8902f); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.lg-clock { font: 900 64px/1 var(--display); letter-spacing: 1px; margin-top: 8px; color: #fffaf0; text-shadow: 0 4px 20px rgba(246,221,146,.25); font-variant-numeric: tabular-nums; }
+.lg-date { font: 700 19px var(--body); color: #e3c475; margin-top: 6px; }
+.lg-chips { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin-top: 14px; max-width: 520px; }
+.lg-chips span { font: 700 14px var(--body); padding: 6px 13px; border-radius: 999px; background: rgba(255,250,240,.07); border: 1px solid rgba(227,196,117,.35); color: #f3ecd9; }
+.lg-chips b { color: #e3c475; font-family: var(--display); font-weight: 900; margin-inline-start: 4px; }
+
+.lg-side { display: grid; place-items: center; padding: 32px 22px; background: linear-gradient(90deg, rgba(0,0,0,.0), rgba(0,0,0,.25)); }
+.login-card { position: relative; width: min(440px, 100%); padding: 40px 36px 28px; text-align: center; color: #18243d; border-radius: 22px;
+  background: radial-gradient(ellipse at 50% 0%, #fffdf6, #f6ecd2 90%); box-shadow: 0 30px 80px rgba(0,0,0,.55), inset 0 0 0 1px rgba(168,130,47,.35);
+  outline: 3px double #c9a24f; outline-offset: -12px; animation: lgCard .9s .1s cubic-bezier(.2,.8,.2,1) both; }
+@keyframes lgCard { from { opacity: 0; transform: translateY(18px); } }
+.lg-corner { position: absolute; width: 40px; height: 40px; border: 2.5px solid #b8902f; pointer-events: none; }
+.lg-corner::after { content: ""; position: absolute; width: 8px; height: 8px; background: #b8902f; transform: rotate(45deg); }
+.lg-corner.tl { top: 20px; left: 20px; border-right: 0; border-bottom: 0; border-top-left-radius: 14px; } .lg-corner.tl::after { top: 8px; left: 8px; }
+.lg-corner.tr { top: 20px; right: 20px; border-left: 0; border-bottom: 0; border-top-right-radius: 14px; } .lg-corner.tr::after { top: 8px; right: 8px; }
+.lg-corner.bl { bottom: 20px; left: 20px; border-right: 0; border-top: 0; border-bottom-left-radius: 14px; } .lg-corner.bl::after { bottom: 8px; left: 8px; }
+.lg-corner.br { bottom: 20px; right: 20px; border-left: 0; border-top: 0; border-bottom-right-radius: 14px; } .lg-corner.br::after { bottom: 8px; right: 8px; }
+.lg-crest { width: 64px; height: 64px; margin: -72px auto 10px; border-radius: 50%; display: grid; place-items: center; color: #14213d;
+  background: radial-gradient(circle at 35% 30%, #fff1c2, #e3c475 45%, #a8822f); box-shadow: 0 8px 20px rgba(0,0,0,.35), 0 0 0 5px #f6ecd2, 0 0 0 7px #c9a24f; }
+.lg-crest svg { width: 34px; height: 34px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linejoin: round; }
+.lg-kicker { font: 800 13px var(--body); letter-spacing: 4px; color: #a8822f; }
+.login-card h1 { margin: 4px 0 4px; font: 900 34px/1.1 var(--display); color: #14213d; }
+.lg-sub { margin: 0 auto; max-width: 320px; font: 600 14.5px/1.5 var(--body); color: #5f6a7d; }
+.lg-motto { margin: 16px 0 6px; padding: 12px 10px 10px; border-block: 1px solid rgba(168,130,47,.35); position: relative; }
+.lg-motto blockquote { font: 700 21px/1.5 var(--display) !important; color: #7a5a17 !important; }
+.lg-motto figcaption { color: #a8822f !important; }
+.login-card form { margin-top: 14px; text-align: start; gap: 12px; }
+.lg-fld > span { color: #3d4a63; font-weight: 800; }
+.lg-in { position: relative; display: flex; align-items: center; }
+.lg-in > svg { position: absolute; inset-inline-start: 13px; width: 19px; height: 19px; fill: none; stroke: #a8822f; stroke-width: 1.8; pointer-events: none; }
+.lg-in input { width: 100%; padding-inline: 42px 44px !important; background: #fffefa !important; color: #18243d !important; border: 1.5px solid #dccda6 !important; border-radius: 12px !important; height: 48px; font-size: 16px; transition: border-color .2s, box-shadow .2s; }
+.lg-in input:focus { outline: none; border-color: #b8902f !important; box-shadow: 0 0 0 4px rgba(227,196,117,.35); }
+.lg-in input#email { direction: ltr; text-align: right; }
+.lg-eye { position: absolute; inset-inline-end: 6px; width: 36px; height: 36px; padding: 0; border: 0 !important; background: transparent !important; color: #8a7a55; }
+.lg-eye svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.8; }
+.lg-go { position: relative; overflow: hidden; height: 52px; margin-top: 4px; font: 800 17px var(--body) !important; color: #14213d !important; border: 0 !important; border-radius: 13px !important;
+  background: linear-gradient(180deg, #f3d98a, #d4ad55 55%, #b8902f) !important; box-shadow: 0 8px 20px rgba(168,130,47,.4), inset 0 1px 0 rgba(255,255,255,.6); }
+.lg-go svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2.4; transition: transform .2s; }
+.lg-go:hover svg { transform: translateX(-4px); }
+.lg-go::after { content: ""; position: absolute; top: 0; bottom: 0; width: 40%; left: -60%; background: linear-gradient(100deg, transparent, rgba(255,255,255,.55), transparent); animation: lgShine 3.8s ease-in-out infinite; }
+@keyframes lgShine { 0%, 60% { left: -60%; } 100% { left: 130%; } }
+.lg-links { margin-top: 18px; font: 700 13.5px var(--body); color: #8a7a55; display: flex; justify-content: center; gap: 8px; }
+.lg-links a { color: #7a5a17; text-decoration: none; border-bottom: 1px dashed rgba(122,90,23,.5); }
+@media (max-width: 860px) {
+  .login { grid-template-columns: 1fr; grid-template-rows: auto auto; }
+  .lg-stage { min-height: 0; padding: 18px 16px 6px; gap: 10px; }
+  .lg-ark { width: 150px; margin-top: 38px; }
+  .lg-lamp { width: 36px; margin-left: -18px; }
+  .lg-stage::after { width: 320px; height: 320px; top: 32%; }
+  .lg-shul { font-size: 23px; } .lg-clock { font-size: 44px; } .lg-date { font-size: 16px; }
+  .lg-chips { display: none; }
+  .lg-side { padding: 44px 14px 28px; background: none; }
+  .login-card { padding: 38px 22px 22px; }
+}
+@media (prefers-reduced-motion: reduce) { .login * { animation: none !important; } }

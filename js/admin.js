@@ -1016,11 +1016,34 @@ async function doSave() {
   finally { $('#btn-save2').disabled = false; }
 }
 
+/** מסך הכניסה: שם בית הכנסת, שעה ותאריך עבריים חיים וכמה זמני היום */
+async function loginScene() {
+  let syn = null;
+  try { syn = normalize((await load()).data).synagogue; } catch { /* בלי חיבור – רק שעה */ }
+  if (syn?.name) $('#lg-shul').textContent = `בית הכנסת "${syn.name.replace(/^בית הכנסת\s*/, '').replace(/^"|"$/g, '')}"`;
+  const tick = () => {
+    const now = new Date();
+    $('#lg-clock').textContent = now.toLocaleTimeString('he-IL', { hour: '2-digit', minute: '2-digit', timeZone: syn?.tz || 'Asia/Jerusalem' });
+    if (!syn) return;
+    try {
+      const d = computeDay(now, syn);
+      $('#lg-date').textContent = `${d.night || d.afterSunset ? 'ליל ' : ''}${['יום ראשון', 'יום שני', 'יום שלישי', 'יום רביעי', 'יום חמישי', 'יום שישי', 'שבת קודש'][d.dow]} · ${d.afterSunset ? d.next.hebDate : d.hebDate}`;
+      const z = d.zmanim, f = (k, r) => (z[k] ? fmtTime(z[k], syn.tz, r) : null);
+      const chips = [['הנץ', f('sunrise', 'ceil')], ['סוף ק"ש', f('shmaGRA', 'floor')], ['שקיעה', f('sunset', 'floor')], ['צאת הכוכבים', f('tzeit', 'ceil')]].filter((x) => x[1]);
+      $('#lg-chips').innerHTML = chips.map(([l, t]) => `<span>${l}<b>${t}</b></span>`).join('');
+    } catch { /* */ }
+  };
+  tick();
+  clearInterval(loginScene.t); loginScene.t = setInterval(() => { if ($('#login').hidden) clearInterval(loginScene.t); else tick(); }, 15000);
+  $('#lg-eye').onclick = () => { const p = $('#password'); p.type = p.type === 'password' ? 'text' : 'password'; };
+}
+
 async function enter() {
   const user = await currentUser();
   if (mode === 'supabase' && !user) {
     $('#login').hidden = false; $('#tabs').hidden = true; $('#panel').hidden = true;
     $('#who').textContent = '';
+    loginScene();
     return;
   }
   $('#login').hidden = true; $('#panel').hidden = false;

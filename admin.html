@@ -26,17 +26,62 @@
   </header>
 
   <section id="login" class="login" hidden>
-    <div class="login-card">
-      <span class="logo big" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 2.5l3 5.2h6l-3 5.3 3 5.3h-6l-3 5.2-3-5.2H3l3-5.3-3-5.3h6z"/></svg></span>
-      <h1>כניסת גבאי</h1>
-      <p class="muted" id="login-sub">ניהול הלוח הדיגיטלי של בית הכנסת</p>
-      <figure class="motto"><blockquote>״אִם הִגִּיעַ, הָרוֹאֶה אוֹמֵר: בַּרְקַאי״</blockquote><figcaption>משנה, מסכת יומא, פרק ג׳ משנה א׳</figcaption></figure>
-      <form id="login-form" class="stack">
-        <label class="fld"><span>אימייל</span><input id="email" type="email" autocomplete="username" required></label>
-        <label class="fld"><span>סיסמה</span><input id="password" type="password" autocomplete="current-password" required minlength="6"></label>
-        <button class="btn primary wide" type="submit">כניסה</button>
-        <button type="button" class="btn ghost" id="btn-signup" hidden>הרשמה ראשונה</button>
-      </form>
+    <!-- צד הבמה: ארון הקודש, שעה ותאריך עבריים חיים -->
+    <div class="lg-stage" aria-hidden="true">
+      <div class="lg-stars"></div>
+      <svg class="lg-lamp" viewBox="0 0 80 150"><defs><linearGradient id="lg-g" x1="0" x2="1"><stop offset="0" stop-color="#9c7322"/><stop offset=".5" stop-color="#f6dd92"/><stop offset="1" stop-color="#9c7322"/></linearGradient><radialGradient id="lg-fl"><stop offset="0" stop-color="#fff6c8"/><stop offset=".5" stop-color="#ffb84a" stop-opacity=".8"/><stop offset="1" stop-color="#ff8a00" stop-opacity="0"/></radialGradient></defs>
+        <line x1="40" y1="0" x2="40" y2="70" stroke="url(#lg-g)" stroke-width="2"/><path d="M22 78h36l-6 26H28z" fill="url(#lg-g)"/><path d="M26 104h28l-14 18z" fill="url(#lg-g)"/><rect x="18" y="70" width="44" height="10" rx="5" fill="url(#lg-g)"/>
+        <circle class="lg-glow" cx="40" cy="92" r="30" fill="url(#lg-fl)"/></svg>
+      <div class="lg-ark">
+        <svg viewBox="0 0 420 520">
+          <defs>
+            <linearGradient id="ak-g" x1="0" x2="1"><stop offset="0" stop-color="#8f6a22"/><stop offset=".45" stop-color="#f6dd92"/><stop offset="1" stop-color="#9c7322"/></linearGradient>
+            <linearGradient id="ak-p" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#7a1530"/><stop offset="1" stop-color="#4a0a1c"/></linearGradient>
+            <pattern id="ak-w" width="18" height="18" patternUnits="userSpaceOnUse"><path d="M9 2l2 4h4l-2 4 2 4h-4l-2 4-2-4H3l2-4-2-4h4z" fill="none" stroke="#f6dd92" stroke-opacity=".12" stroke-width=".8"/></pattern>
+          </defs>
+          <!-- עמודים -->
+          <rect x="18" y="120" width="34" height="380" rx="6" fill="url(#ak-g)"/><rect x="368" y="120" width="34" height="380" rx="6" fill="url(#ak-g)"/>
+          <rect x="10" y="106" width="50" height="18" rx="4" fill="url(#ak-g)"/><rect x="360" y="106" width="50" height="18" rx="4" fill="url(#ak-g)"/>
+          <rect x="10" y="494" width="50" height="18" rx="4" fill="url(#ak-g)"/><rect x="360" y="494" width="50" height="18" rx="4" fill="url(#ak-g)"/>
+          <!-- קשת -->
+          <path d="M60 500V200a150 150 0 0 1 300 0v300" fill="none" stroke="url(#ak-g)" stroke-width="16"/>
+          <path d="M80 500V204a130 130 0 0 1 260 0v296z" fill="url(#ak-p)"/>
+          <path d="M80 500V204a130 130 0 0 1 260 0v296z" fill="url(#ak-w)"/>
+          <!-- פרוכת: שוליים, כתר ומגן דוד -->
+          <path d="M96 488V214a114 114 0 0 1 228 0v274z" fill="none" stroke="#f6dd92" stroke-opacity=".55" stroke-width="2.5" stroke-dasharray="1 6" stroke-linecap="round"/>
+          <path d="M210 92l14 22 26-14-6 30h-68l-6-30 26 14z" fill="url(#ak-g)"/><rect x="172" y="128" width="76" height="10" rx="5" fill="url(#ak-g)"/>
+          <g transform="translate(210 300)" fill="none" stroke="url(#ak-g)" stroke-width="7" stroke-linejoin="round"><path d="M0 -62L54 31H-54Z"/><path d="M0 62L54 -31H-54Z"/></g>
+          <path d="M150 400q60 -26 120 0" fill="none" stroke="url(#ak-g)" stroke-width="3"/>
+                    <!-- לוחות הברית מעל -->
+          <g transform="translate(210 40)"><path d="M-34 30v-40a17 17 0 0 1 34 0v40z M0 30v-40a17 17 0 0 1 34 0v40z" fill="#fff8e6" stroke="url(#ak-g)" stroke-width="4"/><g stroke="#8f6a22" stroke-width="2.5" stroke-linecap="round"><path d="M-26 -8h18M-26 2h18M-26 12h18M8 -8h18M8 2h18M8 12h18"/></g></g>
+          <!-- מדרגות -->
+          <rect x="40" y="500" width="340" height="12" rx="4" fill="url(#ak-g)"/><rect x="24" y="510" width="372" height="10" rx="4" fill="url(#ak-g)" opacity=".8"/>
+        </svg>
+      </div>
+      <div class="lg-info">
+        <div class="lg-shul" id="lg-shul">בית הכנסת</div>
+        <div class="lg-clock" id="lg-clock">--:--</div>
+        <div class="lg-date" id="lg-date"></div>
+        <div class="lg-chips" id="lg-chips"></div>
+      </div>
+    </div>
+    <!-- צד הכניסה: קלף עם מסגרת זהב -->
+    <div class="lg-side">
+      <div class="login-card">
+        <i class="lg-corner tl"></i><i class="lg-corner tr"></i><i class="lg-corner bl"></i><i class="lg-corner br"></i>
+        <div class="lg-crest" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 2.5l3 5.2h6l-3 5.3 3 5.3h-6l-3 5.2-3-5.2H3l3-5.3-3-5.3h6z"/></svg></div>
+        <div class="lg-kicker">ממשק הגבאים</div>
+        <h1>ברוכים הבאים</h1>
+        <p class="lg-sub" id="login-sub">הלוח הדיגיטלי של בית הכנסת – זמנים, תפילות והודעות במקום אחד</p>
+        <figure class="motto lg-motto"><blockquote>״אִם הִגִּיעַ, הָרוֹאֶה אוֹמֵר: בַּרְקַאי״</blockquote><figcaption>משנה, מסכת יומא ג׳, א׳</figcaption></figure>
+        <form id="login-form" class="stack">
+          <label class="fld lg-fld"><span>אימייל</span><div class="lg-in"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg><input id="email" type="email" autocomplete="username" required placeholder="name@example.com"></div></label>
+          <label class="fld lg-fld"><span>סיסמה</span><div class="lg-in"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg><input id="password" type="password" autocomplete="current-password" required minlength="6" placeholder="••••••••"><button type="button" class="lg-eye" id="lg-eye" aria-label="הצג סיסמה"><svg viewBox="0 0 24 24"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></button></div></label>
+          <button class="btn primary wide lg-go" type="submit"><span>כניסה לניהול הלוח</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg></button>
+          <button type="button" class="btn ghost" id="btn-signup" hidden>הרשמה ראשונה</button>
+        </form>
+        <div class="lg-links"><a href="index.html" target="_blank" rel="noopener">לצפייה בלוח</a><span>·</span><a href="m.html" target="_blank" rel="noopener">דף המתפללים</a></div>
+      </div>
     </div>
   </section>
 

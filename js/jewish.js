@@ -250,7 +250,7 @@ export function tefilaChanges(hd, s, holidays, night = false) {
     const t = HebrewCalendar.tachanun(hd, il);
     if (hd.getDay() !== 6) {
       if (!t.shacharit && !t.mincha) out.push('אין אומרים תחנון');
-      else if (!t.mincha) out.push('אין אומרים תחנון במנחה');
+      else if (!t.mincha && hd.getDay() !== 5) out.push('אין אומרים תחנון במנחה'); // בערב שבת זה ידוע לכולם – לא מציגים
       else if (!t.allCongs) out.push('תחנון – לפי מנהג הקהילה');
     }
   } catch { /* */ }

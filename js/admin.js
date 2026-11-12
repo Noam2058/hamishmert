@@ -1027,7 +1027,7 @@ async function loginScene() {
     if (!syn) return;
     try {
       const d = computeDay(now, syn);
-      $('#lg-date').textContent = `${d.night || d.afterSunset ? 'ליל ' : ''}${['יום ראשון', 'יום שני', 'יום שלישי', 'יום רביעי', 'יום חמישי', 'יום שישי', 'שבת קודש'][d.dow]} · ${d.afterSunset ? d.next.hebDate : d.hebDate}`;
+      $('#lg-date').textContent = `${d.afterSunset ? 'ליל ' : ''}${['יום ראשון', 'יום שני', 'יום שלישי', 'יום רביעי', 'יום חמישי', 'יום שישי', 'שבת קודש'][d.afterSunset ? (d.dow + 1) % 7 : d.dow]} · ${d.afterSunset ? d.next.hebDate : d.hebDate}`;
       const z = d.zmanim, f = (k, r) => (z[k] ? fmtTime(z[k], syn.tz, r) : null);
       const chips = [['הנץ', f('sunrise', 'ceil')], ['סוף ק"ש', f('shmaGRA', 'floor')], ['שקיעה', f('sunset', 'floor')], ['צאת הכוכבים', f('tzeit', 'ceil')]].filter((x) => x[1]);
       $('#lg-chips').innerHTML = chips.map(([l, t]) => `<span>${l}<b>${t}</b></span>`).join('');

@@ -399,12 +399,12 @@ body:has(#login:not([hidden])) { background: #0b1428; }
 .lg-stage::after { content: ""; position: absolute; left: 50%; top: 38%; width: 560px; height: 560px; transform: translate(-50%, -50%); border-radius: 50%;
   background: radial-gradient(circle, rgba(246,221,146,.22), transparent 65%); pointer-events: none; animation: lgPulse 6s ease-in-out infinite; }
 @keyframes lgPulse { 50% { opacity: .55; transform: translate(-50%, -50%) scale(1.06); } }
-.lg-lamp { position: absolute; top: 0; left: 50%; width: 56px; margin-left: -28px; transform-origin: 50% 0; animation: lgSwing 7s ease-in-out infinite; z-index: 2; }
+.lg-lamp { position: absolute; top: 0; left: 50%; width: 56px !important; height: 105px !important; margin-left: -28px; fill: initial; stroke: initial; transform-origin: 50% 0; animation: lgSwing 7s ease-in-out infinite; z-index: 2; }
 .lg-glow { animation: lgFlicker 2.4s ease-in-out infinite; transform-origin: 40px 92px; }
 @keyframes lgSwing { 0%, 100% { transform: rotate(-2.5deg); } 50% { transform: rotate(2.5deg); } }
 @keyframes lgFlicker { 0%, 100% { opacity: .9; } 40% { opacity: .65; } 60% { opacity: 1; } }
 .lg-ark { position: relative; z-index: 1; width: min(330px, 62vw); margin-top: 70px; filter: drop-shadow(0 18px 40px rgba(0,0,0,.55)); animation: lgRise 1.1s cubic-bezier(.2,.8,.2,1) both; }
-.lg-ark svg { width: 100%; height: auto; display: block; }
+.lg-ark svg { width: 100% !important; height: auto !important; display: block; fill: initial; stroke: initial; }
 @keyframes lgRise { from { opacity: 0; transform: translateY(24px) scale(.97); } }
 .lg-info { position: relative; z-index: 1; text-align: center; animation: lgRise 1.1s .15s cubic-bezier(.2,.8,.2,1) both; }
 .lg-shul { font: 900 30px/1.15 var(--display); background: linear-gradient(180deg, #fff4cf, #e3c475 60%, #b8902f); -webkit-background-clip: text; background-clip: text; color: transparent; }
@@ -414,7 +414,7 @@ body:has(#login:not([hidden])) { background: #0b1428; }
 .lg-chips span { font: 700 14px var(--body); padding: 6px 13px; border-radius: 999px; background: rgba(255,250,240,.07); border: 1px solid rgba(227,196,117,.35); color: #f3ecd9; }
 .lg-chips b { color: #e3c475; font-family: var(--display); font-weight: 900; margin-inline-start: 4px; }
 
-.lg-side { display: grid; place-items: center; padding: 32px 22px; background: linear-gradient(90deg, rgba(0,0,0,.0), rgba(0,0,0,.25)); }
+.lg-side { display: grid; place-items: center; padding: 32px 22px; }
 .login-card { position: relative; width: min(440px, 100%); padding: 40px 36px 28px; text-align: center; color: #18243d; border-radius: 22px;
   background: radial-gradient(ellipse at 50% 0%, #fffdf6, #f6ecd2 90%); box-shadow: 0 30px 80px rgba(0,0,0,.55), inset 0 0 0 1px rgba(168,130,47,.35);
   outline: 3px double #c9a24f; outline-offset: -12px; animation: lgCard .9s .1s cubic-bezier(.2,.8,.2,1) both; }
@@ -455,7 +455,7 @@ body:has(#login:not([hidden])) { background: #0b1428; }
   .login { grid-template-columns: 1fr; grid-template-rows: auto auto; }
   .lg-stage { min-height: 0; padding: 18px 16px 6px; gap: 10px; }
   .lg-ark { width: 150px; margin-top: 38px; }
-  .lg-lamp { width: 36px; margin-left: -18px; }
+  .lg-lamp { width: 36px !important; height: 68px !important; margin-left: -18px; }
   .lg-stage::after { width: 320px; height: 320px; top: 32%; }
   .lg-shul { font-size: 23px; } .lg-clock { font-size: 44px; } .lg-date { font-size: 16px; }
   .lg-chips { display: none; }

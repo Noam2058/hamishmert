@@ -581,3 +581,7 @@ html[dir="rtl"] .item[open] { box-shadow: inset -4px 0 0 var(--gold), var(--shad
 .screen-row.flash { animation: rowFlash 2.2s ease; }
 @keyframes rowFlash { 0%, 60% { background: color-mix(in srgb, var(--gold) 30%, transparent); box-shadow: 0 0 0 2px var(--gold); } }
 .savebar { border-top: 2px solid var(--gold); }
+.group-title { display: flex; align-items: center; gap: 10px; font: 900 18px var(--display) !important; color: var(--ink); margin: 14px 2px 2px; }
+.group-title::before { content: ""; width: 8px; height: 8px; background: var(--gold); transform: rotate(45deg); }
+.group-title::after { content: ""; flex: 1; height: 1px; background: linear-gradient(90deg, color-mix(in srgb, var(--gold) 45%, transparent), transparent); }
+html[dir="rtl"] .group-title::after { background: linear-gradient(270deg, color-mix(in srgb, var(--gold) 45%, transparent), transparent); }

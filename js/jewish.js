@@ -9,7 +9,9 @@ import {
 // עברית בלי ניקוד, וגם הסרת ניקוד שנשאר (למשל בשמות פרשות)
 const HE = 'he-x-NoNikud';
 // חודש חשון נקרא "מרחשוון"
-export const heFix = (t) => String(t ?? '').replace(/(^|[^\u05D0-\u05EA-])(?:מר)?חשוו?ן/g, '$1מר-חשוון');
+export const heFix = (t) => String(t ?? '').replace(/(^|[^\u05D0-\u05EA-])(?:מר)?חשוו?ן/g, '$1מר-חשוון')
+  // "ראש השנה 5788" → "ראש השנה תשפ״ח"
+  .replace(/ראש השנה (\d{4})/g, (m, y) => { try { return 'ראש השנה ' + new HDate(1, 'Tishrei', +y).renderGematriya(true).split(' ').pop(); } catch { return m; } });
 export const noNikud = (t) => heFix(String(t ?? '').replace(/[\u0591-\u05BD\u05BF-\u05C7]/g, ''));
 
 // ---------- עזרי זמן ----------

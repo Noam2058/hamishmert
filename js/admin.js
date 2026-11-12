@@ -188,7 +188,7 @@ function makeSortable(container, itemSel, onDone, canSwap = () => true) {
 // תצוגה מקדימה חיה של תמונה – הלוח עצמו בקטן, עם ההגדרות שנבחרו (גם לפני שמירה)
 function slidePreviewSrc(it) {
   const q = location.search;
-  const data = { url: it.url, fit: it.fit || 'contain', size: it.size || 100, bg: it.bg || 'board', title: it.title || '', caption: it.caption || '', seconds: +it.seconds || 12 };
+  const data = { url: it.url, fit: it.fit || 'contain', size: it.size || 100, stretch: it.stretch || 100, bg: it.bg || 'board', title: it.title || '', caption: it.caption || '', seconds: +it.seconds || 12 };
   return `index.html${q ? q + '&' : '?'}preview&screens=images&slidepreview#${encodeURIComponent(JSON.stringify(data))}`;
 }
 function mountSlidePreview(row, it) {
@@ -628,10 +628,16 @@ function renderList(key, opts = null) {
       if (def.rerender?.includes(el.dataset.k)) return renderList(key, keep);
       if (def.preview) row.querySelector('.ann-box').innerHTML = def.preview(arr[i]);
       if (def.calc) row.querySelector('.calc').textContent = calcText(arr[i]);
-      if (key === 'slides') { clearTimeout(row.pvT); row.pvT = setTimeout(() => mountSlidePreview(row, arr[i]), 350); }
+      if (key === 'slides' && el.dataset.k !== 'stretch') { clearTimeout(row.pvT); row.pvT = setTimeout(() => mountSlidePreview(row, arr[i]), 350); }
       const sm = row.querySelector('summary'); [...sm.children].slice(1).forEach((n) => n.remove()); sm.insertAdjacentHTML('beforeend', summaryHtml(def, arr[i]));
     };
     row.addEventListener('change', commit);
+    // מתיחה: עדכון מיידי בתצוגה המקדימה תוך כדי גרירה (בלי לטעון אותה מחדש)
+    if (key === 'slides') row.addEventListener('input', (e) => {
+      if (e.target.dataset?.k !== 'stretch') return;
+      const sx = Math.max(1, +e.target.value / 100);
+      try { row.querySelector('.slide-pv iframe')?.contentDocument?.querySelectorAll('.img-slide').forEach((x) => x.style.setProperty('--sx', sx)); } catch { /* */ }
+    });
     // כל הקלדה נקלטת מיד – גם שעה, תאריך ומספר (באייפון 'change' מגיע רק כשיוצאים מהשדה)
     row.addEventListener('input', (e) => { if (e.target.matches('input:not([type=checkbox]):not([type=radio]),textarea,[contenteditable]') && e.target.dataset.t !== 'type') commit(e); });
     row.querySelectorAll('.rt').forEach((rt) => bindRichText(rt));

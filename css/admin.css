@@ -454,12 +454,13 @@ body:has(#login:not([hidden])) { background: #0b1428; }
 @media (max-width: 860px) {
   .login { grid-template-columns: 1fr; grid-template-rows: auto auto; }
   .lg-stage { min-height: 0; padding: 18px 16px 6px; gap: 10px; }
-  .lg-ark { width: 150px; margin-top: 38px; }
-  .lg-lamp { width: 36px !important; height: 68px !important; margin-left: -18px; }
+  .lg-ark { width: 120px; margin-top: 4px; }
+  .lg-lamp { display: none; }
+  .lg-info { display: grid; gap: 2px; }
   .lg-stage::after { width: 320px; height: 320px; top: 32%; }
-  .lg-shul { font-size: 23px; } .lg-clock { font-size: 44px; } .lg-date { font-size: 16px; }
+  .lg-shul { font-size: 21px; } .lg-clock { font-size: 36px; margin-top: 2px; } .lg-date { font-size: 15px; margin-top: 2px; }
   .lg-chips { display: none; }
-  .lg-side { padding: 44px 14px 28px; background: none; }
+  .lg-side { padding: 70px 14px 28px; }
   .login-card { padding: 38px 22px 22px; }
 }
 @media (prefers-reduced-motion: reduce) { .login * { animation: none !important; } }

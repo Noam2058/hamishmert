@@ -453,7 +453,7 @@ body:has(#login:not([hidden])) { background: #0b1428; }
 .lg-links a { color: #7a5a17; text-decoration: none; border-bottom: 1px dashed rgba(122,90,23,.5); }
 @media (max-width: 860px) {
   .login { grid-template-columns: 1fr; grid-template-rows: auto auto; }
-  .lg-stage { min-height: 0; padding: 18px 16px 6px; gap: 10px; }
+  .lg-stage { min-height: auto; padding: 18px 16px 6px; gap: 10px; overflow: visible; }
   .lg-ark { width: 120px; margin-top: 4px; }
   .lg-lamp { display: none; }
   .lg-info { display: grid; gap: 2px; }

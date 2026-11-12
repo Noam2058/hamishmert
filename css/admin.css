@@ -529,8 +529,9 @@ body { background-image: var(--pattern); background-attachment: fixed; }
 .status.dirty::before { background: #f0cf7a; animation: lgFlicker 1.4s ease-in-out infinite; }
 
 /* תפריט צד */
-.nav { top: 70px; height: calc(100vh - 70px); background: color-mix(in srgb, var(--surface) 92%, transparent); backdrop-filter: none; }
-.nav .group { display: flex; align-items: center; gap: 8px; color: var(--gold); letter-spacing: .06em; }
+@media (min-width: 861px) { .nav { top: 70px; height: calc(100vh - 70px); } .nav .group { display: flex; align-items: center; gap: 8px; color: var(--gold); letter-spacing: .06em; } }
+.nav { background: color-mix(in srgb, var(--surface) 92%, transparent); }
+@media (max-width: 860px) { .nav { top: 64px; } .status { display: none; } .nav button[aria-selected="true"] { border-color: var(--gold-3); } }
 .nav .group::before { content: ""; width: 6px; height: 6px; background: var(--gold); transform: rotate(45deg); opacity: .8; }
 .nav .group::after { content: ""; flex: 1; height: 1px; background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--gold) 40%, transparent)); }
 .nav button { transition: background .15s, color .15s; }

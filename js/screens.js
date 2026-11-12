@@ -375,14 +375,15 @@ export const SCREENS = {
     if (!list.length) return null;
     return list.map((x) => {
       const u = esc(String(x.url).replace(/"/g, '%22'));
-      const fit = ['contain', 'cover', 'width', 'stretch', 'scroll', 'zoom', 'full'].includes(x.fit) ? x.fit : 'contain';
+      const fit = ['contain', 'cover', 'width', 'scroll', 'zoom', 'full'].includes(x.fit) ? x.fit : 'contain';
+      const sx = Math.min(3, Math.max(1, (+x.stretch || 100) / 100));
       const secs = +x.seconds || ctx.display.defaultSeconds || 12;
       const size = Math.min(100, Math.max(40, +x.size || 100));
       const alt = esc(x.title || x.caption || '');
       const img = fit === 'scroll' ? `<div class="pan"><img src="${u}" alt="${alt}"></div>` : `<img src="${u}" alt="${alt}">`;
       return {
         key: x.id, seconds: +x.seconds || 0, full: fit === 'full',
-        html: `${x.title && fit !== 'full' ? title(x.title) : ''}<section class="img-slide fit-${fit} bg-${x.bg || 'board'}" style="--dur:${secs}s;--size:${size / 100}">${img}${x.caption ? `<div class="cap">${esc(x.caption)}</div>` : ''}</section>`,
+        html: `${x.title && fit !== 'full' ? title(x.title) : ''}<section class="img-slide fit-${fit} bg-${x.bg || 'board'}" style="--dur:${secs}s;--size:${size / 100};--sx:${sx}">${img}${x.caption ? `<div class="cap">${esc(x.caption)}</div>` : ''}</section>`,
       };
     });
   },

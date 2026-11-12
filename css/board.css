@@ -586,5 +586,5 @@ footer.ticker { isolation: isolate; transform: translateZ(0); }
 /* שורות הגריד לא גדלות מעבר לגובה השקופית (אחרת הכרטיסים נחתכים מלמטה) – התוכן מוקטן ע"י fitText */
 .grid { grid-auto-rows: minmax(0, 1fr); }
 
-/* מתיחה לרוחב: כל התמונה נראית, בגובה מלא, ונמתחת לצדדים עד שממלאת את הרוחב */
-.img-slide.fit-stretch > img { left: 50%; top: 50%; width: calc((100% - 20px) * var(--size, 1)); height: calc((100% - 20px) * var(--size, 1)); transform: translate(-50%, -50%); object-fit: fill; }
+/* מתיחה לרוחב לפי בחירת הגבאי (--sx), בתצוגת "כל התמונה" ו"מסך מלא" */
+.img-slide.fit-contain > img, .img-slide.fit-full > img { transform: translate(-50%, -50%) scaleX(var(--sx, 1)); }

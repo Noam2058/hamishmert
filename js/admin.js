@@ -214,7 +214,6 @@ const DOC = (x, y, w, h) => `<rect x="${x}" y="${y}" width="${w}" height="${h}" 
 const FITS = [
   ['contain', 'כל התמונה', 'רואים את כולה, בתוך מסגרת', FRAME(DOC(22, 8, 20, 21))],
   ['width', 'רוחב מלא', 'ממלאת לרוחב, מתחילה מלמעלה', FRAME(DOC(5, 8, 54, 21))],
-  ['stretch', 'מתיחה לרוחב', 'כל התמונה, נמתחת לצדדים', FRAME(`${DOC(5, 8, 54, 21)}<path d="M9 18.5h8M12 15.5l-3 3 3 3M55 18.5h-8M52 15.5l3 3-3 3" class="arw"/>`)],
   ['cover', 'מילוי מלא', 'ממלאת הכל, חיתוך בשוליים', FRAME('<rect x="5" y="8" width="54" height="21" class="pic"/><path d="M5 8l54 21M59 8L5 29" class="ln"/>')],
   ['scroll', 'גלילה איטית', 'למסמך לאורך – גדול ונגלל', FRAME(`${DOC(17, 8, 30, 21)}<path d="M52 11v14M49 22l3 3 3-3" class="arw"/>`)],
   ['zoom', 'זום איטי', 'תנועה עדינה לתמונה', FRAME('<rect x="5" y="8" width="54" height="21" class="pic"/><rect x="14" y="12" width="36" height="13" class="ln" fill="none"/><path d="M50 12l4-3M14 25l-4 3" class="arw"/>')],
@@ -303,6 +302,7 @@ const LISTS = {
     blank: () => ({ id: uid(), url: '', title: '', caption: '', seconds: 12, fit: 'contain', enabled: true }),
     fields: [['fit', 'איך להציג את התמונה', 'fit'],
       ['size', 'גודל התמונה', 'select', [[100, 'גדול (100%)'], [90, '90%'], [80, '80%'], [70, '70%'], [60, 'קטן (60%)']]],
+      ['stretch', 'מתיחה לרוחב (ב"כל התמונה" וב"מסך מלא")', 'range', { min: 100, max: 250, step: 5, unit: '%', zero: 'בלי מתיחה' }],
       ['bg', 'רקע מאחורי התמונה', 'select', [['board', 'הרקע של הלוח'], ['dark', 'כהה'], ['light', 'לבן']]],
       ['seconds', 'כמה שניות להציג', 'number'],
       ['title', 'כותרת מעל התמונה (לא חובה)', 'text'], ['caption', 'כיתוב על התמונה (לא חובה)', 'text'],
@@ -362,6 +362,7 @@ function fieldHtml(item, [key, label, type, opts], path) {
   let input = '';
   if (type === 'text') input = `<input id="${id}" data-k="${key}" value="${esc(v)}">`;
   else if (type === 'number') input = `<input id="${id}" data-k="${key}" type="number" inputmode="numeric" value="${esc(v)}">`;
+  else if (type === 'range') { const n = +(v || opts.min); input = `<div class="rangebox"><input id="${id}" data-k="${key}" type="range" min="${opts.min}" max="${opts.max}" step="${opts.step}" value="${n}" oninput="this.nextElementSibling.textContent = +this.value === ${opts.min} ? '${opts.zero}' : this.value + '${opts.unit}'"><output>${n === opts.min ? opts.zero : n + opts.unit}</output></div>`; }
   else if (type === 'date') input = `<input id="${id}" data-k="${key}" type="date" value="${esc(v)}">`;
   else if (type === 'textarea') input = `<textarea id="${id}" data-k="${key}">${esc(v)}</textarea>`;
   else if (type === 'check') return `<label class="fld check"><input id="${id}" data-k="${key}" type="checkbox" ${v ? 'checked' : ''}><span>${esc(label)}</span></label>`;

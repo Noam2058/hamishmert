@@ -300,19 +300,116 @@ export function lulavEtrog(g, x, y, s) {
 }
 
 export function shofarApples(g, x, y, s) {
-  g.save(); g.translate(x, y);
-  g.fillStyle = lin(g, -300 * s, 0, 300 * s, 0, [[0, '#4a3420'], [0.5, '#d9b27a'], [1, '#f2e2c0']]);
-  g.beginPath(); g.moveTo(-330 * s, -40 * s); g.bezierCurveTo(-200 * s, -260 * s, 120 * s, -260 * s, 290 * s, -110 * s);
-  g.lineTo(320 * s, -150 * s); g.lineTo(330 * s, -80 * s); g.bezierCurveTo(160 * s, -170 * s, -160 * s, -150 * s, -300 * s, -10 * s); g.closePath(); g.fill();
-  g.strokeStyle = 'rgba(80,50,20,.4)'; g.lineWidth = 3 * s; for (let i = 0; i < 10; i++) { g.beginPath(); g.arc(-150 * s + i * 40 * s, -150 * s, 40 * s, 0.2, 1.2); g.stroke(); }
-  for (const [ax, c] of [[-120, '#b3202c'], [40, '#c8312b']]) { // תפוחים
-    g.fillStyle = rad(g, ax * s - 20 * s, 40 * s, 5, 90 * s, [[0, '#ff7a6e'], [0.6, c], [1, '#6e0f16']]);
-    g.beginPath(); g.arc(ax * s, 70 * s, 78 * s, 0, 7); g.fill();
-    g.strokeStyle = '#4a3420'; g.lineWidth = 6 * s; g.beginPath(); g.moveTo(ax * s, 0); g.lineTo(ax * s + 6 * s, -20 * s); g.stroke();
-    g.fillStyle = '#4f7a2c'; g.beginPath(); g.ellipse(ax * s + 26 * s, -12 * s, 24 * s, 10 * s, -0.5, 0, 7); g.fill();
+  g.save(); g.translate(x, y); g.scale(s, s);
+  // צל רך על הקרקע
+  g.fillStyle = rad(g, 0, 150, 10, 420, [[0, 'rgba(0,0,0,.32)'], [1, 'rgba(0,0,0,0)']]);
+  g.beginPath(); g.ellipse(0, 150, 420, 46, 0, 0, 7); g.fill();
+
+  // ---- שופר: צינור מתחדד לאורך עקומה, עם טבעות ופתח ----
+  const P = [[-330, 30], [-250, -250], [150, -300], [300, -120]]; // עקומת בזייה
+  const bz = (t) => { const u = 1 - t; return [0, 1].map((k) => u * u * u * P[0][k] + 3 * u * u * t * P[1][k] + 3 * u * t * t * P[2][k] + t * t * t * P[3][k]); };
+  const N = 90, pts = [], left = [], right = [];
+  for (let i = 0; i <= N; i++) {
+    const t = i / N, [px, py] = bz(t), [qx, qy] = bz(Math.min(1, t + 0.01)), [ox, oy] = bz(Math.max(0, t - 0.01));
+    const dx = qx - ox, dy = qy - oy, L = Math.hypot(dx, dy) || 1, nx = -dy / L, ny = dx / L;
+    const w = 9 + Math.pow(t, 1.7) * 62 + Math.sin(t * 40) * 1.2; // מתרחב לכיוון הפתח
+    pts.push([px, py, nx, ny, w]); left.push([px + nx * w, py + ny * w]); right.push([px - nx * w, py - ny * w]);
   }
-  g.fillStyle = lin(g, 0, -10 * s, 0, 140 * s, [[0, '#fbe3a0'], [1, '#d38b16']]); rrect(g, 170 * s, 10 * s, 120 * s, 130 * s, 22 * s); g.fill(); // דבש
-  g.fillStyle = 'rgba(255,255,255,.35)'; g.fillRect(186 * s, 24 * s, 12 * s, 100 * s);
+  g.save();
+  g.shadowColor = 'rgba(0,0,0,.35)'; g.shadowBlur = 24; g.shadowOffsetY = 14;
+  g.beginPath(); left.forEach(([a, b], i) => (i ? g.lineTo(a, b) : g.moveTo(a, b))); for (let i = right.length - 1; i >= 0; i--) g.lineTo(...right[i]); g.closePath();
+  g.fillStyle = lin(g, -330, 0, 320, 0, [[0, '#3b2414'], [0.12, '#7a5230'], [0.45, '#d8b07a'], [0.75, '#f1dcb2'], [1, '#e6c58e']]);
+  g.fill(); g.restore();
+  // הצללה תלת־ממדית: צד אחד כהה, פס אור באמצע
+  g.save();
+  g.beginPath(); left.forEach(([a, b], i) => (i ? g.lineTo(a, b) : g.moveTo(a, b))); for (let i = right.length - 1; i >= 0; i--) g.lineTo(...right[i]); g.closePath(); g.clip();
+  g.lineCap = 'round';
+  for (let i = 1; i < pts.length; i++) {
+    const [ax, ay, nx, ny, w] = pts[i - 1], [bx, by] = pts[i];
+    g.strokeStyle = 'rgba(60,35,15,.13)'; g.lineWidth = w * 0.7; g.beginPath(); g.moveTo(ax - nx * w * 0.7, ay - ny * w * 0.7); g.lineTo(bx - nx * w * 0.7, by - ny * w * 0.7); g.stroke();
+    g.strokeStyle = 'rgba(60,35,15,.10)'; g.lineWidth = w * 0.4; g.beginPath(); g.moveTo(ax - nx * w * 0.85, ay - ny * w * 0.85); g.lineTo(bx - nx * w * 0.85, by - ny * w * 0.85); g.stroke();
+    g.strokeStyle = 'rgba(255,250,235,.5)'; g.lineWidth = Math.max(2, w * 0.14); g.beginPath(); g.moveTo(ax + nx * w * 0.42, ay + ny * w * 0.42); g.lineTo(bx + nx * w * 0.42, by + ny * w * 0.42); g.stroke();
+  }
+  // טבעות הקרן
+  for (let i = 6; i < N - 4; i += 5) {
+    const [px, py, nx, ny, w] = pts[i];
+    g.strokeStyle = `rgba(70,42,18,${0.18 + (i / N) * 0.12})`; g.lineWidth = 2.2;
+    g.beginPath(); g.moveTo(px + nx * w, py + ny * w); g.quadraticCurveTo(px + (pts[i + 1][0] - px) * 3, py + (pts[i + 1][1] - py) * 3, px - nx * w, py - ny * w); g.stroke();
+  }
+  g.restore();
+  // פתח השופר
+  { const [px, py, nx, ny, w] = pts[N], ang = Math.atan2(ny, nx);
+    g.save(); g.translate(px, py); g.rotate(ang);
+    g.fillStyle = lin(g, -w, 0, w, 0, [[0, '#caa673'], [0.5, '#f6e6c4'], [1, '#b88d55']]); g.beginPath(); g.ellipse(0, 0, w + 3, 22, 0, 0, 7); g.fill();
+    g.fillStyle = rad(g, 0, 0, 2, w, [[0, '#1d1006'], [0.7, '#3d2410'], [1, '#6b4523']]); g.beginPath(); g.ellipse(0, 2, w - 9, 14, 0, 0, 7); g.fill();
+    g.restore(); }
+  // פיה
+  { const [px, py, nx, ny, w] = pts[0]; g.fillStyle = '#2a170b'; g.beginPath(); g.ellipse(px, py, w + 2, 5, Math.atan2(ny, nx), 0, 7); g.fill(); }
+
+  // ---- תפוח ----
+  const apple = (ax, ay, r, hue, rot) => {
+    g.save(); g.translate(ax, ay); g.rotate(rot);
+    g.shadowColor = 'rgba(0,0,0,.35)'; g.shadowBlur = 20; g.shadowOffsetY = 10;
+    g.beginPath(); g.moveTo(0, -r * 0.78);
+    g.bezierCurveTo(r * 0.55, -r * 1.12, r * 1.12, -r * 0.62, r * 1.02, r * 0.08);
+    g.bezierCurveTo(r * 0.95, r * 0.75, r * 0.45, r * 1.02, 0, r * 0.9);
+    g.bezierCurveTo(-r * 0.45, r * 1.02, -r * 0.95, r * 0.75, -r * 1.02, r * 0.08);
+    g.bezierCurveTo(-r * 1.12, -r * 0.62, -r * 0.55, -r * 1.12, 0, -r * 0.78); g.closePath();
+    g.fillStyle = rad(g, -r * 0.35, -r * 0.3, r * 0.05, r * 1.25, [[0, hue[0]], [0.45, hue[1]], [0.85, hue[2]], [1, '#3e0508']]);
+    g.fill(); g.shadowColor = 'transparent';
+    g.save(); g.clip();
+    g.fillStyle = rad(g, r * 0.55, r * 0.35, 0, r * 0.7, [[0, 'rgba(240,190,60,.45)'], [1, 'rgba(240,190,60,0)']]); g.fillRect(-r * 1.2, -r * 1.2, r * 2.4, r * 2.4); // גוון צהבהב
+    for (let k = 0; k < 26; k++) { const a = k * 0.9, rr = r * (0.2 + (k % 7) / 8); g.fillStyle = 'rgba(255,230,180,.18)'; g.beginPath(); g.arc(Math.cos(a) * rr, Math.sin(a) * rr * 0.9, 1.6, 0, 7); g.fill(); } // נקודות קליפה
+    g.restore();
+    g.fillStyle = 'rgba(255,255,255,.75)'; g.beginPath(); g.ellipse(-r * 0.42, -r * 0.38, r * 0.16, r * 0.26, -0.6, 0, 7); g.fill(); // ברק
+    g.fillStyle = 'rgba(255,255,255,.35)'; g.beginPath(); g.ellipse(-r * 0.62, -r * 0.05, r * 0.06, r * 0.12, -0.3, 0, 7); g.fill();
+    g.fillStyle = rad(g, 0, -r * 0.74, 0, r * 0.22, [[0, 'rgba(60,10,10,.75)'], [1, 'rgba(60,10,10,0)']]); g.beginPath(); g.ellipse(0, -r * 0.74, r * 0.24, r * 0.1, 0, 0, 7); g.fill(); // גומה
+    g.strokeStyle = '#4a2c14'; g.lineWidth = r * 0.07; g.lineCap = 'round'; g.beginPath(); g.moveTo(0, -r * 0.74); g.quadraticCurveTo(r * 0.04, -r * 1.0, r * 0.14, -r * 1.12); g.stroke(); // עוקץ
+    g.save(); g.translate(r * 0.16, -r * 1.02); g.rotate(-0.55); // עלה
+    g.fillStyle = lin(g, 0, -r * 0.12, 0, r * 0.12, [[0, '#7fb24a'], [1, '#3d6b22']]);
+    g.beginPath(); g.moveTo(0, 0); g.quadraticCurveTo(r * 0.28, -r * 0.2, r * 0.58, 0); g.quadraticCurveTo(r * 0.28, r * 0.2, 0, 0); g.fill();
+    g.strokeStyle = 'rgba(30,60,15,.6)'; g.lineWidth = 1.5; g.beginPath(); g.moveTo(0, 0); g.lineTo(r * 0.55, 0); g.stroke();
+    g.restore(); g.restore();
+  };
+  // ---- צנצנת דבש עם כף דבש ----
+  const jar = (jx, jy) => {
+    g.save(); g.translate(jx, jy);
+    g.shadowColor = 'rgba(0,0,0,.35)'; g.shadowBlur = 20; g.shadowOffsetY = 10;
+    g.beginPath(); g.moveTo(-70, -60); g.bezierCurveTo(-96, -40, -96, 100, -70, 120); g.lineTo(70, 120); g.bezierCurveTo(96, 100, 96, -40, 70, -60); g.closePath();
+    g.fillStyle = 'rgba(255,240,210,.25)'; g.fill(); g.shadowColor = 'transparent';
+    g.strokeStyle = 'rgba(255,245,225,.55)'; g.lineWidth = 3; g.stroke();
+    g.save(); g.clip();
+    g.fillStyle = lin(g, -90, 0, 90, 0, [[0, '#8a4a06'], [0.35, '#e79a1c'], [0.6, '#f7c14a'], [1, '#9a540a']]); g.fillRect(-100, -24, 200, 150); // דבש
+    g.fillStyle = 'rgba(255,220,130,.6)'; g.beginPath(); g.ellipse(0, -24, 92, 10, 0, 0, 7); g.fill();
+    g.restore();
+    g.strokeStyle = 'rgba(255,255,255,.55)'; g.lineWidth = 5; g.lineCap = 'round'; g.beginPath(); g.moveTo(-60, -34); g.bezierCurveTo(-78, 0, -78, 70, -62, 100); g.stroke(); // ברק זכוכית
+    g.fillStyle = lin(g, 0, -86, 0, -58, [[0, '#d9b66a'], [1, '#9c7322']]); rrect(g, -76, -88, 152, 30, 8); g.fill(); // מכסה
+    g.fillStyle = '#b7322c'; g.beginPath(); g.moveTo(-86, -80); g.lineTo(86, -80); g.lineTo(70, -50); g.lineTo(-70, -50); g.closePath(); g.fill(); // בד משובץ
+    g.strokeStyle = 'rgba(255,255,255,.55)'; g.lineWidth = 3; for (let k = -70; k <= 70; k += 20) { g.beginPath(); g.moveTo(k, -80); g.lineTo(k * 0.85, -50); g.stroke(); }
+    g.strokeStyle = '#c9a24f'; g.lineWidth = 5; g.beginPath(); g.moveTo(-74, -58); g.lineTo(74, -58); g.stroke(); // חבל
+    // כף דבש מעץ
+    g.save(); g.translate(40, -40); g.rotate(0.5);
+    g.fillStyle = lin(g, -6, 0, 6, 0, [[0, '#7a4e22'], [0.5, '#c88f52'], [1, '#6a421c']]); rrect(g, -6, -170, 12, 150, 6); g.fill();
+    for (let k = 0; k < 4; k++) { g.fillStyle = k % 2 ? '#c88f52' : '#9a6630'; g.beginPath(); g.ellipse(0, -10 - k * 9, 18 - k * 1.5, 5, 0, 0, 7); g.fill(); }
+    g.fillStyle = '#e8a22a'; g.beginPath(); g.moveTo(-6, -2); g.quadraticCurveTo(0, 26, 6, -2); g.fill(); // טיפה
+    g.restore();
+    g.restore();
+  };
+  // ---- רימון ----
+  const pomegranate = (px, py, r) => {
+    g.save(); g.translate(px, py);
+    g.shadowColor = 'rgba(0,0,0,.35)'; g.shadowBlur = 18; g.shadowOffsetY = 8;
+    g.fillStyle = rad(g, -r * 0.35, -r * 0.35, 4, r * 1.2, [[0, '#ff8a70'], [0.45, '#c0262e'], [1, '#4a0610']]);
+    g.beginPath(); g.arc(0, 0, r, 0, 7); g.fill(); g.shadowColor = 'transparent';
+    g.fillStyle = lin(g, 0, -r * 1.25, 0, -r * 0.8, [[0, '#8f1a22'], [1, '#c0262e']]); // כתר
+    g.beginPath(); g.moveTo(-r * 0.3, -r * 0.85); for (let k = 0; k < 5; k++) { const xx = -r * 0.3 + k * r * 0.15; g.lineTo(xx + r * 0.075, -r * 1.22); g.lineTo(xx + r * 0.15, -r * 0.9); } g.closePath(); g.fill();
+    g.fillStyle = 'rgba(255,255,255,.55)'; g.beginPath(); g.ellipse(-r * 0.4, -r * 0.35, r * 0.13, r * 0.24, -0.6, 0, 7); g.fill();
+    g.restore();
+  };
+  pomegranate(-250, 108, 62);
+  jar(280, 40);
+  apple(-110, 88, 84, ['#ff9a7a', '#d9262c', '#8a0c14'], -0.12);
+  apple(70, 104, 76, ['#ff8f6e', '#c41f27', '#7c0a12'], 0.18);
   g.restore();
 }
 
@@ -441,7 +538,7 @@ export function greetingArt(kind, opts = {}) {
     case 'shabbat': candlestick(g, 230, y, 1.15); candlestick(g, 870, y, 1.15); challah(g, x, y - 40, 0.95); kiddush(g, x, y - 170, 0.75); break;
     case 'chanuka': chanukiah(g, x, y, 1.05, opts.lit || 1); break;
     case 'sukkot': lulavEtrog(g, x - 120, y, 1); break;
-    case 'yamim-noraim': shofarApples(g, x, y - 120, 1.2); break;
+    case 'yamim-noraim': shofarApples(g, x, y - 150, 1.08); break;
     case 'purim': purimMasks(g, x, y - 80, 1.1, rand); break;
     case 'pesach': seder(g, x - 60, y - 220, 1); break;
     case 'shavuot': case 'omer': wheat(g, x, y, 1, rand); break;

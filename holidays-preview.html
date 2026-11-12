@@ -53,7 +53,9 @@ for (const [k, name, time, screens] of [
 ]) { const o = first(k); if (o) add(name, o.date, time, screens); }
 // ראש חודש ואלול
 try {
-  let hd = new HDate(); for (let i = 0; i < 40 && hd.getDate() !== 1; i++) hd = hd.next();
+  // ראש חודש "נקי": לא טבת (חנוכה), לא תשרי (ראש השנה) ולא בשבת
+  let hd = new HDate();
+  for (let i = 0; i < 200; i++) { hd = hd.next(); if (hd.getDate() === 1 && !['Tevet', 'Tishrei'].includes(hd.getMonthName()) && hd.greg().getDay() !== 6) break; }
   const g = hd.greg(); add('ראש חודש', g, '10:30', 'greeting,combined');
   let e = new HDate(5, 'Elul', new HDate().getFullYear()); if (e.greg() < now) e = new HDate(5, 'Elul', new HDate().getFullYear() + 1);
   add('חודש אלול', e.greg(), '10:30', 'greeting,combined');

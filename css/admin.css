@@ -586,3 +586,8 @@ html[dir="rtl"] .item[open] { box-shadow: inset -4px 0 0 var(--gold), var(--shad
 .group-title::before { content: ""; width: 8px; height: 8px; background: var(--gold); transform: rotate(45deg); }
 .group-title::after { content: ""; flex: 1; height: 1px; background: linear-gradient(90deg, color-mix(in srgb, var(--gold) 45%, transparent), transparent); }
 html[dir="rtl"] .group-title::after { background: linear-gradient(270deg, color-mix(in srgb, var(--gold) 45%, transparent), transparent); }
+@media (max-width: 560px) {
+  .tiles { grid-template-columns: repeat(3, 1fr); gap: 8px; }
+  .tile { min-height: 84px; font-size: 13.5px; padding: 10px 4px; }
+  .tile svg { width: 22px; height: 22px; padding: 8px; }
+}

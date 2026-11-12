@@ -153,13 +153,11 @@ function tickClock() {
 // ---------- פס גולל ----------
 let tickerAnim = null;
 function renderTicker() {
-  // בשבת/חג (מהדלקת הנרות עד הצאת): צאת השבת. בשאר הזמן: התפילה הבאה, ואם אין – הדלקת הנרות הקרובה
+  // בשבת/חג (מהדלקת הנרות עד הצאת): צאת השבת. ביום ההדלקה: הדלקת הנרות. (בלי "התפילה הבאה")
   const sh = ctx.day.shabbat, now = ctx.now;
   const inShabbat = sh.candles && sh.havdalah && now >= sh.candles && now < sh.havdalah;
-  const np = nextPrayer(ctx);
   let pill = '';
   if (inShabbat) pill = `צאת ${sh.candlesDate?.getDay() === 5 ? 'השבת' : 'החג'} <b>${fmtTime(sh.havdalah, ctx.s.tz, 'ceil')}</b>`;
-  else if (np) pill = `${escapeHtml(np.name)} <b>${np.time}</b>`;
   else if (sh.candles && now < sh.candles && sh.candles - now < 14 * 3600000) pill = `${sh.candlesLabel} <b>${fmtTime(sh.candles, ctx.s.tz, 'floor')}</b>`; // רק ביום עצמו
   $('#next').innerHTML = pill;
   $('#next').hidden = !pill;

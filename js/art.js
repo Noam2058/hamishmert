@@ -283,20 +283,120 @@ export function chanukiah(g, x, y, s, lit) {
 }
 
 export function lulavEtrog(g, x, y, s) {
-  g.save(); g.translate(x, y); g.rotate(-0.18);
-  g.fillStyle = lin(g, -22 * s, 0, 22 * s, 0, [[0, '#5a7a2c'], [0.5, '#9bbf55'], [1, '#4f6b25']]);
-  g.beginPath(); g.moveTo(-30 * s, 0); g.lineTo(-16 * s, -640 * s); g.quadraticCurveTo(0, -690 * s, 16 * s, -640 * s); g.lineTo(30 * s, 0); g.fill();
-  g.strokeStyle = 'rgba(40,60,20,.5)'; g.lineWidth = 3 * s; g.beginPath(); g.moveTo(0, 0); g.lineTo(0, -660 * s); g.stroke();
-  for (let i = 0; i < 26; i++) { // הדסים וערבות
-    const myrtle = i < 16, yy = -60 * s - (myrtle ? i : i - 16) * (myrtle ? 18 : 26) * s, side = i % 2 ? 1 : -1;
-    g.fillStyle = myrtle ? '#2f5b2a' : '#7aa352';
-    g.beginPath(); g.ellipse(side * (myrtle ? 40 : 54) * s, yy - 40 * s, (myrtle ? 13 : 7) * s, (myrtle ? 22 : 64) * s, side * (myrtle ? 0.6 : 0.25), 0, 7); g.fill();
-  }
-  g.fillStyle = '#c99a3e'; rrect(g, -30 * s, -40 * s, 60 * s, 44 * s, 10 * s); g.fill(); // כוי
+  g.save(); g.translate(x, y); g.scale(s, s);
+  g.fillStyle = rad(g, 120, 30, 10, 460, [[0, 'rgba(0,0,0,.32)'], [1, 'rgba(0,0,0,0)']]);
+  g.beginPath(); g.ellipse(120, 30, 440, 44, 0, 0, 7); g.fill();
+  // ---- הלולב והאגד, מוטים מעט ----
+  g.save(); g.translate(-40, 20); g.rotate(-0.2);
+  const shade = (y0, y1) => lin(g, -30, 0, 30, 0, [[0, '#3e5a1c'], [0.35, '#86ad48'], [0.55, '#a9cc66'], [1, '#3a5419']]);
+  // ערבות – מאחור, עלים ארוכים וצרים, גבעול אדמדם
+  const willow = (bx, ang) => {
+    g.save(); g.translate(bx, -40); g.rotate(ang);
+    g.strokeStyle = '#8a3b2a'; g.lineWidth = 5; g.beginPath(); g.moveTo(0, 0); g.quadraticCurveTo(6, -220, 0, -430); g.stroke();
+    for (let i = 0; i < 16; i++) { const yy = -40 - i * 25, sd = i % 2 ? 1 : -1;
+      g.save(); g.translate(sd * 2, yy); g.rotate(sd * 0.32);
+      g.fillStyle = lin(g, 0, 0, sd * 16, -70, [[0, '#6f9a3c'], [1, '#a8c86a']]);
+      g.beginPath(); g.moveTo(0, 0); g.quadraticCurveTo(sd * 12, -40, sd * 3, -86); g.quadraticCurveTo(sd * -2, -40, 0, 0); g.fill(); g.restore(); }
+    g.restore();
+  };
+  willow(-34, -0.12); willow(34, 0.12);
+  // הלולב – עלים צפופים, שדרה מרכזית, קצה מתפצל מעט
+  g.save(); g.shadowColor = 'rgba(0,0,0,.35)'; g.shadowBlur = 16; g.shadowOffsetX = 6;
+  g.fillStyle = shade();
+  g.beginPath(); g.moveTo(-24, 40); g.lineTo(-17, -560); g.quadraticCurveTo(-14, -640, -6, -690); g.lineTo(0, -660); g.lineTo(6, -700); g.quadraticCurveTo(14, -640, 17, -560); g.lineTo(24, 40); g.closePath(); g.fill(); g.restore();
+  g.strokeStyle = 'rgba(40,60,15,.55)'; g.lineWidth = 1.4;
+  for (let k = -3; k <= 3; k++) { if (!k) continue; g.beginPath(); g.moveTo(k * 6, 40); g.lineTo(k * 4.2, -600 + Math.abs(k) * 10); g.stroke(); }
+  g.strokeStyle = 'rgba(230,245,190,.6)'; g.lineWidth = 3; g.beginPath(); g.moveTo(-6, 30); g.lineTo(-4, -620); g.stroke(); // ברק
+  g.strokeStyle = '#3c5518'; g.lineWidth = 3.5; g.beginPath(); g.moveTo(0, 40); g.lineTo(0, -665); g.stroke(); // שדרה
+  // הדסים – לפנים, עלים משולשים (שלושה בקן) כהים ומבריקים
+  const myrtle = (bx, ang) => {
+    g.save(); g.translate(bx, -30); g.rotate(ang);
+    g.strokeStyle = '#4a3a1c'; g.lineWidth = 6; g.beginPath(); g.moveTo(0, 0); g.lineTo(0, -310); g.stroke();
+    for (let i = 0; i < 11; i++) { const yy = -30 - i * 27;
+      for (const a of [-0.9, 0, 0.9]) { g.save(); g.translate(0, yy); g.rotate(a + (i % 2 ? 0.15 : -0.15));
+        g.fillStyle = rad(g, 0, -14, 2, 22, [[0, '#4f8a3a'], [0.6, '#24552a'], [1, '#143619']]);
+        g.beginPath(); g.ellipse(0, -15, 9.5, 18, 0, 0, 7); g.fill();
+        g.fillStyle = 'rgba(255,255,255,.22)'; g.beginPath(); g.ellipse(-3, -19, 2.5, 7, 0, 0, 7); g.fill(); g.restore(); } }
+    g.restore();
+  };
+  myrtle(-30, -0.08); myrtle(30, 0.08); myrtle(0, 0.02);
+  // הכויסלך – טבעות קלועות מעלי לולב
+  const ring = (ry, w) => { g.fillStyle = lin(g, -w, 0, w, 0, [[0, '#8a6a2a'], [0.5, '#e2c27a'], [1, '#7a5a1e']]); rrect(g, -w, ry - 9, w * 2, 18, 8); g.fill();
+    g.strokeStyle = 'rgba(80,55,15,.6)'; g.lineWidth = 1.5; for (let k = -w + 5; k < w; k += 7) { g.beginPath(); g.moveTo(k, ry - 9); g.lineTo(k + 5, ry + 9); g.stroke(); } };
+  ring(-6, 46); ring(-60, 40); ring(-300, 22); ring(-420, 20);
   g.restore();
-  g.fillStyle = rad(g, x + 190 * s, y - 60 * s, 10, 110 * s, [[0, '#fff3a3'], [0.6, '#e6c43a'], [1, '#b08a1c']]);
-  g.beginPath(); g.ellipse(x + 200 * s, y - 70 * s, 110 * s, 78 * s, -0.25, 0, 7); g.fill();
-  g.fillStyle = '#6e5320'; g.beginPath(); g.arc(x + 300 * s, y - 104 * s, 8 * s, 0, 7); g.fill(); // פיטם
+
+  // ---- אתרוג: מוארך, מחוספס, עם פיטם ועוקץ ----
+  g.save(); g.translate(230, -60); g.rotate(-0.28);
+  g.shadowColor = 'rgba(0,0,0,.35)'; g.shadowBlur = 22; g.shadowOffsetY = 12;
+  g.beginPath(); g.moveTo(-150, 6); g.bezierCurveTo(-150, -86, -40, -100, 40, -78); g.bezierCurveTo(118, -58, 160, -20, 168, 0); g.bezierCurveTo(160, 22, 118, 60, 40, 78); g.bezierCurveTo(-40, 100, -150, 88, -150, 6); g.closePath();
+  g.fillStyle = rad(g, -30, -40, 8, 200, [[0, '#fff6b0'], [0.35, '#f1d34a'], [0.75, '#c9a21c'], [1, '#7c6410']]); g.fill(); g.shadowColor = 'transparent';
+  g.save(); g.clip();
+  g.fillStyle = rad(g, -120, 30, 0, 90, [[0, 'rgba(120,160,40,.45)'], [1, 'rgba(120,160,40,0)']]); g.fillRect(-200, -120, 400, 240); // גוון ירקרק ליד העוקץ
+  const rnd = rng(77);
+  for (let k = 0; k < 420; k++) { const px = -150 + rnd() * 320, py = -95 + rnd() * 190, rr = 1.5 + rnd() * 2.6; // בליטות הקליפה
+    g.fillStyle = `rgba(255,250,200,${0.12 + rnd() * 0.18})`; g.beginPath(); g.arc(px, py, rr, 0, 7); g.fill();
+    g.fillStyle = `rgba(110,80,10,${0.08 + rnd() * 0.1})`; g.beginPath(); g.arc(px + 1.2, py + 1.4, rr * 0.8, 0, 7); g.fill(); }
+  g.restore();
+  g.fillStyle = 'rgba(255,255,255,.55)'; g.beginPath(); g.ellipse(-40, -50, 46, 14, -0.15, 0, 7); g.fill(); // ברק
+  g.fillStyle = '#6e5320'; g.beginPath(); g.moveTo(166, -4); g.lineTo(190, -8); g.lineTo(192, 4); g.lineTo(166, 4); g.fill(); // פיטם
+  g.fillStyle = '#a07a2a'; g.beginPath(); g.arc(194, -2, 6, 0, 7); g.fill();
+  g.strokeStyle = '#5a6a22'; g.lineWidth = 7; g.lineCap = 'round'; g.beginPath(); g.moveTo(-150, 6); g.lineTo(-172, 10); g.stroke(); // עוקץ
+  g.restore();
+  g.restore();
+}
+
+/** שמחת תורה: ספר תורה במעיל קטיפה עם כתר, ושני דגלים עם תפוח */
+export function simchatTorah(g, x, y, s) {
+  g.save(); g.translate(x, y); g.scale(s, s);
+  g.fillStyle = rad(g, 0, 20, 10, 420, [[0, 'rgba(0,0,0,.32)'], [1, 'rgba(0,0,0,0)']]); g.beginPath(); g.ellipse(0, 20, 420, 40, 0, 0, 7); g.fill();
+  const gold = (a, b) => lin(g, a, 0, b, 0, [[0, '#8f6a22'], [0.45, '#f6dd92'], [1, '#9c7322']]);
+  // דגל
+  const flag = (fx, ang, c1, c2, mirror) => {
+    g.save(); g.translate(fx, 0); g.rotate(ang);
+    g.fillStyle = lin(g, -5, 0, 5, 0, [[0, '#6a421c'], [0.5, '#c88f52'], [1, '#5a3614']]); rrect(g, -6, -560, 12, 560, 6); g.fill(); // מקל
+    g.save(); g.translate(0, -500); if (mirror) g.scale(-1, 1);
+    g.shadowColor = 'rgba(0,0,0,.3)'; g.shadowBlur = 14; g.shadowOffsetY = 6;
+    g.beginPath(); g.moveTo(6, -40); g.bezierCurveTo(90, -70, 150, -10, 236, -40); g.lineTo(236, 130); g.bezierCurveTo(150, 160, 90, 100, 6, 130); g.closePath();
+    g.fillStyle = lin(g, 6, 0, 236, 0, [[0, c1], [0.5, c2], [1, c1]]); g.fill(); g.shadowColor = 'transparent';
+    g.strokeStyle = '#d9b45e'; g.lineWidth = 4; g.stroke();
+    g.save(); g.translate(122, 44); if (mirror) g.scale(-1, 1);
+    g.strokeStyle = '#f6dd92'; g.lineWidth = 6; g.lineJoin = 'round'; // מגן דוד
+    g.beginPath(); g.moveTo(0, -40); g.lineTo(35, 20); g.lineTo(-35, 20); g.closePath(); g.moveTo(0, 40); g.lineTo(35, -20); g.lineTo(-35, -20); g.closePath(); g.stroke();
+    g.fillStyle = '#fff8e6'; g.font = '900 26px "Frank Ruhl Libre", serif'; g.textAlign = 'center'; g.fillText('שישו ושמחו', 0, 82);
+    g.restore(); g.restore();
+    // תפוח בראש המקל
+    g.fillStyle = rad(g, -8, -582, 3, 30, [[0, '#ff8a70'], [0.6, '#cc2a2a'], [1, '#6e0f16']]); g.beginPath(); g.arc(0, -574, 26, 0, 7); g.fill();
+    g.fillStyle = 'rgba(255,255,255,.6)'; g.beginPath(); g.ellipse(-9, -584, 5, 9, -0.5, 0, 7); g.fill();
+    g.fillStyle = '#4f7a2c'; g.beginPath(); g.ellipse(10, -604, 12, 5, -0.5, 0, 7); g.fill();
+    g.restore();
+  };
+  flag(-300, -0.22, '#1d4fa0', '#3f7bd0', false);
+  flag(300, 0.22, '#1d4fa0', '#3f7bd0', true);
+  // ספר התורה
+  g.save(); g.shadowColor = 'rgba(0,0,0,.45)'; g.shadowBlur = 28; g.shadowOffsetY = 16;
+  g.beginPath(); g.moveTo(-130, 0); g.lineTo(-130, -360); g.quadraticCurveTo(-130, -420, -70, -428); g.lineTo(70, -428); g.quadraticCurveTo(130, -420, 130, -360); g.lineTo(130, 0); g.closePath();
+  g.fillStyle = lin(g, -130, 0, 130, 0, [[0, '#4a0a1c'], [0.3, '#8e1c34'], [0.55, '#a8263f'], [1, '#3d0816']]); g.fill(); g.restore();
+  g.strokeStyle = 'rgba(0,0,0,.25)'; g.lineWidth = 2; for (const k of [-80, -40, 40, 80]) { g.beginPath(); g.moveTo(k, -410); g.quadraticCurveTo(k * 1.05, -200, k * 1.1, 0); g.stroke(); } // קפלי בד
+  g.fillStyle = gold(-130, 130); g.fillRect(-130, -24, 260, 16); g.fillRect(-130, -404, 260, 12); // שוליים
+  g.strokeStyle = '#f6dd92'; g.lineWidth = 2; g.setLineDash([2, 6]); g.strokeRect(-112, -386, 224, 350); g.setLineDash([]);
+  g.save(); g.translate(0, -230); g.strokeStyle = gold(-60, 60); g.lineWidth = 9; g.lineJoin = 'round';
+  g.beginPath(); g.moveTo(0, -66); g.lineTo(57, 33); g.lineTo(-57, 33); g.closePath(); g.moveTo(0, 66); g.lineTo(57, -33); g.lineTo(-57, -33); g.closePath(); g.stroke(); g.restore();
+  g.fillStyle = gold(-90, 90); for (const yy of [-120, -340]) { g.beginPath(); g.moveTo(-90, yy); g.lineTo(-20, yy); g.lineTo(0, yy - 7); g.lineTo(20, yy); g.lineTo(90, yy); g.lineTo(90, yy + 3); g.lineTo(-90, yy + 3); g.fill(); g.beginPath(); g.moveTo(0, yy - 12); g.lineTo(7, yy - 4); g.lineTo(0, yy + 4); g.lineTo(-7, yy - 4); g.fill(); } // קישוטים
+  // עצי חיים ורימונים
+  for (const ex of [-56, 56]) {
+    g.fillStyle = lin(g, ex - 8, 0, ex + 8, 0, [[0, '#5a3614'], [0.5, '#b07a42'], [1, '#4a2c10']]); rrect(g, ex - 8, -470, 16, 50, 6); g.fill();
+    g.fillStyle = gold(ex - 26, ex + 26); g.beginPath(); g.ellipse(ex, -472, 24, 9, 0, 0, 7); g.fill();
+  }
+  // כתר
+  g.save(); g.translate(0, -470);
+  g.fillStyle = gold(-110, 110); g.shadowColor = 'rgba(0,0,0,.35)'; g.shadowBlur = 12;
+  g.beginPath(); g.moveTo(-100, 0); g.lineTo(-112, -70); g.lineTo(-60, -40); g.lineTo(-30, -96); g.lineTo(0, -50); g.lineTo(30, -96); g.lineTo(60, -40); g.lineTo(112, -70); g.lineTo(100, 0); g.closePath(); g.fill();
+  g.shadowColor = 'transparent'; rrect(g, -104, -6, 208, 22, 8); g.fill();
+  for (const [cx, cy, c] of [[-60, 5, '#c0262e'], [0, 5, '#1d4fa0'], [60, 5, '#2f7a4f'], [-30, -88, '#f6dd92'], [30, -88, '#f6dd92'], [-112, -72, '#f6dd92'], [112, -72, '#f6dd92']]) { g.fillStyle = c; g.beginPath(); g.arc(cx, cy, 8, 0, 7); g.fill(); }
+  for (const bx of [-90, -30, 30, 90]) { g.fillStyle = '#e0bf6a'; g.beginPath(); g.arc(bx, 30, 7, 0, 7); g.fill(); } // פעמונים
+  g.restore();
+  g.restore();
 }
 
 export function shofarApples(g, x, y, s) {
@@ -537,7 +637,8 @@ export function greetingArt(kind, opts = {}) {
   switch (kind) {
     case 'shabbat': candlestick(g, 230, y, 1.15); candlestick(g, 870, y, 1.15); challah(g, x, y - 40, 0.95); kiddush(g, x, y - 170, 0.75); break;
     case 'chanuka': chanukiah(g, x, y, 1.05, opts.lit || 1); break;
-    case 'sukkot': lulavEtrog(g, x - 120, y, 1); break;
+    case 'sukkot': lulavEtrog(g, x - 60, y - 40, 0.92); break;
+    case 'simchat-torah': simchatTorah(g, x, y - 20, 0.98); break;
     case 'yamim-noraim': shofarApples(g, x, y - 150, 1.08); break;
     case 'purim': purimMasks(g, x, y - 80, 1.1, rand); break;
     case 'pesach': seder(g, x - 60, y - 220, 1); break;

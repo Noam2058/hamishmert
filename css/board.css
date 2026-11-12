@@ -585,3 +585,6 @@ footer.ticker { isolation: isolate; transform: translateZ(0); }
 .ticker .run { backface-visibility: hidden; transform: translateZ(0); }
 /* שורות הגריד לא גדלות מעבר לגובה השקופית (אחרת הכרטיסים נחתכים מלמטה) – התוכן מוקטן ע"י fitText */
 .grid { grid-auto-rows: minmax(0, 1fr); }
+
+/* מתיחה לרוחב: כל התמונה נראית, בגובה מלא, ונמתחת לצדדים עד שממלאת את הרוחב */
+.img-slide.fit-stretch > img { left: 50%; top: 50%; width: calc((100% - 20px) * var(--size, 1)); height: calc((100% - 20px) * var(--size, 1)); transform: translate(-50%, -50%); object-fit: fill; }

@@ -148,7 +148,7 @@ function greetingFor(ctx) {
     case 'purim': return { kind: 'purim', title: 'פורים שמח', sub: 'משלוח מנות איש לרעהו ומתנות לאביונים' };
     case 'pesach': return { kind: 'pesach', title: 'חג כשר ושמח', sub: /Chol/.test(descs) ? 'מועדים לשמחה' : 'זמן חרותנו' };
     case 'shavuot': return { kind: 'shavuot', title: 'חג שבועות שמח', sub: 'זמן מתן תורתנו' };
-    case 'sukkot': return { kind: 'sukkot', title: /Shmini|Simchat/.test(descs) ? 'שמחת תורה שמחה' : 'חג סוכות שמח', sub: 'זמן שמחתנו · מועדים לשמחה' };
+    case 'sukkot': return /Shmini|Simchat/.test(descs) ? { kind: 'simchat-torah', title: 'שמחת תורה שמחה', sub: 'שישו ושמחו בשמחת תורה' } : { kind: 'sukkot', title: 'חג סוכות שמח', sub: 'זמן שמחתנו · מועדים לשמחה' };
     case 'yamim-noraim':
       if (m === 7 && d >= 3) return { kind: 'yamim-noraim', title: 'גמר חתימה טובה', sub: 'עשרת ימי תשובה' };
       return { kind: 'yamim-noraim', title: 'שנה טובה ומתוקה', sub: 'כתיבה וחתימה טובה' };
@@ -375,7 +375,7 @@ export const SCREENS = {
     if (!list.length) return null;
     return list.map((x) => {
       const u = esc(String(x.url).replace(/"/g, '%22'));
-      const fit = ['contain', 'cover', 'width', 'scroll', 'zoom', 'full'].includes(x.fit) ? x.fit : 'contain';
+      const fit = ['contain', 'cover', 'width', 'stretch', 'scroll', 'zoom', 'full'].includes(x.fit) ? x.fit : 'contain';
       const secs = +x.seconds || ctx.display.defaultSeconds || 12;
       const size = Math.min(100, Math.max(40, +x.size || 100));
       const alt = esc(x.title || x.caption || '');

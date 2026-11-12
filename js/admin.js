@@ -214,6 +214,7 @@ const DOC = (x, y, w, h) => `<rect x="${x}" y="${y}" width="${w}" height="${h}" 
 const FITS = [
   ['contain', 'כל התמונה', 'רואים את כולה, בתוך מסגרת', FRAME(DOC(22, 8, 20, 21))],
   ['width', 'רוחב מלא', 'ממלאת לרוחב, מתחילה מלמעלה', FRAME(DOC(5, 8, 54, 21))],
+  ['stretch', 'מתיחה לרוחב', 'כל התמונה, נמתחת לצדדים', FRAME(`${DOC(5, 8, 54, 21)}<path d="M9 18.5h8M12 15.5l-3 3 3 3M55 18.5h-8M52 15.5l3 3-3 3" class="arw"/>`)],
   ['cover', 'מילוי מלא', 'ממלאת הכל, חיתוך בשוליים', FRAME('<rect x="5" y="8" width="54" height="21" class="pic"/><path d="M5 8l54 21M59 8L5 29" class="ln"/>')],
   ['scroll', 'גלילה איטית', 'למסמך לאורך – גדול ונגלל', FRAME(`${DOC(17, 8, 30, 21)}<path d="M52 11v14M49 22l3 3 3-3" class="arw"/>`)],
   ['zoom', 'זום איטי', 'תנועה עדינה לתמונה', FRAME('<rect x="5" y="8" width="54" height="21" class="pic"/><rect x="14" y="12" width="36" height="13" class="ln" fill="none"/><path d="M50 12l4-3M14 25l-4 3" class="arw"/>')],

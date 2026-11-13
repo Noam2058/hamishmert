@@ -1,0 +1,21 @@
+name: tour
+on: workflow_dispatch
+permissions:
+  contents: write
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 20 }
+      - run: npm i playwright@1.47.2 && npx playwright install --with-deps chromium
+      - run: node tests/tour.mjs
+      - name: push results to test-results branch
+        if: always()
+        run: |
+          cd out
+          git init -q && git checkout -q -b test-results
+          git config user.email "actions@github.com" && git config user.name "actions"
+          git add -A && git commit -qm "tour"
+          git push -f "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}" test-results

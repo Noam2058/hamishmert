@@ -156,11 +156,8 @@ function renderTicker() {
   // בשבת/חג (מהדלקת הנרות עד הצאת): צאת השבת. ביום ההדלקה: הדלקת הנרות. (בלי "התפילה הבאה")
   const sh = ctx.day.shabbat, now = ctx.now;
   const inShabbat = sh.candles && sh.havdalah && now >= sh.candles && now < sh.havdalah;
-  let pill = ''; // הוסר לבקשת המשתמש – הזמנים מופיעים בכותרת ובשקופיות
-  if (false) pill = `צאת ${sh.candlesDate?.getDay() === 5 ? 'השבת' : 'החג'} <b>${fmtTime(sh.havdalah, ctx.s.tz, 'ceil')}</b>`;
-  else if (sh.candles && now < sh.candles && sh.candles - now < 14 * 3600000) pill = `${sh.candlesLabel} <b>${fmtTime(sh.candles, ctx.s.tz, 'floor')}</b>`; // רק ביום עצמו
-  $('#next').innerHTML = pill;
-  $('#next').hidden = !pill;
+  // הוסר לבקשת המשתמש: בלי תגית זמן (תפילה/הדלקת נרות/צאת שבת) בפס התחתון
+  $('#next').innerHTML = ''; $('#next').hidden = true;
   const run = $('#run');
   const html = tickerItems(ctx).map((t) => `<span>${t}</span>`).join(SEP);
   if (!DATA.display.ticker) { $('#track').hidden = true; return; }

@@ -619,3 +619,14 @@ footer.ticker { isolation: isolate; transform: translateZ(0); }
 .ann.memorial .candle { transform: scale(1.3); margin-bottom: 14px; }
 .ann.memorial .candle .flame { filter: drop-shadow(0 0 24px rgba(255,180,70,.95)); }
 .ann.memorial { background: radial-gradient(ellipse at 50% 30%, #343a4a, #1d2029 75%); }
+.mem-grid { min-height: 0; grid-auto-rows: minmax(0, max-content); }
+.mem-grid.many { gap: 24px; padding-inline: 10px; }
+.mem-grid.many .mem-card, .mem-grid.many .bday-card { padding: 30px 18px 32px !important; gap: 8px; }
+.mem-grid.many .who { font-size: 40px; }
+.mem-grid.many .when { font-size: 22px; padding: 4px 14px; }
+.mem-grid.many .by { font-size: 24px; }
+.mem-grid.many .cake { width: 84px; height: 77px; }
+.mem-grid.many .candle { transform: scale(.85); margin: -10px 0 -6px; }
+/* הודעות: טקסט גדול וקריא יותר */
+.ann .t { font-size: 72px; }
+.ann .b { font-size: 44px; }

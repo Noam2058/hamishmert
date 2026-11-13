@@ -1,0 +1,5 @@
+== 1-online: {"loading":"","date":"ג׳ כסלו תשפ״ז","event":"ערב שבת קודש","holiday":"shabbat","season":"shabbat","warn":"","slides":11,"sw":true}
+== 2-offline-reload: {"loading":"","date":"ג׳ כסלו תשפ״ז","event":"ערב שבת קודש","holiday":"shabbat","season":"shabbat","warn":"","slides":11,"sw":true}
+== 3-offline-running: {"loading":"","date":"ג׳ כסלו תשפ״ז","event":"ערב שבת קודש","holiday":"shabbat","season":"shabbat","warn":"","slides":11,"sw":true}
+== 4-offline-bad-clock: {"loading":"","date":"כ״ו כסלו תשפ״ו","event":"חנוכה – יום ב׳","holiday":"chanuka","season":"chanuka","warn":"השעון של המכשיר לא מכוון\n\nהמכשיר מראה 16.12.2025 10:00, לפני הפעם האחרונה שהלוח פעל – לכן הזמנים בלוח לא נכונים.\n\nחברו את המכשיר לאינטרנט (הלוח יתקן לבד), או כוונו תאריך ושעה בהגדרות המכשיר.","slides":9,"sw":true}
+== 5-online-bad-clock: {"loading":"","date":"ג׳ כסלו תשפ״ז","event":"ערב שבת קודש","holiday":"shabbat","season":"shabbat","warn":"","slides":11,"sw":true}

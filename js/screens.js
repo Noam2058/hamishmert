@@ -334,7 +334,7 @@ export const SCREENS = {
     if (!today.length && !week.length) return null;
     const all = [...today.map((m) => ({ ...m, isToday: true })), ...week].slice(0, 8);
     const cols = Math.min(all.length, 4);
-    return `${title('לעילוי נשמת')}<div class="mem-grid${all.length > 3 ? ' many' : ''}" style="--cols:${cols}">${all.map((m) => `
+    return `${title('לעילוי נשמת')}<div class="mem-grid${all.length > 4 ? ' many' : ''}" style="--cols:${cols}">${all.map((m) => `
       <section class="card mem-card${m.isToday ? ' is-today' : ''}">${candle}
         <div class="when">${m.isToday ? 'האזכרה היום' : 'אזכרה'} · ${esc(renderHeb(m.hdate))}</div>
         <div class="who">${esc(m.name)} ז״ל</div>${flourish}
@@ -502,7 +502,7 @@ export const SCREENS = {
     const list = inHebrewRange(ctx.data.birthdays || [], hd, hd.add(6), birthdayIn);
     if (!list.length) return null;
     const cols = Math.min(list.length, 4);
-    return `${title('מזל טוב! ימי הולדת השבוע')}<div class="mem-grid bday-grid${list.length > 3 ? ' many' : ''}" style="--cols:${cols}">
+    return `${title('מזל טוב! ימי הולדת השבוע')}<div class="mem-grid bday-grid${list.length > 4 ? ' many' : ''}" style="--cols:${cols}">
       ${list.slice(0, 8).map((b) => `<section class="card bday-card${b.hdate.isSameDate(hd) ? ' is-today' : ''}">${CAKE_SVG}<div class="when">${b.hdate.isSameDate(hd) ? 'היום!' : esc(renderHeb(b.hdate))}</div><div class="who">${esc(b.name)}</div>${flourish}<div class="by">${b.note ? esc(b.note) : 'עד מאה ועשרים'}</div></section>`).join('')}</div>`;
   },
 

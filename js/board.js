@@ -3,7 +3,7 @@ import { computeDay, fmtTime, tzParts, hhmmToMin, chanukaDay } from './jewish.js
 import { prayersForDay, weeklyPrayers, lessonsForDay } from './prayers.js';
 import { SCREENS, LIVE_SCREENS, tickerItems, nextPrayer } from './screens.js';
 import { load, subscribe } from './store.js';
-import { sceneForSlide, renderScene, holidayHasDesign, sceneDiag } from './scenes.js';
+import { sceneForSlide, renderScene, holidayHasDesign, sceneDiag, setSceneVersion } from './scenes.js';
 import { prefetchHalachot, DEFAULT_START } from './halacha-sa.js';
 import { prefetchMishna } from './mishna.js';
 
@@ -156,8 +156,8 @@ function renderTicker() {
   // בשבת/חג (מהדלקת הנרות עד הצאת): צאת השבת. ביום ההדלקה: הדלקת הנרות. (בלי "התפילה הבאה")
   const sh = ctx.day.shabbat, now = ctx.now;
   const inShabbat = sh.candles && sh.havdalah && now >= sh.candles && now < sh.havdalah;
-  let pill = '';
-  if (inShabbat) pill = `צאת ${sh.candlesDate?.getDay() === 5 ? 'השבת' : 'החג'} <b>${fmtTime(sh.havdalah, ctx.s.tz, 'ceil')}</b>`;
+  let pill = ''; // הוסר לבקשת המשתמש – הזמנים מופיעים בכותרת ובשקופיות
+  if (false) pill = `צאת ${sh.candlesDate?.getDay() === 5 ? 'השבת' : 'החג'} <b>${fmtTime(sh.havdalah, ctx.s.tz, 'ceil')}</b>`;
   else if (sh.candles && now < sh.candles && sh.candles - now < 14 * 3600000) pill = `${sh.candlesLabel} <b>${fmtTime(sh.candles, ctx.s.tz, 'floor')}</b>`; // רק ביום עצמו
   $('#next').innerHTML = pill;
   $('#next').hidden = !pill;
@@ -251,6 +251,8 @@ function applyBg(item, index) {
   // מכין מראש את הרקע של השקופית הבאה, כדי שהמעבר יהיה חלק
   const n = queue[(index + 1) % queue.length];
   if (n) setTimeout(() => bgFor(n, (index + 1) % queue.length).catch(() => {}), 1500);
+  // פעם אחת: מכינים ברקע את כל הרקעים של הסבב, אחד אחרי השני, כדי שלא יחכו להם בהמשך
+  if (!applyBg.warm) { applyBg.warm = true; setTimeout(async () => { for (let i = 0; i < queue.length; i++) { try { await bgFor(queue[i], i); } catch { /* */ } await new Promise((r) => setTimeout(r, 700)); } }, 4000); }
 }
 
 /** מקטין את הטקסט בכרטיס הלכה/משנה עד שהכרטיס כולו (כולל המקור והעיטורים) נכנס במקום */
@@ -431,8 +433,10 @@ async function start() {
 
 // עדכון קוד: כל 5 דקות בודק את version.txt, ואם עלתה גרסה חדשה – מרענן את הלוח לבד
 async function watchVersion() {
-  const get = () => fetch('version.txt', { cache: 'no-store' }).then((r) => (r.ok ? r.text() : null)).then((t) => t?.trim() || null).catch(() => null);
+  // תמיד מהרשת (הפרמטר clock עוקף את ה-Service Worker): בלי רשת – אין תשובה, ולא "גרסה ישנה מהמטמון" שגרמה לרענון מיותר
+  const get = () => (navigator.onLine === false ? Promise.resolve(null) : fetch(`version.txt?clock=${Date.now()}`, { cache: 'no-store' }).then((r) => (r.ok ? r.text() : null)).then((t) => t?.trim() || null).catch(() => null));
   let mine = await get();
+  if (mine) setSceneVersion(mine);
   setInterval(async () => {
     const v = await get();
     if (!v) return;

@@ -1,5 +1,5 @@
 // Service Worker: שומר את קוד הלוח, הספריות והגופנים כדי שהלוח יעבוד גם בלי אינטרנט.
-const VERSION = 'shulboard-v12';
+const VERSION = 'shulboard-v13';
 // ספריות חיצוניות – נשמרות כבר בהתקנה, כדי שהלוח יעלה גם בלי אינטרנט
 const CDN = [
   'https://cdn.jsdelivr.net/npm/@hebcal/core@5.10.1/+esm',
@@ -12,7 +12,7 @@ const SHELL = [
   './', './index.html', './m.html', './config.js', './manifest.webmanifest', './m.webmanifest',
   './css/board.css', './css/mobile.css',
   './js/board.js', './js/mobile.js', './js/jewish.js', './js/prayers.js', './js/screens.js',
-  './js/store.js', './js/defaults.js', './js/lib.js', './js/art.js', './js/scenes.js', './js/halacha-sa.js', './js/ann.js', './js/mishna.js', './js/holidays.js', './version.txt',
+  './js/store.js', './js/defaults.js', './js/lib.js', './js/art.js', './js/scenes.js', './js/halacha-sa.js', './js/ann.js', './js/mishna.js', './js/holidays.js',
 ];
 
 self.addEventListener('install', (e) => {
@@ -21,7 +21,7 @@ self.addEventListener('install', (e) => {
 });
 
 self.addEventListener('activate', (e) => {
-  e.waitUntil(caches.keys().then((keys) => Promise.all(keys.filter((k) => k !== VERSION).map((k) => caches.delete(k))))
+  e.waitUntil(caches.keys().then((keys) => Promise.all(keys.filter((k) => k !== VERSION && k !== 'shulboard-scenes').map((k) => caches.delete(k))))
     .then(() => self.clients.claim()));
 });
 

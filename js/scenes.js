@@ -768,13 +768,22 @@ function key(scene, theme, opts) { return `${scene}:${theme}:${opts?.lit || ''}`
 
 export function cachedScene(scene, theme = 'classic', opts = {}) { return cache.get(key(scene, theme, opts)) || null; }
 
-export const sceneDiag = { ok: 0, fail: 0, last: '' };
+export const sceneDiag = { ok: 0, fail: 0, last: '', disk: 0 };
+// מטמון קבוע של רקעים מצוירים (Cache Storage) – אחרי רענון הרקע מופיע מיד, בלי לצייר מחדש. מתאפס כשיש גרסה חדשה
+let SCENE_VER = '';
+export function setSceneVersion(v) { SCENE_VER = String(v || ''); }
+const diskKey = (k) => `./__scene/${encodeURIComponent(k)}?v=${SCENE_VER}`;
+async function diskGet(k) { if (!SCENE_VER || !self.caches) return null; try { const c = await caches.open('shulboard-scenes'); const r = await c.match(diskKey(k)); return r ? URL.createObjectURL(await r.blob()) : null; } catch { return null; } }
+async function diskPut(k, blob) {
+  if (!SCENE_VER || !self.caches || !blob) return;
+  try { const c = await caches.open('shulboard-scenes'); for (const req of await c.keys()) if (!req.url.endsWith(`v=${SCENE_VER}`)) c.delete(req); await c.put(diskKey(k), new Response(blob, { headers: { 'content-type': 'image/jpeg' } })); } catch { /* */ }
+}
 export function renderScene(scene, theme = 'classic', opts = {}) {
   if (!scene || !SCENE_DEFS[scene]) return Promise.resolve(null);
   const k = key(scene, theme, opts);
   if (cache.has(k)) { const v = cache.get(k); cache.delete(k); cache.set(k, v); return Promise.resolve(v); }
   if (pending.has(k)) return pending.get(k);
-  const p = new Promise((resolve) => {
+  const p = new Promise((resolve) => { diskGet(k).then((hit) => { if (hit) { sceneDiag.disk++; pending.delete(k); cache.set(k, hit); resolve(hit); return; } drawNow(); }); const drawNow = () => {
     const done = (url) => {
       pending.delete(k);
       if (url) { sceneDiag.ok++; cache.set(k, url); while (cache.size > 24) { const [old, u] = cache.entries().next().value; cache.delete(old); if (u.startsWith('blob:')) URL.revokeObjectURL(u); } }
@@ -794,10 +803,10 @@ export function renderScene(scene, theme = 'classic', opts = {}) {
     };
     try {
       const c = draw(1);
-      if (c.toBlob) c.toBlob((b) => { if (b) done(URL.createObjectURL(b)); else { try { done(c.toDataURL('image/jpeg', 0.86)); } catch (e) { fallback('toDataURL ' + (e?.message || e)); } } }, 'image/jpeg', 0.86);
+      if (c.toBlob) c.toBlob((b) => { if (b) { diskPut(k, b); done(URL.createObjectURL(b)); } else { try { done(c.toDataURL('image/jpeg', 0.86)); } catch (e) { fallback('toDataURL ' + (e?.message || e)); } } }, 'image/jpeg', 0.86);
       else done(c.toDataURL('image/jpeg', 0.86));
     } catch (e) { console.warn('scene failed', scene, e); fallback(e?.message || String(e)); }
-  });
+  }; });
   pending.set(k, p);
   return p;
 }

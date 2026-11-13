@@ -768,24 +768,35 @@ function key(scene, theme, opts) { return `${scene}:${theme}:${opts?.lit || ''}`
 
 export function cachedScene(scene, theme = 'classic', opts = {}) { return cache.get(key(scene, theme, opts)) || null; }
 
+export const sceneDiag = { ok: 0, fail: 0, last: '' };
 export function renderScene(scene, theme = 'classic', opts = {}) {
   if (!scene || !SCENE_DEFS[scene]) return Promise.resolve(null);
   const k = key(scene, theme, opts);
   if (cache.has(k)) { const v = cache.get(k); cache.delete(k); cache.set(k, v); return Promise.resolve(v); }
   if (pending.has(k)) return pending.get(k);
   const p = new Promise((resolve) => {
-    try {
-      const [c, g] = canvas();
+    const done = (url) => {
+      pending.delete(k);
+      if (url) { sceneDiag.ok++; cache.set(k, url); while (cache.size > 24) { const [old, u] = cache.entries().next().value; cache.delete(old); if (u.startsWith('blob:')) URL.revokeObjectURL(u); } }
+      resolve(url);
+    };
+    // ניסיון ראשון ברזולוציה מלאה; אם המכשיר נכשל (זיכרון/דפדפן ישן) – ניסיון שני בחצי רזולוציה, כתמונת data
+    const draw = (scale) => {
+      const [c, g] = scale === 1 ? canvas() : canvas(Math.round(1920 * scale), Math.round(1080 * scale));
+      if (scale !== 1) g.scale(scale, scale);
       const rand = rng([...scene].reduce((a, ch) => a * 31 + ch.charCodeAt(0), 7) >>> 0);
       SCENE_DEFS[scene][0](g, rand, PALETTES[theme] || PALETTES.classic, opts);
-      const done = (url) => {
-        pending.delete(k);
-        if (url) { cache.set(k, url); while (cache.size > 24) { const [old, u] = cache.entries().next().value; cache.delete(old); if (u.startsWith('blob:')) URL.revokeObjectURL(u); } }
-        resolve(url);
-      };
-      if (c.toBlob) c.toBlob((b) => done(b ? URL.createObjectURL(b) : c.toDataURL('image/jpeg', 0.86)), 'image/jpeg', 0.86);
+      return c;
+    };
+    const fallback = (why) => {
+      sceneDiag.fail++; sceneDiag.last = `${scene}: ${why}`;
+      try { done(draw(0.5).toDataURL('image/jpeg', 0.8)); } catch (e2) { sceneDiag.last += ` | fallback: ${e2?.message || e2}`; done(null); }
+    };
+    try {
+      const c = draw(1);
+      if (c.toBlob) c.toBlob((b) => { if (b) done(URL.createObjectURL(b)); else { try { done(c.toDataURL('image/jpeg', 0.86)); } catch (e) { fallback('toDataURL ' + (e?.message || e)); } } }, 'image/jpeg', 0.86);
       else done(c.toDataURL('image/jpeg', 0.86));
-    } catch (e) { console.warn('scene failed', scene, e); pending.delete(k); resolve(null); }
+    } catch (e) { console.warn('scene failed', scene, e); fallback(e?.message || String(e)); }
   });
   pending.set(k, p);
   return p;

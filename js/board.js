@@ -3,7 +3,7 @@ import { computeDay, fmtTime, tzParts, hhmmToMin, chanukaDay } from './jewish.js
 import { prayersForDay, weeklyPrayers, lessonsForDay } from './prayers.js';
 import { SCREENS, LIVE_SCREENS, tickerItems, nextPrayer } from './screens.js';
 import { load, subscribe } from './store.js';
-import { sceneForSlide, renderScene, holidayHasDesign } from './scenes.js';
+import { sceneForSlide, renderScene, holidayHasDesign, sceneDiag } from './scenes.js';
 import { prefetchHalachot, DEFAULT_START } from './halacha-sa.js';
 import { prefetchMishna } from './mishna.js';
 
@@ -301,6 +301,7 @@ function show(next) {
   el.classList.add('on');
   const prev = current;
   current = { ...next, el };
+  try { localStorage.setItem('shulboard:resume', JSON.stringify({ key: next.key, t: Date.now() })); } catch { /* */ }
   applyBg(next, qi);
   if (prev?.el) {
     prev.el.classList.remove('on');
@@ -323,7 +324,9 @@ function advance(step = 1) {
   renderTicker();
   queue = buildQueue();
   if (!queue.length) { timer = setTimeout(advance, 10000); return; }
-  const lastKey = current?.key;
+  let lastKey = current?.key;
+  // אחרי רענון של הדף (עדכון גרסה וכו׳) – ממשיכים מאיפה שהלוח היה, ולא חוזרים תמיד לשקופית הראשונה
+  if (!lastKey) { try { const r = JSON.parse(localStorage.getItem('shulboard:resume') || 'null'); if (r && Date.now() - r.t < 30 * 60000) lastKey = r.key; } catch { /* */ } }
   let idx = queue.findIndex((x) => x.key === lastKey);
   qi = ((idx < 0 && step < 0 ? 0 : idx) + step + queue.length) % queue.length;
   if (queue.length === 1 && current?.key === queue[0].key) {
@@ -420,6 +423,7 @@ async function start() {
   addEventListener('online', () => { document.body.classList.remove('offline'); renderSync(); });
   keepAwake();
   scheduleDailyReload();
+  if (params.has('diag')) startDiag();
   setInterval(async () => { if (!clockSynced || Math.random() < 0.1) await syncClock(); if (checkClock()) advance(); }, 60000);
   addEventListener('online', async () => { await syncClock(); if (checkClock()) advance(); });
   watchVersion();
@@ -469,3 +473,27 @@ start().catch((e) => {
   console.error(e);
   setTimeout(() => location.reload(), 60000);
 });
+
+// ---------- אבחון למכשיר (index.html?diag) – כדי לדעת מה הסטרימר תומך ----------
+const diagErrors = [];
+addEventListener('error', (e) => { diagErrors.push(String(e.message || e.error || e).slice(0, 140)); if (diagErrors.length > 6) diagErrors.shift(); });
+addEventListener('unhandledrejection', (e) => { diagErrors.push('promise: ' + String(e.reason?.message || e.reason).slice(0, 140)); if (diagErrors.length > 6) diagErrors.shift(); });
+function startDiag() {
+  const box = document.createElement('pre');
+  box.style.cssText = 'position:fixed;left:10px;bottom:10px;z-index:99;max-width:60vw;margin:0;padding:12px 14px;background:rgba(0,0,0,.82);color:#9ef59e;font:14px/1.45 monospace;direction:ltr;text-align:left;white-space:pre-wrap;border-radius:10px';
+  document.body.appendChild(box);
+  const up = () => {
+    const ua = navigator.userAgent, chrome = (ua.match(/Chrome\/(\d+)/) || [])[1] || '?';
+    box.textContent = [
+      `Chrome/WebView: ${chrome}   lite: ${LITE}   perf: ${DATA?.display?.performance || 'auto'}`,
+      `screen ${screen.width}x${screen.height}  window ${innerWidth}x${innerHeight}  dpr ${devicePixelRatio}`,
+      `cores ${navigator.hardwareConcurrency || '?'}  mem ${navigator.deviceMemory || '?'}GB  online ${navigator.onLine}`,
+      `scene: ok ${sceneDiag.ok}  fail ${sceneDiag.fail}  has-scene ${$('#stage').classList.contains('has-scene')}`,
+      sceneDiag.last ? `scene err: ${sceneDiag.last}` : '',
+      `clock offset ${Math.round(clockOffset / 1000)}s  synced ${clockSynced}`,
+      ...diagErrors.map((e) => 'ERR ' + e),
+      ua.slice(0, 160),
+    ].filter(Boolean).join('\n');
+  };
+  up(); setInterval(up, 2000);
+}

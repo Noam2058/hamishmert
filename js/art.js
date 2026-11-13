@@ -217,6 +217,7 @@ export function papercut(g, rand, palette) {
     p.lineWidth = 8; p.strokeStyle = '#000'; p.beginPath(); p.moveTo(-30, 0); p.quadraticCurveTo(0, -36, 30, 0); p.quadraticCurveTo(0, 36, -30, 0); p.stroke();
     p.restore();
   }
+  p.globalCompositeOperation = 'destination-out'; p.fillRect(0, 0, W, 176); // אזור הכותרת העליונה נשאר נקי (שעה ותאריך)
   g.save(); g.shadowColor = 'rgba(0,0,0,.45)'; g.shadowBlur = 14; g.shadowOffsetY = 6; g.drawImage(c, 0, 0); g.restore();
   g.strokeStyle = paper; g.lineWidth = 3; g.strokeRect(B + 14, B + 14, W - 2 * B - 28, H - 2 * B - 28);
 }

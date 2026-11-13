@@ -105,6 +105,18 @@ function dayLabelForSchedule(day) {
   return day.dow === 6 ? 'שבת' : day.dow === 5 ? 'ערב שבת' : '';
 }
 
+// ספר פתוח – לכרטיסי השיעורים
+const BOOK_SVG = `<svg class="book" viewBox="0 0 120 70" aria-hidden="true"><defs><linearGradient id="bk-g" x1="0" x2="1"><stop offset="0" stop-color="#8f6a22"/><stop offset=".5" stop-color="#f6dd92"/><stop offset="1" stop-color="#9c7322"/></linearGradient></defs>
+  <path d="M60 14C46 4 22 4 6 10v52c16-6 40-6 54 4 14-10 38-10 54-4V10C98 4 74 4 60 14z" fill="url(#bk-g)"/>
+  <path d="M60 18C47 9 26 9 12 14v42c14-5 34-5 48 3 14-8 34-8 48-3V14C94 9 73 9 60 18z" fill="#fffaf0"/>
+  <path d="M60 18v41" stroke="#b8902f" stroke-width="2"/><g stroke="#c9b48a" stroke-width="2" stroke-linecap="round"><path d="M20 24h30M20 32h30M20 40h26M70 24h30M70 32h30M70 40h26"/></g></svg>`;
+
+// עוגת יום הולדת עם נר
+const CAKE_SVG = `<svg class="cake" viewBox="0 0 120 110" aria-hidden="true"><defs><linearGradient id="ck-g" x1="0" x2="1"><stop offset="0" stop-color="#8f6a22"/><stop offset=".5" stop-color="#f6dd92"/><stop offset="1" stop-color="#9c7322"/></linearGradient><radialGradient id="ck-f"><stop offset="0" stop-color="#fff6c8"/><stop offset=".55" stop-color="#ffb84a"/><stop offset="1" stop-color="#ff8a00" stop-opacity="0"/></radialGradient></defs>
+  <ellipse cx="60" cy="104" rx="52" ry="6" fill="url(#ck-g)"/><rect x="16" y="66" width="88" height="36" rx="8" fill="#c73a55"/><path d="M16 74q11 10 22 0t22 0 22 0 22 0v-2a8 8 0 0 0-8-8H24a8 8 0 0 0-8 8z" fill="#fff4e0"/>
+  <rect x="26" y="40" width="68" height="28" rx="7" fill="#f0c3cf"/><path d="M26 48q8.5 8 17 0t17 0 17 0 17 0v-2a7 7 0 0 0-7-7H33a7 7 0 0 0-7 7z" fill="#fff8ee"/>
+  <rect x="56" y="18" width="8" height="22" rx="3" fill="#7fb6e6"/><circle cx="60" cy="10" r="10" fill="url(#ck-f)"/><path d="M60 3q5 6 0 12q-5-6 0-12z" fill="#fff3b8"/></svg>`;
+
 // ספר תורה פתוח – לשקופית פרשת השבוע
 const SCROLL_SVG = `<svg class="ps-art" viewBox="0 0 320 120" aria-hidden="true"><defs>
   <linearGradient id="ps-w" x1="0" x2="1"><stop offset="0" stop-color="#5a2f14"/><stop offset=".5" stop-color="#a8673a"/><stop offset="1" stop-color="#4a250f"/></linearGradient>
@@ -320,12 +332,13 @@ export const SCREENS = {
     const today = inHebrewRange(list, hd, hd, yahrzeitIn);
     const week = inHebrewRange(list, hd.next(), hd.add(7), yahrzeitIn);
     if (!today.length && !week.length) return null;
-    const todayHtml = today.length ? `<div class="mem-today">${today.slice(0, 3).map((m) => `
-      <section class="card mem">${candle}<div><div class="when">האזכרה היום · ${esc(renderHeb(m.hdate))}</div>
-      <div class="who">${esc(m.name)} ז"ל</div>${m.by ? `<div class="by">${esc(m.by)}</div>` : ''}</div></section>`).join('')}</div>` : '';
-    const weekHtml = week.length ? `<section class="card"><h3>אזכרות השבוע</h3><div class="mem-week">${week.map((m) => `
-      <div class="row"><div class="k">${esc(m.name)} ז"ל</div><div class="v">${esc(renderHeb(m.hdate))}</div></div>`).join('')}</div></section>` : '';
-    return `${title('לעילוי נשמת')}<div style="display:flex;flex-direction:column;gap:28px;flex:1">${todayHtml}${weekHtml}</div>`;
+    const all = [...today.map((m) => ({ ...m, isToday: true })), ...week].slice(0, 8);
+    const cols = all.length <= 3 ? all.length : all.length === 4 ? 2 : 4;
+    return `${title('לעילוי נשמת')}<div class="mem-grid" style="--cols:${cols}">${all.map((m) => `
+      <section class="card mem-card${m.isToday ? ' is-today' : ''}">${candle}
+        <div class="when">${m.isToday ? 'האזכרה היום' : 'אזכרה'} · ${esc(renderHeb(m.hdate))}</div>
+        <div class="who">${esc(m.name)} ז״ל</div>${flourish}
+        ${m.by ? `<div class="by">${esc(m.by)}</div>` : '<div class="by">תנצב״ה</div>'}</section>`).join('')}</div>`;
   },
 
   parnas(ctx) {
@@ -439,8 +452,8 @@ export const SCREENS = {
     const when = (l) => (l.today ? 'היום' : l.dow === 6 ? 'בשבת' : `ביום ${DN[l.dow]}`);
     if (list.length <= 3) {
       return `${title('שיעורי תורה')}<div class="grid lessons-cards" style="grid-template-columns:repeat(${list.length},1fr)">${list.map((l) => `
-        <section class="card lesson${l.today ? ' today' : ''}"><span class="when">${esc(when(l))}</span>
-          <div class="lt">${esc(l.title)}</div>${l.teacher ? `<div class="lr">${esc(l.teacher)}</div>` : ''}
+        <section class="card lesson${l.today ? ' today' : ''}">${BOOK_SVG}<span class="when">${esc(when(l))}</span>
+          <div class="lt">${esc(l.title)}</div>${l.teacher ? `<div class="lr">${esc(l.teacher)}</div>` : ''}${flourish}
           <div class="time">${esc(l.time)}</div>${l.note ? `<div class="ln">${esc(l.note)}</div>` : ''}</section>`).join('')}</div>`;
     }
     const row = (l) => `<div class="row${l.today ? ' next' : ''}"><div class="k">${esc(l.title)}<small>${esc([l.teacher, l.days, l.note].filter(Boolean).join(' · '))}</small></div><div class="v">${esc(l.time)}</div></div>`;
@@ -488,8 +501,9 @@ export const SCREENS = {
     const hd = ctx.day.hd;
     const list = inHebrewRange(ctx.data.birthdays || [], hd, hd.add(6), birthdayIn);
     if (!list.length) return null;
-    return `${title('מזל טוב! ימי הולדת השבוע')}<div class="grid" style="grid-template-columns:repeat(${Math.min(list.length, 3)},1fr);align-content:center">
-      ${list.map((b) => `<section class="card ann simcha" style="padding:50px 30px"><div class="t">${esc(b.name)}</div>${flourish}<div class="b">${esc(renderHeb(b.hdate))}${b.note ? ` · ${esc(b.note)}` : ''}</div></section>`).join('')}</div>`;
+    const cols = list.length <= 3 ? list.length : list.length === 4 ? 2 : list.length <= 6 ? 3 : 4;
+    return `${title('מזל טוב! ימי הולדת השבוע')}<div class="mem-grid bday-grid" style="--cols:${cols}">
+      ${list.slice(0, 8).map((b) => `<section class="card bday-card${b.hdate.isSameDate(hd) ? ' is-today' : ''}">${CAKE_SVG}<div class="when">${b.hdate.isSameDate(hd) ? 'היום!' : esc(renderHeb(b.hdate))}</div><div class="who">${esc(b.name)}</div>${flourish}<div class="by">${b.note ? esc(b.note) : 'עד מאה ועשרים'}</div></section>`).join('')}</div>`;
   },
 
   hilula(ctx) {
@@ -530,7 +544,7 @@ export function tickerItems(ctx) {
   const keys = ['sunrise', 'shmaGRA', 'sunset', 'tzeit'];
   for (const k of keys) items.push(`${ZMAN_LABEL[k]} <b>${fmtTime(day.zmanim[k], s.tz, ZMANIM.find((z) => z.key === k).round)}</b>`);
   if (day.shabbat.candles) items.push(`${day.shabbat.candlesLabel} <b>${fmtTime(day.shabbat.candles, s.tz, 'floor')}</b>`);
-  if (day.shabbat.parsha) items.push(day.shabbat.parshaIsChag ? esc(day.shabbat.parsha) : `פרשת ${esc(day.shabbat.parsha)}`);
+  // פרשת השבוע מוצגת תמיד בכותרת העליונה – לא חוזרים עליה בפס
   for (const c of day.changes.slice(0, 3)) items.push(esc(c));
   for (const l of lessonsToday) items.push(`${esc(l.title)} <b>${l.timeStr}</b>`);
   for (const a of (ctx.data.announcements || []).filter((a) => annActive(a, ctx.todayIso, ctx.day.hd)).slice(0, 3)) if (a.title) items.push(esc(a.title));

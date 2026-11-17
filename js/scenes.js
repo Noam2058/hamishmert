@@ -1,5 +1,6 @@
 // רקעים לכל שקופית ולכל חג – מצוירים בקוד (canvas), בלי קבצי תמונה.
 // הרכב: העניין הוויזואלי בשוליים ובפינות, והאמצע שקט יותר כי שם יושבים הכרטיסים.
+import { BUILD } from './build.js';
 import {
   W, H, rng, canvas, rrect, hsl, lin, rad, star, flame, grain, stone,
   kotel, jerusalem, heichal, papercut, candlestick, chanukiah, shofarApples, purimMasks, seder, torahScroll, PALETTES,
@@ -770,7 +771,7 @@ export function cachedScene(scene, theme = 'classic', opts = {}) { return cache.
 
 export const sceneDiag = { ok: 0, fail: 0, last: '', disk: 0 };
 // מטמון קבוע של רקעים מצוירים (Cache Storage) – אחרי רענון הרקע מופיע מיד, בלי לצייר מחדש. מתאפס כשיש גרסה חדשה
-let SCENE_VER = '';
+let SCENE_VER = BUILD; // מהעלייה הראשונה – כדי שגם הרקע של השקופית הראשונה יגיע מהמטמון
 export function setSceneVersion(v) { SCENE_VER = String(v || ''); }
 const diskKey = (k) => `./__scene/${encodeURIComponent(k)}?v=${SCENE_VER}`;
 async function diskGet(k) { if (!SCENE_VER || !self.caches) return null; try { const c = await caches.open('shulboard-scenes'); const r = await c.match(diskKey(k)); return r ? URL.createObjectURL(await r.blob()) : null; } catch { return null; } }

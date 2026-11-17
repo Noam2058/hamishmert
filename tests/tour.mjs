@@ -5,7 +5,7 @@ const BASE = 'https://noam2058.github.io/hamishmert/index.html';
 mkdirSync('out', { recursive: true });
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 const SCREENS = ['greeting', 'combined', 'prayers', 'zmanim', 'shabbat', 'holidays', 'molad', 'announcements', 'neshama', 'memorials', 'netz', 'omer', 'halacha', 'learning', 'lessons', 'mishna', 'birthdays'];
-const RUNS = [['real', '', '2026-11-17T08:20'], ['real', '', '2026-11-19T12:00'], ['real', '', '2026-11-28T10:00'], ['stress', 'demo&', '2026-11-17T08:20'], ['stress', 'demo&', '2026-12-07T18:00']];
+const RUNS = [['real', '', '2026-11-17T08:20'], ['real', '', '2026-11-19T12:00'], ['real', '', '2026-11-20T15:30'], ['real', '', '2026-11-21T19:00'], ['real', '', '2026-11-28T10:00'], ['real', '', '2026-12-05T18:00'], ['real', '', '2026-12-10T08:00'], ['real', '', '2026-12-20T08:00'], ['stress', 'demo&', '2026-11-17T08:20'], ['stress', 'demo&', '2026-12-07T18:00']];
 const log = [];
 const browser = await chromium.launch();
 const ctx = await browser.newContext({ viewport: { width: 1920, height: 1080 }, locale: 'he-IL', timezoneId: 'Asia/Jerusalem' });

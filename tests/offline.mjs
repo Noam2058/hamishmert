@@ -43,10 +43,13 @@ await page.addInitScript(() => {
 });
 await page.reload(); await sleep(9000);
 await state('4-offline-bad-clock');
-// 5. השעון עדיין שגוי אבל האינטרנט חזר – הלוח אמור לתקן לבד
+// 5. האינטרנט חוזר בלי רענון – ההתראה אמורה להיעלם תוך שניות
 await ctx.setOffline(false);
+await sleep(8000);
+await state('5-net-back-no-reload');
+// 6. השעון עדיין שגוי, טעינה עם אינטרנט
 await page.reload(); await sleep(10000);
-await state('5-online-bad-clock');
+await state('6-online-bad-clock');
 writeFileSync('out/log.txt', log.join('\n'));
 console.log(log.join('\n'));
 await browser.close();

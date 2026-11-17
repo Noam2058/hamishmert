@@ -42,6 +42,9 @@ function checkClock() {
       el.hidden = !bad;
       el.innerHTML = bad ? `<div><b>השעון של המכשיר לא מכוון</b><p>המכשיר מראה ${new Date(now).toLocaleDateString('he-IL')} ${new Date(now).toLocaleTimeString('he-IL', { hour: '2-digit', minute: '2-digit' })}, לפני הפעם האחרונה שהלוח פעל – לכן הזמנים בלוח לא נכונים.</p><p>חברו את המכשיר לאינטרנט (הלוח יתקן לבד), או כוונו תאריך ושעה בהגדרות המכשיר.</p></div>` : '';
     }
+    // כל עוד ההתראה מוצגת – בודקים שוב כל 5 שניות (סנכרון מהשרת או שהמכשיר תיקן את השעה בעצמו), כדי שתיעלם מיד כשהרשת חוזרת
+    clearInterval(checkClock.fast);
+    if (bad) checkClock.fast = setInterval(async () => { await syncClock(); if (checkClock()) advance(); }, 5000);
     return true;
   }
   return false;
@@ -417,6 +420,7 @@ async function start() {
     applyPerf();
     markSync(info?.source);
     advance();
+    if (clockBad) syncClock().then(() => { if (checkClock()) advance(); }); // הנתונים הגיעו מהרשת – זה הרגע לתקן את השעון
   });
   addEventListener('offline', () => { document.body.classList.add('offline'); renderSync(); });
   addEventListener('online', () => { document.body.classList.remove('offline'); renderSync(); });

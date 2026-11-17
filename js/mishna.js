@@ -56,11 +56,11 @@ async function fetchOne(r) {
 
 let last = 0;
 /** טוען מראש את המשניות של היום ושל 7 הימים הבאים (פעם בשעה לכל היותר) */
-export async function prefetchMishna(s, force = false) {
+export async function prefetchMishna(s, force = false, hd = null) {
   if (!force && Date.now() - last < 3600000) return false;
   last = Date.now();
   let got = false;
-  const today = computeDay(new Date(), s).hd;
+  const today = hd || computeDay(new Date(), s).hd; // hd מהלוח – לפי השעון המסונכרן
   for (let d = 0; d < 14; d++) {
     let refs; try { refs = mishnaYomiRefs(today.add(d)); } catch { continue; }
     for (const r of refs) {

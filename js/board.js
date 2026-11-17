@@ -323,7 +323,7 @@ function advance(step = 1) {
   clearTimeout(timer);
   buildCtx();
   if ((DATA.halachaSource || 'sa') === 'sa') prefetchHalachot(ctx.todayIso, DATA.halachaStart || DEFAULT_START).catch(() => {});
-  if (DATA.display.screens.some((x) => x.type === 'mishna' && x.enabled)) prefetchMishna(DATA.synagogue).catch(() => {});
+  if (DATA.display.screens.some((x) => x.type === 'mishna' && x.enabled)) prefetchMishna(DATA.synagogue, false, ctx.day.hd).catch(() => {});
   renderHeader();
   renderTicker();
   queue = buildQueue();
@@ -398,7 +398,7 @@ function renderSync() {
   el.textContent = off ? `אין חיבור${t ? ` · עודכן ${t}` : ''}` : t ? `עודכן ${t}` : '';
 }
 function markSync(source) {
-  if (source === 'server' || source === 'realtime' || source === 'local' || source === 'demo' || source === 'missing') lastSync = new Date();
+  if (source === 'server' || source === 'realtime' || source === 'local' || source === 'demo' || source === 'missing') lastSync = nowDate();
   document.body.classList.toggle('offline', source === 'cache' || !navigator.onLine);
   renderSync();
 }

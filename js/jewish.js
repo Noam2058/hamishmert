@@ -216,6 +216,8 @@ const realDescs = (holidays) => holidays.map((e) => e.getDesc())
   .filter((d) => !/^Erev |Chanukah: 1 Candle|Ta'anit Bechorot/.test(d));
 // אירועים "קטנים" ששמם דומה לחג אמיתי – לא משפיעים על עיצוב, סוג היום ושינויי התפילה
 const MINOR = /Katan|LaBehemot|Pesach Sheni|Leil Selichot|Chag HaBanot/;
+// אירועים שלא מציגים בכותרת הלוח: ימים ממלכתיים/אזרחיים ומנהגים שאינם של בית הכנסת
+const HIDE_EV = /Yom Kippur Katan|Chag HaBanot|LaBehemot|Leil Selichot|Hebrew Language|Family Day|Yom HaAliyah|Herzl|Jabotinsky|Ben-Gurion|Rabin|Sigd/;
 export const majorOnly = (holidays) => holidays.filter((e) => !MINOR.test(e.getDesc()));
 const PUBLIC_FAST = /Ta'anit Esther|Tzom Gedaliah|Tzom Tammuz|Asara B'Tevet|Tish'a B'Av|Yom Kippur(?! Katan)/;
 
@@ -404,7 +406,9 @@ export function computeDay(now, s) {
   // מצאת הכוכבים: העיצוב והברכה לפי היום העברי הבא (ליל חג, ליל חנוכה, מוצאי שבת/חג חוזרים לחול).
   // בשבת – רק אחרי ההבדלה, כדי שלא יוצג עיצוב חול לפני צאת השבת
   const tz8 = base.zmanim.tzeit;
-  const holyNow = (base.dow === 6 || base.tags.includes('yomtov')) && base.shabbat.havdalah && now < base.shabbat.havdalah; // שבת/חג עצמו לפני ההבדלה
+  // שבת/חג עצמו לפני ההבדלה. אבל אם מחר שוב שבת/חג (חג בשישי, ר״ה ב׳, שבת שאחריה חג) – בצאת הכוכבים כבר עוברים ליום הבא
+  const tomorrowHoly = base.dow === 5 || !!base.next?.tags?.includes('yomtov');
+  const holyNow = (base.dow === 6 || base.tags.includes('yomtov')) && !tomorrowHoly && base.shabbat.havdalah && now < base.shabbat.havdalah;
   const night = !!(tz8 && now >= tz8 && !holyNow);
   if (night) return { ...base, now, afterSunset, evening, night, season: base.next.season, holiday: base.next.holiday, nightTags: base.next.tags };
   return { ...base, now, afterSunset, evening, night };
@@ -485,7 +489,7 @@ function buildDay(civil, s) {
     hebDate: heFix(hd.renderGematriya(true)),
     gregDate: civil.toLocaleDateString('he-IL', { day: 'numeric', month: 'long', year: 'numeric' }),
     weekday: weekdayHe(dow),
-    events: holidays.filter((e) => !/Chag HaBanot/.test(e.getDesc())).map((e) => noNikud(e.render(HE))),
+    events: holidays.filter((e) => !HIDE_EV.test(e.getDesc())).map((e) => noNikud(e.render(HE))),
     // ערב חג אמיתי בלבד (לא "ערב" של יום זיכרון/אירוע קטן)
     erevChag: !(hol.some((e) => e.getFlags() & flags.CHAG)) ? (holT.find((e) => e.getFlags() & flags.CHAG) ? noNikud(holT.find((e) => e.getFlags() & flags.CHAG).render(HE)) : '') : '',
     eventsTomorrow: holidaysTomorrow.map((e) => noNikud(e.render(HE))),
@@ -505,7 +509,7 @@ function buildDay(civil, s) {
     learning: dailyLearning(hd, s.learning),
     next: {
       hd: hdNext, hebDate: heFix(hdNext.renderGematriya(true)),
-      events: holidaysTomorrow.filter((e) => !/Chag HaBanot/.test(e.getDesc())).map((e) => noNikud(e.render(HE))),
+      events: holidaysTomorrow.filter((e) => !HIDE_EV.test(e.getDesc())).map((e) => noNikud(e.render(HE))),
       // לעיצוב ולברכה בלילה (אחרי צאת הכוכבים היום העברי הבא כבר התחיל)
       tags: dayTags(hdNext, holT, dowNext, []),
       changes: tefilaChanges(hdNext, s, holT, true),

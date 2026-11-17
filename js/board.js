@@ -3,6 +3,7 @@ import { computeDay, fmtTime, tzParts, hhmmToMin, chanukaDay } from './jewish.js
 import { prayersForDay, weeklyPrayers, lessonsForDay } from './prayers.js';
 import { SCREENS, LIVE_SCREENS, tickerItems, nextPrayer } from './screens.js';
 import { load, subscribe } from './store.js';
+import { BUILD } from './build.js';
 import { sceneForSlide, renderScene, holidayHasDesign, sceneDiag, setSceneVersion } from './scenes.js';
 import { prefetchHalachot, DEFAULT_START } from './halacha-sa.js';
 import { prefetchMishna } from './mishna.js';
@@ -132,6 +133,7 @@ function applyPerf() {
 }
 
 function tickClock() {
+  if (clockBad && clockSynced && checkClock()) advance(); // השעון כבר סונכרן – ההתראה לא נשארת אפילו שנייה
   const now = nowDate();
   const p = tzParts(now, DATA.synagogue.tz);
   const hm = `${String(p.hh).padStart(2, '0')}:${String(p.mm).padStart(2, '0')}`;
@@ -403,8 +405,10 @@ function markSync(source) {
 
 async function start() {
   fit();
-  await Promise.race([syncClock(), new Promise((r) => setTimeout(r, 3000))]);
+  const firstSync = syncClock();
+  await Promise.race([firstSync, new Promise((r) => setTimeout(r, 3000))]);
   checkClock();
+  firstSync.then(() => { if (checkClock()) advance(); }); // הסנכרון הגיע באיחור (רשת איטית) – מסירים את ההתראה מיד
   const r = await load();
   DATA = r.data;
   applySlidePreview();
@@ -436,20 +440,28 @@ async function start() {
 async function watchVersion() {
   // תמיד מהרשת (הפרמטר clock עוקף את ה-Service Worker): בלי רשת – אין תשובה, ולא "גרסה ישנה מהמטמון" שגרמה לרענון מיותר
   const get = () => (navigator.onLine === false ? Promise.resolve(null) : fetch(`version.txt?clock=${Date.now()}`, { cache: 'no-store' }).then((r) => (r.ok ? r.text() : null)).then((t) => t?.trim() || null).catch(() => null));
-  let mine = await get();
-  if (mine) setSceneVersion(mine);
-  setInterval(async () => {
+  // משווים לגרסת הקוד שרץ בפועל (BUILD) – כך גם לוח שעלה מהמטמון ברשת איטית עם קוד ישן יתעדכן כשהרשת חוזרת
+  setSceneVersion(BUILD);
+  let pending = false;
+  const check = async () => {
+    if (pending) return;
     const v = await get();
-    if (!v) return;
-    if (!mine) { mine = v; return; } // עלה בלי אינטרנט – מתחילים לעקוב מהחיבור הראשון
-    if (v === mine) return;
-    mine = v;
+    if (!v || v === BUILD) return;
+    // הגנה מלולאה: לכל היותר רענון אחד לכל גרסה ברבע שעה
+    let last = {}; try { last = JSON.parse(localStorage.getItem('shulboard:verReload') || '{}'); } catch { /* */ }
+    if (last.v === v && Date.now() - last.t < 15 * 60000) return;
+    pending = true;
     // מחכים קצת – שכל הקבצים החדשים יגיעו לשרתי ההפצה – ואז מרעננים
     setTimeout(async () => {
+      if ((await get()) !== v) { pending = false; return; } // וידוא שני – רק אם הגרסה החדשה עדיין שם והרשת עובדת
+      try { localStorage.setItem('shulboard:verReload', JSON.stringify({ v, t: Date.now() })); } catch { /* */ }
       try { (await navigator.serviceWorker?.getRegistration())?.update(); } catch {}
       location.reload();
     }, 90 * 1000);
-  }, 5 * 60 * 1000);
+  };
+  setTimeout(check, 20000);
+  setInterval(check, 5 * 60 * 1000);
+  addEventListener('online', () => setTimeout(check, 15000));
 }
 
 async function keepAwake() {

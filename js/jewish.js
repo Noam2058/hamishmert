@@ -215,7 +215,7 @@ export function chanukaDay(hd) {
 const realDescs = (holidays) => holidays.map((e) => e.getDesc())
   .filter((d) => !/^Erev |Chanukah: 1 Candle|Ta'anit Bechorot/.test(d));
 // אירועים "קטנים" ששמם דומה לחג אמיתי – לא משפיעים על עיצוב, סוג היום ושינויי התפילה
-const MINOR = /Katan|LaBehemot|Pesach Sheni|Leil Selichot/;
+const MINOR = /Katan|LaBehemot|Pesach Sheni|Leil Selichot|Chag HaBanot/;
 export const majorOnly = (holidays) => holidays.filter((e) => !MINOR.test(e.getDesc()));
 const PUBLIC_FAST = /Ta'anit Esther|Tzom Gedaliah|Tzom Tammuz|Asara B'Tevet|Tish'a B'Av|Yom Kippur(?! Katan)/;
 
@@ -485,7 +485,7 @@ function buildDay(civil, s) {
     hebDate: heFix(hd.renderGematriya(true)),
     gregDate: civil.toLocaleDateString('he-IL', { day: 'numeric', month: 'long', year: 'numeric' }),
     weekday: weekdayHe(dow),
-    events: holidays.map((e) => noNikud(e.render(HE))),
+    events: holidays.filter((e) => !/Chag HaBanot/.test(e.getDesc())).map((e) => noNikud(e.render(HE))),
     // ערב חג אמיתי בלבד (לא "ערב" של יום זיכרון/אירוע קטן)
     erevChag: !(hol.some((e) => e.getFlags() & flags.CHAG)) ? (holT.find((e) => e.getFlags() & flags.CHAG) ? noNikud(holT.find((e) => e.getFlags() & flags.CHAG).render(HE)) : '') : '',
     eventsTomorrow: holidaysTomorrow.map((e) => noNikud(e.render(HE))),
@@ -505,7 +505,7 @@ function buildDay(civil, s) {
     learning: dailyLearning(hd, s.learning),
     next: {
       hd: hdNext, hebDate: heFix(hdNext.renderGematriya(true)),
-      events: holidaysTomorrow.map((e) => noNikud(e.render(HE))),
+      events: holidaysTomorrow.filter((e) => !/Chag HaBanot/.test(e.getDesc())).map((e) => noNikud(e.render(HE))),
       // לעיצוב ולברכה בלילה (אחרי צאת הכוכבים היום העברי הבא כבר התחיל)
       tags: dayTags(hdNext, holT, dowNext, []),
       changes: tefilaChanges(hdNext, s, holT, true),

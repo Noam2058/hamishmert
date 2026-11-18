@@ -5,7 +5,15 @@ const BASE = 'https://noam2058.github.io/hamishmert/index.html';
 mkdirSync('out', { recursive: true });
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 const SCREENS = ['greeting', 'combined', 'prayers', 'zmanim', 'shabbat', 'holidays', 'molad', 'announcements', 'neshama', 'memorials', 'netz', 'omer', 'halacha', 'learning', 'lessons', 'mishna', 'birthdays'];
-const RUNS = [['real', '', '2026-11-17T08:20'], ['real', '', '2026-11-19T12:00'], ['real', '', '2026-11-20T15:30'], ['real', '', '2026-11-21T19:00'], ['real', '', '2026-11-28T10:00'], ['real', '', '2026-12-05T18:00'], ['real', '', '2026-12-10T08:00'], ['real', '', '2026-12-20T08:00'], ['stress', 'demo&', '2026-11-17T08:20'], ['stress', 'demo&', '2026-12-07T18:00']];
+// תאריכים: השבוע הקרוב (חמישי בערב עד ראשון) + כל חג/צום/ר״ח בחודשיים הקרובים נבדקים בסריקת השנה
+const il = (d) => new Date(d.toLocaleString('en-US', { timeZone: 'Asia/Jerusalem' }));
+const ymd = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+const today = il(new Date()); const plus = (n) => { const d = new Date(today); d.setDate(d.getDate() + n); return d; };
+const toDow = (dow) => (dow - today.getDay() + 7) % 7; // הימים עד יום בשבוע
+const fri = plus(toDow(5)), sat = plus(toDow(5) + 1), sun = plus(toDow(5) + 2);
+const RUNS = process.env.TOUR_DATES
+  ? process.env.TOUR_DATES.split(',').map((d) => ['real', '', d.trim()])
+  : [['real', '', `${ymd(today)}T08:20`], ['real', '', `${ymd(today)}T20:30`], ['real', '', `${ymd(fri)}T15:30`], ['real', '', `${ymd(fri)}T19:00`], ['real', '', `${ymd(sat)}T10:00`], ['real', '', `${ymd(sat)}T19:00`], ['real', '', `${ymd(sun)}T08:00`], ['stress', 'demo&', `${ymd(today)}T08:20`], ['stress', 'demo&', `${ymd(fri)}T18:00`]];
 const log = [];
 const browser = await chromium.launch();
 const ctx = await browser.newContext({ viewport: { width: 1920, height: 1080 }, locale: 'he-IL', timezoneId: 'Asia/Jerusalem' });

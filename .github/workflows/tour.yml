@@ -1,5 +1,8 @@
 name: tour
-on: workflow_dispatch
+on:
+  workflow_dispatch:
+    inputs:
+      dates: { description: "תאריכים מופרדים בפסיק (YYYY-MM-DDTHH:MM)", required: false, default: "" }
 permissions:
   contents: write
 jobs:
@@ -11,6 +14,8 @@ jobs:
         with: { node-version: 20 }
       - run: npm i playwright@1.47.2 && npx playwright install --with-deps chromium
       - run: node tests/tour.mjs
+        env:
+          TOUR_DATES: ${{ inputs.dates }}
       - name: push results to test-results branch
         if: always()
         run: |

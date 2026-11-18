@@ -11,7 +11,8 @@ const lines = await page.evaluate(async () => {
   const { demoData, normalize } = await import('./js/defaults.js');
   const s = normalize(demoData()).synagogue;
   const out = [];
-  for (let t = new Date('2026-11-18T08:00:00+02:00'); t < new Date('2027-12-31T00:00:00+02:00'); t = new Date(t.getTime() + 86400000)) {
+  const t0 = new Date(); t0.setUTCHours(6, 0, 0, 0); // 08:00 שעון ישראל בחורף
+  for (let t = t0; t < new Date(t0.getTime() + 400 * 86400000); t = new Date(t.getTime() + 86400000)) {
     for (const hh of [8, 20]) {
       const now = new Date(t.getTime() + (hh - 8) * 3600000);
       const d = computeDay(now, s);

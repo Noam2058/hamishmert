@@ -1,0 +1,3 @@
+saved raw: greeting, combined(off), prayers, zmanim, molad, shabbat, holidays, announcements, lessons, learning, halacha, mishna, images, netz, omer, birthdays(off), memorials(off), neshama
+enabled (normalized): greeting, prayers, zmanim, molad, shabbat, holidays, announcements, lessons, learning, halacha, mishna, images, netz, omer, neshama
+shown: prayers:0 → zmanim:0 → shabbat:0 → announcements:0 → lessons:0 → learning:0 → halacha:0 → mishna:0 → mishna:1 → images:s846oxpj → neshama:0 → greeting:0 → prayers:0 → zmanim:0 → shabbat:0 → announcements:0 → lessons:0 → learning:0 → halacha:0 → mishna:0 → mishna:1 → images:s846oxpj → neshama:0 → greeting:0

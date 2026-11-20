@@ -104,10 +104,13 @@ export function prayersForDay(day, data, s, civil = day.civil, tags = day.tags, 
 // fridayMorning: האם להוסיף לערב שבת את תפילות הבוקר של החול (בלוח ובדף המתפללים לא – הן כבר מופיעות בימות החול; בדף ההדפסה כן)
 export function weeklyPrayers(day, data, s, fridayMorning = false) {
   const civil = day.civil;
-  const sunday = addDays(civil, -civil.getDay());
+  // במוצאי שבת הלוח כבר מציג את השבוע הבא
+  const motzash = civil.getDay() === 6 && day.night;
+  const sunday = addDays(civil, -civil.getDay() + (motzash ? 7 : 0));
   const friday = addDays(sunday, 5);
   const saturday = addDays(sunday, 6);
-  const weekdayCivil = civil.getDay() <= 4 ? civil : sunday;
+  // ימות החול: היום (א׳–ה׳), ובשישי/שבת – יום ראשון הקרוב (ולא ראשון שעבר, שזמני הנץ שלו כבר לא רלוונטיים)
+  const weekdayCivil = civil.getDay() <= 4 ? civil : addDays(civil, 7 - civil.getDay());
   return {
     weekday: prayersForDay(day, data, s, weekdayCivil, ['weekday']),
     friday: prayersForDay(day, data, s, friday, ['friday'], fridayMorning),

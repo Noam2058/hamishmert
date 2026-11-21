@@ -245,7 +245,6 @@ function shabbatGreetV2(ctx, gr) {
     ${SG_ARCH}
     <div class="sg-side r">${SG_CANDLE}</div><div class="sg-side l">${SG_CANDLE}</div>
     <div class="sg-mid">
-      ${SG_CROWN}
       <div class="sg-k">לכבוד שבת קודש</div>
       <div class="sg-t">${esc(gr.title)}</div>
       ${SG_VINE}

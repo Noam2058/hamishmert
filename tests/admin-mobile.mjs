@@ -11,5 +11,8 @@ await page.screenshot({ path: 'out/admin-home.png' });
 const b = page.locator('.nav button', { hasText: 'תפילות' }).first();
 if (await b.count()) { await b.click(); await page.waitForTimeout(1500); }
 await page.screenshot({ path: 'out/admin-prayers.png' });
-writeFileSync('out/log.txt', 'errors: ' + errs.join(' | ') + '\nlinks: ' + (await page.locator('a[href^="print.html"]').count()));
+await page.goto('https://noam2058.github.io/hamishmert/print.html?demo'); await page.waitForTimeout(5000);
+await page.screenshot({ path: 'out/print-phone.png' });
+const sw = await page.evaluate(() => [document.documentElement.scrollWidth, document.documentElement.clientWidth, document.getElementById('fitinfo')?.textContent]);
+writeFileSync('out/log.txt', 'errors: ' + errs.join(' | ') + '\nprint scroll/client: ' + sw.join(' / ') + '\nlinks: ' + (await page.locator('a[href^="print.html"]').count()));
 await browser.close();

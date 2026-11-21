@@ -16,10 +16,13 @@ const PRINT_Z = ['alot', 'sunrise', 'shmaGRA', 'tfillaGRA', 'chatzot', 'minchaGe
 function render() {
   const s = DATA.synagogue;
   const now = new Date();
-  const today = computeDay(now, s).civil;
+  const cdNow = computeDay(now, s);
+  const today = cdNow.civil;
+  // במוצאי שבת "השבוע" כבר השבוע הבא (השבת שהסתיימה לא רלוונטית)
+  const shift = today.getDay() === 6 && cdNow.night ? 1 : 0;
   // יום ראשון של השבוע המבוקש
-  const sunday = new Date(today.getFullYear(), today.getMonth(), today.getDate() - today.getDay() + week * 7, 12);
-  const base = week ? sunday : new Date(Math.max(now, sunday));
+  const sunday = new Date(today.getFullYear(), today.getMonth(), today.getDate() - today.getDay() + (week + shift) * 7, 12);
+  const base = week || shift ? sunday : new Date(Math.max(now, sunday));
   const day = computeDay(base, s);
   const sh = day.shabbat;
   const weekly = weeklyPrayers(day, DATA, s, true);
@@ -103,6 +106,7 @@ function render() {
 /** דף אחד: אם התוכן גבוה מעמוד A4 – מקטינים את כולו כדי שייכנס */
 function fitPage() {
   const sheet = $('#sheet');
+  if ($('#sheetwrap')) $('#sheetwrap').style.zoom = '1'; // מודדים בגודל אמיתי
   const mm = 96 / 25.4;
   // הדף ממלא עמוד A4 שלם (297 מ"מ) – עם מרווח ביטחון קטן. מגדילים או מקטינים את התוכן כך שימלא את העמוד:
   // פורסים ברוחב 210/z ומגדילים פי z – הרוחב הסופי תמיד 210 מ"מ, והגובה מגיע בדיוק לגובה העמוד
@@ -114,7 +118,18 @@ function fitPage() {
   const z = Math.floor(lo * 1000) / 1000;
   at(z);
   $('#fitinfo').textContent = `מותאם לעמוד A4 אחד (${Math.round(z * 100)}%)`;
+  fitScreen();
 }
+/** בתצוגה במסך צר (טלפון) – מקטינים את כל הדף לרוחב המסך, בלי גלילה הצידה */
+function fitScreen() {
+  const wrap = $('#sheetwrap'); if (!wrap) return;
+  wrap.style.zoom = '1';
+  const w = wrap.getBoundingClientRect().width;
+  const avail = document.documentElement.clientWidth - 12;
+  wrap.style.zoom = w > avail ? String(Math.floor((avail / w) * 1000) / 1000) : '1';
+}
+addEventListener('resize', () => { if (DATA) fitScreen(); });
+addEventListener('afterprint', () => { if (DATA) fitScreen(); });
 addEventListener('beforeprint', fitPage);
 document.fonts?.ready.then(() => { if (DATA) fitPage(); });
 

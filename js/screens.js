@@ -304,7 +304,7 @@ export const SCREENS = {
     let img = '';
     // ספר התורה במסך הכניסה – תמונה אמיתית (img/torah.webp); בחגים – האיורים המצוירים
     if (gr.kind === 'torah') return welcomeHtml(ctx, gr);
-    { const gv = GREET_V || ctx.display.shabbatGreet; if (gr.kind === 'shabbat' && /^v[2-5]$/.test(gv || '')) return shabbatGreetV2(ctx, gr, gv); } // ימים רגילים: מסך כניסה בלי איור – מסגרת מעוטרת ומידע להיום
+    { const gv = GREET_V || ctx.display.shabbatGreet || 'v2'; if (gr.kind === 'shabbat' && /^v[2-5]$/.test(gv || '')) return shabbatGreetV2(ctx, gr, gv); } // ימים רגילים: מסך כניסה בלי איור – מסגרת מעוטרת ומידע להיום
     try { img = greetingArt(gr.kind, { lit: gr.lit }); } catch { /* */ }
     return `<div class="greet">
       ${img ? `<img class="art" src="${img}" alt="">` : ''}

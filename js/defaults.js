@@ -56,6 +56,7 @@ export function demoData() {
       bgImage: '',
       scene: 'auto',
       holidayDesign: true,
+      shabbatGreet: 'v2', // מסך הכניסה בשבת: v2 שער בורדו · v3 אבן ירושלמית · classic העיצוב הקודם
       performance: 'auto',
       defaultSeconds: 14,
       screens: [

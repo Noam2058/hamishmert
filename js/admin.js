@@ -889,6 +889,7 @@ function renderDisplay() {
     <section class="card"><h2>${icon('display')}עיצוב</h2><div class="form-grid">
       <label class="fld"><span>ערכת צבעים</span>${sel('theme', THEMES, d.theme)}<small class="muted"><a href="themes-preview.html${esc(location.search)}" target="_blank" rel="noopener">לראות את כל הערכות ↗</a> · <a href="holidays-preview.html${esc(location.search)}" target="_blank" rel="noopener">הלוח בחגים ↗</a></small></label>
       <label class="fld"><span>רקעים</span>${sel('scene', SCENE_CHOICES, d.scene || 'auto')}</label>
+      <label class="fld"><span>מסך הכניסה בשבת</span>${sel('shabbatGreet', [['v2', 'שער בורדו עם פמוטי זהב'], ['v3', 'קשת אבן ירושלמית'], ['classic', 'העיצוב הקודם (נרות וגביע)']], d.shabbatGreet || 'v2')}</label>
       <label class="fld check"><input data-d="holidayDesign" type="checkbox" ${d.holidayDesign !== false ? 'checked' : ''}><span>עיצוב מיוחד בחגים</span></label>
       <label class="fld full"><span>תמונת רקע משלך (כתובת, לא חובה)</span><input data-d="bgImage" value="${esc(d.bgImage)}" placeholder="https://…" dir="ltr"></label>
     </div><p class="note">ב"אוטומטי" כל שקופית מקבלת רקע משלה, ובחגים הלוח עובר לעיצוב ולצבעים של החג. <a href="gallery.html" target="_blank" rel="noopener">לגלריית הרקעים</a></p></section>

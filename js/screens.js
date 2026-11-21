@@ -190,13 +190,82 @@ function welcomeHtml(ctx, gr) {
   </div>`;
 }
 
+
+/* ---------- מסך כניסה חגיגי לשבת (גרסה 2 – בתצוגה מקדימה: ?greet=v2) ---------- */
+const GOLD_DEFS = `<defs>
+  <linearGradient id="sg-gold" x1="0" x2="1"><stop offset="0" stop-color="#8a6420"/><stop offset=".22" stop-color="#e9cd84"/><stop offset=".5" stop-color="#fff1c2"/><stop offset=".78" stop-color="#d9b25c"/><stop offset="1" stop-color="#7d5a1c"/></linearGradient>
+  <linearGradient id="sg-goldv" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff1c2"/><stop offset=".5" stop-color="#d9b25c"/><stop offset="1" stop-color="#8a6420"/></linearGradient>
+  <linearGradient id="sg-wax" x1="0" x2="1"><stop offset="0" stop-color="#e9e2d2"/><stop offset=".45" stop-color="#fffdf6"/><stop offset="1" stop-color="#d8cfbb"/></linearGradient>
+  <radialGradient id="sg-halo"><stop offset="0" stop-color="#fff3c4" stop-opacity=".95"/><stop offset=".35" stop-color="#ffc861" stop-opacity=".45"/><stop offset="1" stop-color="#ff9a2a" stop-opacity="0"/></radialGradient>
+  <radialGradient id="sg-flame" cx=".5" cy=".7" r=".6"><stop offset="0" stop-color="#ffffff"/><stop offset=".35" stop-color="#fff2b0"/><stop offset=".7" stop-color="#ffb43c"/><stop offset="1" stop-color="#ff7a00" stop-opacity="0"/></radialGradient>
+</defs>`;
+const SG_CANDLE = `<svg class="sg-candle" viewBox="0 0 160 600" aria-hidden="true">${GOLD_DEFS}
+  <circle class="sg-halo" cx="80" cy="70" r="78" fill="url(#sg-halo)"/>
+  <g class="sg-fl"><path d="M80 28c14 20 18 34 10 48-4 7-16 8-20 0-8-14-4-28 10-48z" fill="url(#sg-flame)"/><path d="M80 50c5 9 6 15 2 21-1 3-5 3-6 0-2-6-1-12 4-21z" fill="#fff" opacity=".9"/></g>
+  <line x1="80" y1="82" x2="80" y2="92" stroke="#3a2a12" stroke-width="2.5"/>
+  <rect x="64" y="90" width="32" height="200" rx="6" fill="url(#sg-wax)"/><path d="M66 96c4 10 2 22 5 30" stroke="#fff" stroke-width="3" opacity=".7" fill="none"/>
+  <path d="M44 290h72l-8 16H52z" fill="url(#sg-gold)"/><ellipse cx="80" cy="290" rx="40" ry="7" fill="url(#sg-gold)"/>
+  <path d="M60 306h40l-6 24H66z" fill="url(#sg-gold)"/><circle cx="80" cy="346" r="17" fill="url(#sg-gold)"/>
+  <path d="M70 362h20l4 90H66z" fill="url(#sg-gold)"/><circle cx="80" cy="410" r="11" fill="url(#sg-gold)"/>
+  <ellipse cx="80" cy="458" rx="22" ry="8" fill="url(#sg-gold)"/>
+  <path d="M62 462h36l26 92H36z" fill="url(#sg-gold)"/><path d="M80 474l26 74" stroke="#fff4cc" stroke-width="2" opacity=".5"/>
+  <ellipse cx="80" cy="560" rx="62" ry="15" fill="url(#sg-gold)"/><ellipse cx="80" cy="556" rx="50" ry="8" fill="#fff1c2" opacity=".35"/>
+</svg>`;
+const SG_ARCH = `<svg class="sg-arch" viewBox="0 0 1400 820" preserveAspectRatio="none" aria-hidden="true">${GOLD_DEFS}
+  <defs><radialGradient id="sg-velvet" cx=".5" cy=".42" r=".7"><stop offset="0" stop-color="#5a1430" stop-opacity=".92"/><stop offset=".65" stop-color="#2c0918" stop-opacity=".9"/><stop offset="1" stop-color="#14040b" stop-opacity=".85"/></radialGradient>
+  <pattern id="sg-dam" width="56" height="56" patternUnits="userSpaceOnUse"><path d="M28 6l5 9h10l-5 9 5 9H33l-5 9-5-9H13l5-9-5-9h10z" fill="none" stroke="#f3d892" stroke-opacity=".07" stroke-width="1.2"/></pattern></defs>
+  <path d="M40 820V330C40 150 330 40 700 40s660 110 660 290v490z" fill="url(#sg-velvet)"/>
+  <path d="M40 820V330C40 150 330 40 700 40s660 110 660 290v490z" fill="url(#sg-dam)"/>
+  <path d="M40 820V330C40 150 330 40 700 40s660 110 660 290v490" fill="none" stroke="url(#sg-gold)" stroke-width="9"/>
+  <path d="M66 820V334C66 172 346 66 700 66s634 106 634 268v486" fill="none" stroke="url(#sg-gold)" stroke-width="2.5" stroke-dasharray="1 9" stroke-linecap="round"/>
+  <path d="M84 820V338C84 186 356 84 700 84s616 102 616 254v482" fill="none" stroke="url(#sg-gold)" stroke-width="3"/>
+</svg>`;
+const SG_CROWN = `<svg class="sg-crown" viewBox="0 0 220 120" aria-hidden="true">${GOLD_DEFS}
+  <path d="M30 96 18 34l46 34 46-56 46 56 46-34-12 62z" fill="url(#sg-gold)" stroke="#6e4f17" stroke-width="2"/>
+  <rect x="26" y="96" width="168" height="16" rx="6" fill="url(#sg-gold)" stroke="#6e4f17" stroke-width="2"/>
+  <circle cx="18" cy="30" r="8" fill="url(#sg-gold)"/><circle cx="110" cy="10" r="9" fill="url(#sg-gold)"/><circle cx="202" cy="30" r="8" fill="url(#sg-gold)"/>
+  <circle cx="110" cy="64" r="9" fill="#9b1d3d"/><circle cx="66" cy="78" r="6" fill="#1f4f8a"/><circle cx="154" cy="78" r="6" fill="#1f4f8a"/>
+  <g fill="#fff6d6"><circle cx="60" cy="104" r="3"/><circle cx="90" cy="104" r="3"/><circle cx="130" cy="104" r="3"/><circle cx="160" cy="104" r="3"/></g>
+</svg>`;
+const SG_VINE = `<svg class="sg-vine" viewBox="0 0 520 40" aria-hidden="true">${GOLD_DEFS}
+  <path d="M10 20h190M320 20h190" stroke="url(#sg-gold)" stroke-width="2.5"/>
+  <path d="M200 20c20-18 40-18 60 0s40 18 60 0" fill="none" stroke="url(#sg-gold)" stroke-width="3"/>
+  <path d="M260 4l9 16-9 16-9-16z" fill="url(#sg-gold)"/><circle cx="215" cy="20" r="4" fill="url(#sg-gold)"/><circle cx="305" cy="20" r="4" fill="url(#sg-gold)"/>
+  <circle cx="10" cy="20" r="5" fill="url(#sg-gold)"/><circle cx="510" cy="20" r="5" fill="url(#sg-gold)"/>
+</svg>`;
+function shabbatGreetV2(ctx, gr) {
+  const { day, s } = ctx;
+  const sh = day.shabbat;
+  const isShabbatNow = day.dow === 6 || (day.dow === 5 && day.afterSunset);
+  const times = [];
+  if (sh.candles && !isShabbatNow) times.push(['הדלקת נרות', fmtTime(sh.candles, s.tz, 'floor')]);
+  if (sh.havdalah) times.push(['צאת השבת', fmtTime(sh.havdalah, s.tz, 'ceil')]);
+  const chips = [...(sh.specialShabbat || []), ...(sh.mevarchim || [])];
+  return `<div class="sg2">
+    ${SG_ARCH}
+    <div class="sg-side r">${SG_CANDLE}</div><div class="sg-side l">${SG_CANDLE}</div>
+    <div class="sg-mid">
+      ${SG_CROWN}
+      <div class="sg-k">לכבוד שבת קודש</div>
+      <div class="sg-t">${esc(gr.title)}</div>
+      ${SG_VINE}
+      <div class="sg-ribbon"><span>${esc(gr.sub || '')}</span></div>
+      ${chips.length ? `<div class="sg-chips">${chips.map((c) => `<span>${esc(c)}</span>`).join('')}</div>` : ''}
+      ${times.length ? `<div class="sg-times">${times.map(([k, v]) => `<div><span>${k}</span><b>${v}</b></div>`).join('<i></i>')}</div>` : ''}
+      ${s.name ? `<div class="sg-n">${esc(s.name)}</div>` : ''}
+    </div>
+  </div>`;
+}
+const GREET_V = (() => { try { return new URLSearchParams(location.search).get('greet'); } catch { return null; } })();
+
 export const SCREENS = {
   greeting(ctx) {
     const gr = greetingFor(ctx);
     if (!gr) return null;
     let img = '';
     // ספר התורה במסך הכניסה – תמונה אמיתית (img/torah.webp); בחגים – האיורים המצוירים
-    if (gr.kind === 'torah') return welcomeHtml(ctx, gr); // ימים רגילים: מסך כניסה בלי איור – מסגרת מעוטרת ומידע להיום
+    if (gr.kind === 'torah') return welcomeHtml(ctx, gr);
+    if (gr.kind === 'shabbat' && (GREET_V === 'v2' || ctx.display.shabbatGreet === 'v2')) return shabbatGreetV2(ctx, gr); // ימים רגילים: מסך כניסה בלי איור – מסגרת מעוטרת ומידע להיום
     try { img = greetingArt(gr.kind, { lit: gr.lit }); } catch { /* */ }
     return `<div class="greet">
       ${img ? `<img class="art" src="${img}" alt="">` : ''}

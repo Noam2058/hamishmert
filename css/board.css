@@ -662,6 +662,9 @@ footer.ticker { isolation: isolate; transform: translateZ(0); }
 .sg2 .sg-times b { font: 800 60px var(--display); color: #fff; letter-spacing: .02em; }
 .sg2 .sg-times i { width: 10px; height: 10px; background: #e2bd65; transform: rotate(45deg); }
 .sg2 .sg-n { font: 600 30px var(--body); color: rgba(255,240,210,.8); margin-top: 4px; }
+.sg2.has-chips .sg-mid { gap: 9px; padding-top: 26px; } .sg2.has-chips .sg-t { font-size: 136px; } .sg2.has-chips .sg-crown { width: 124px; } .sg2.has-chips .sg-times { margin-top: 4px; padding: 8px 40px; } .sg2.has-chips .sg-times b { font-size: 54px; }
+.sg2::after { content: ""; position: absolute; left: -64px; right: -64px; bottom: -26px; height: 70px; background: linear-gradient(transparent, rgba(8,6,20,.85)); pointer-events: none; }
+.sg2 .sg-side { z-index: 2; }
 .lite .sg2 .sg-fl, .lite .sg2 .sg-halo { animation: none; }
 .lite .sg2 .sg-arch, .lite .sg2 .sg-candle { filter: none; }
 .lite .sg2 .sg-t { filter: drop-shadow(0 4px 0 rgba(60,30,0,.45)); }

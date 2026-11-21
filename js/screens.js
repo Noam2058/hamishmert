@@ -228,7 +228,7 @@ const SG_CROWN = `<svg class="sg-crown" viewBox="0 0 220 120" aria-hidden="true"
   <g fill="#fff6d6"><circle cx="60" cy="104" r="3"/><circle cx="90" cy="104" r="3"/><circle cx="130" cy="104" r="3"/><circle cx="160" cy="104" r="3"/></g>
 </svg>`;
 const SG_VINE = `<svg class="sg-vine" viewBox="0 0 520 40" aria-hidden="true">${GOLD_DEFS}
-  <path d="M10 20h190M320 20h190" stroke="url(#sg-gold)" stroke-width="2.5"/>
+  <path d="M10 20h190M320 20h190" stroke="#e2bd65" stroke-width="2.5"/>
   <path d="M200 20c20-18 40-18 60 0s40 18 60 0" fill="none" stroke="url(#sg-gold)" stroke-width="3"/>
   <path d="M260 4l9 16-9 16-9-16z" fill="url(#sg-gold)"/><circle cx="215" cy="20" r="4" fill="url(#sg-gold)"/><circle cx="305" cy="20" r="4" fill="url(#sg-gold)"/>
   <circle cx="10" cy="20" r="5" fill="url(#sg-gold)"/><circle cx="510" cy="20" r="5" fill="url(#sg-gold)"/>
@@ -241,7 +241,7 @@ function shabbatGreetV2(ctx, gr) {
   if (sh.candles && !isShabbatNow) times.push(['הדלקת נרות', fmtTime(sh.candles, s.tz, 'floor')]);
   if (sh.havdalah) times.push(['צאת השבת', fmtTime(sh.havdalah, s.tz, 'ceil')]);
   const chips = [...(sh.specialShabbat || []), ...(sh.mevarchim || [])];
-  return `<div class="sg2">
+  return `<div class="sg2${chips.length ? ' has-chips' : ''}">
     ${SG_ARCH}
     <div class="sg-side r">${SG_CANDLE}</div><div class="sg-side l">${SG_CANDLE}</div>
     <div class="sg-mid">

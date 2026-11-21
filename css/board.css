@@ -694,4 +694,6 @@ footer.ticker { isolation: isolate; transform: translateZ(0); }
 .sg-medal span { font: 700 30px var(--body); color: #f1dca4; }
 .sg-medal b { font: 800 78px/1 var(--display); color: #fff; }
 .sg-medal small { font: 600 24px var(--body); color: rgba(241,220,164,.75); }
+.sg-medal.txt b { font-size: 60px; }
+.sg-v5 .sg-mid::before { inset: 0 -8%; background: radial-gradient(closest-side, rgba(10,14,36,.88), rgba(10,14,36,.55) 70%, transparent); }
 .lite .sg-medal { filter: none; }

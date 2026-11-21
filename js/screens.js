@@ -258,9 +258,9 @@ const SG_SCROLL = `<svg class="sg-arch scroll" viewBox="0 0 1400 820" preserveAs
   <g fill="url(#sg-gold)"><circle cx="44" cy="44" r="30"/><circle cx="1356" cy="44" r="30"/><circle cx="44" cy="788" r="30"/><circle cx="1356" cy="788" r="30"/></g>
 </svg>`;
 const SG_STAR = `<svg class="sg-star" viewBox="0 0 600 600" aria-hidden="true">${GOLD_DEFS}
-  <g fill="none" stroke="url(#sg-gold)" stroke-width="5" opacity=".38"><path d="M300 30 534 435H66z"/><path d="M300 570 66 165h468z"/><circle cx="300" cy="300" r="282" stroke-width="3"/><circle cx="300" cy="300" r="268" stroke-width="1.5" stroke-dasharray="2 10"/></g>
+  <g fill="none" stroke="url(#sg-gold)" stroke-width="4" opacity=".2"><path d="M300 30 534 435H66z"/><path d="M300 570 66 165h468z"/><circle cx="300" cy="300" r="282" stroke-width="3"/><circle cx="300" cy="300" r="268" stroke-width="1.5" stroke-dasharray="2 10"/></g>
 </svg>`;
-const medal = (k, v, sub) => `<div class="sg-medal"><svg viewBox="0 0 300 300" aria-hidden="true">${GOLD_DEFS}<circle cx="150" cy="150" r="140" fill="url(#sg-gold)"/><circle cx="150" cy="150" r="126" fill="#0f1a3d"/><circle cx="150" cy="150" r="116" fill="none" stroke="url(#sg-gold)" stroke-width="2" stroke-dasharray="2 7" stroke-linecap="round"/></svg>
+const medal = (k, v, sub) => `<div class="sg-medal${/\d/.test(v) ? '' : ' txt'}"><svg viewBox="0 0 300 300" aria-hidden="true">${GOLD_DEFS}<circle cx="150" cy="150" r="140" fill="url(#sg-gold)"/><circle cx="150" cy="150" r="126" fill="#0f1a3d"/><circle cx="150" cy="150" r="116" fill="none" stroke="url(#sg-gold)" stroke-width="2" stroke-dasharray="2 7" stroke-linecap="round"/></svg>
   <div class="sg-mt"><span>${esc(k)}</span><b>${esc(v)}</b>${sub ? `<small>${esc(sub)}</small>` : ''}</div></div>`;
 /** וריאציות: v2 שער בורדו · v3 אבן ירושלמית · v4 מגילה · v5 מדליונים */
 function shabbatGreetV2(ctx, gr, v = 'v2') {

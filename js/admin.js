@@ -38,6 +38,7 @@ const I = {
   slides: '<rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="10" r="2"/><path d="M21 16l-5-5-9 9"/>',
   calendar: '<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/>',
   print: '<path d="M6 9V3h12v6"/><rect x="3" y="9" width="18" height="8" rx="2"/><path d="M6 14h12v7H6z"/>',
+  mobile: '<rect x="7" y="2.5" width="10" height="19" rx="2"/><path d="M11 18h2"/>',
   upload: '<path d="M12 16V4M7 9l5-5 5 5"/><path d="M4 16v4h16v-4"/>',
   grip: '<circle cx="9" cy="6" r="1.3"/><circle cx="15" cy="6" r="1.3"/><circle cx="9" cy="12" r="1.3"/><circle cx="15" cy="12" r="1.3"/><circle cx="9" cy="18" r="1.3"/><circle cx="15" cy="18" r="1.3"/>',
   plus: '<path d="M12 5v14M5 12h14"/>',
@@ -598,7 +599,7 @@ function renderList(key, opts = null) {
   } else listHtml = visible.map(itemHtml).join('');
 
   $('#panel').innerHTML = `
-    ${head(def.label, esc(def.help), def.noAdd ? '' : `<button class="btn primary" data-add>${icon('plus')}הוסף ${def.single}</button>`)}
+    ${head(def.label, esc(def.help), (def.noAdd ? '' : `<button class="btn primary" data-add>${icon('plus')}הוסף ${def.single}</button>`) + (key === 'prayers' ? `<a class="btn" href="print.html${location.search}" target="_blank" rel="noopener">${icon('print')}דף שעות למתפללים</a><a class="btn" href="m.html${location.search}" target="_blank" rel="noopener">${icon('mobile')}דף לטלפון</a>` : ''))}
     ${def.head ? def.head() : ''}
     ${def.search && arr.length > 5 ? `<label class="search">${icon('search')}<input id="flt" type="search" placeholder="חיפוש…" value="${esc(f)}"></label>` : ''}
     <div class="list">${listHtml}</div>`;

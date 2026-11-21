@@ -233,7 +233,37 @@ const SG_VINE = `<svg class="sg-vine" viewBox="0 0 520 40" aria-hidden="true">${
   <path d="M260 4l9 16-9 16-9-16z" fill="url(#sg-gold)"/><circle cx="215" cy="20" r="4" fill="url(#sg-gold)"/><circle cx="305" cy="20" r="4" fill="url(#sg-gold)"/>
   <circle cx="10" cy="20" r="5" fill="url(#sg-gold)"/><circle cx="510" cy="20" r="5" fill="url(#sg-gold)"/>
 </svg>`;
-function shabbatGreetV2(ctx, gr) {
+const SILVER_DEFS = `<defs><linearGradient id="sg-silver" x1="0" x2="1"><stop offset="0" stop-color="#7d8794"/><stop offset=".25" stop-color="#dfe5ec"/><stop offset=".5" stop-color="#ffffff"/><stop offset=".78" stop-color="#b9c2cd"/><stop offset="1" stop-color="#6d7783"/></linearGradient></defs>`;
+const SG_CANDLE_SILVER = SG_CANDLE.replace('<svg class="sg-candle"', '<svg class="sg-candle silver"').replace(/url\(#sg-gold\)/g, 'url(#sg-silver)').replace('</defs>`', '</defs>`').replace(GOLD_DEFS, GOLD_DEFS + SILVER_DEFS);
+const SG_STONE = `<svg class="sg-arch" viewBox="0 0 1400 820" preserveAspectRatio="none" aria-hidden="true">${GOLD_DEFS}
+  <defs><pattern id="sg-blocks" width="120" height="60" patternUnits="userSpaceOnUse"><rect width="120" height="60" fill="#e4d5b2"/><path d="M0 0h120M0 30h120M40 0v30M100 30v30M0 60h120" stroke="#b39d70" stroke-width="3"/><rect x="6" y="5" width="28" height="20" fill="#efe3c6" opacity=".55"/><rect x="48" y="35" width="44" height="20" fill="#d8c69c" opacity=".6"/></pattern>
+  <radialGradient id="sg-night" cx=".5" cy=".35" r=".75"><stop offset="0" stop-color="#1e2f62"/><stop offset=".7" stop-color="#0f1a3d"/><stop offset="1" stop-color="#070d22"/></radialGradient>
+  <pattern id="sg-stars" width="90" height="90" patternUnits="userSpaceOnUse"><circle cx="12" cy="20" r="1.6" fill="#fff" opacity=".7"/><circle cx="60" cy="48" r="1.1" fill="#fff" opacity=".5"/><circle cx="34" cy="76" r="1.3" fill="#ffe9b0" opacity=".6"/></pattern></defs>
+  <path d="M30 820V330C30 140 330 26 700 26s670 114 670 304v490z" fill="url(#sg-blocks)"/>
+  <path d="M30 820V330C30 140 330 26 700 26s670 114 670 304v490" fill="none" stroke="#9c8558" stroke-width="5"/>
+  <path d="M110 820V344C110 196 370 104 700 104s590 92 590 240v476z" fill="url(#sg-night)"/>
+  <path d="M110 820V344C110 196 370 104 700 104s590 92 590 240v476z" fill="url(#sg-stars)"/>
+  <path d="M110 820V344C110 196 370 104 700 104s590 92 590 240v476" fill="none" stroke="url(#sg-gold)" stroke-width="7"/>
+  <path d="M660 30h80l-12 70h-56z" fill="#d7c497" stroke="#9c8558" stroke-width="4"/>
+  <path d="M700 44l9 15h17l-9 15 9 15h-17l-9 15-9-15h-17l9-15-9-15h17z" fill="none" stroke="#8a6420" stroke-width="3"/>
+</svg>`;
+const SG_SCROLL = `<svg class="sg-arch scroll" viewBox="0 0 1400 820" preserveAspectRatio="none" aria-hidden="true">${GOLD_DEFS}
+  <defs><linearGradient id="sg-parch" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fbf3dc"/><stop offset=".5" stop-color="#f3e6c2"/><stop offset="1" stop-color="#e8d5a6"/></linearGradient>
+  <linearGradient id="sg-wood" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#6b3d1c"/><stop offset=".5" stop-color="#a8683a"/><stop offset="1" stop-color="#4f2a11"/></linearGradient></defs>
+  <rect x="90" y="56" width="1220" height="720" fill="url(#sg-parch)"/>
+  <rect x="90" y="56" width="1220" height="720" fill="none" stroke="#c9a85c" stroke-width="3"/>
+  <rect x="122" y="88" width="1156" height="656" fill="none" stroke="url(#sg-gold)" stroke-width="5"/>
+  <rect x="136" y="102" width="1128" height="628" fill="none" stroke="#c9a85c" stroke-width="1.5" stroke-dasharray="2 8" stroke-linecap="round"/>
+  <rect x="60" y="22" width="1280" height="44" rx="22" fill="url(#sg-wood)"/><rect x="60" y="766" width="1280" height="44" rx="22" fill="url(#sg-wood)"/>
+  <g fill="url(#sg-gold)"><circle cx="44" cy="44" r="30"/><circle cx="1356" cy="44" r="30"/><circle cx="44" cy="788" r="30"/><circle cx="1356" cy="788" r="30"/></g>
+</svg>`;
+const SG_STAR = `<svg class="sg-star" viewBox="0 0 600 600" aria-hidden="true">${GOLD_DEFS}
+  <g fill="none" stroke="url(#sg-gold)" stroke-width="5" opacity=".38"><path d="M300 30 534 435H66z"/><path d="M300 570 66 165h468z"/><circle cx="300" cy="300" r="282" stroke-width="3"/><circle cx="300" cy="300" r="268" stroke-width="1.5" stroke-dasharray="2 10"/></g>
+</svg>`;
+const medal = (k, v, sub) => `<div class="sg-medal"><svg viewBox="0 0 300 300" aria-hidden="true">${GOLD_DEFS}<circle cx="150" cy="150" r="140" fill="url(#sg-gold)"/><circle cx="150" cy="150" r="126" fill="#0f1a3d"/><circle cx="150" cy="150" r="116" fill="none" stroke="url(#sg-gold)" stroke-width="2" stroke-dasharray="2 7" stroke-linecap="round"/></svg>
+  <div class="sg-mt"><span>${esc(k)}</span><b>${esc(v)}</b>${sub ? `<small>${esc(sub)}</small>` : ''}</div></div>`;
+/** וריאציות: v2 שער בורדו · v3 אבן ירושלמית · v4 מגילה · v5 מדליונים */
+function shabbatGreetV2(ctx, gr, v = 'v2') {
   const { day, s } = ctx;
   const sh = day.shabbat;
   const isShabbatNow = day.dow === 6 || (day.dow === 5 && day.afterSunset);
@@ -241,16 +271,26 @@ function shabbatGreetV2(ctx, gr) {
   if (sh.candles && !isShabbatNow) times.push(['הדלקת נרות', fmtTime(sh.candles, s.tz, 'floor')]);
   if (sh.havdalah) times.push(['צאת השבת', fmtTime(sh.havdalah, s.tz, 'ceil')]);
   const chips = [...(sh.specialShabbat || []), ...(sh.mevarchim || [])];
-  return `<div class="sg2${chips.length ? ' has-chips' : ''}">
-    ${SG_ARCH}
-    <div class="sg-side r">${SG_CANDLE}</div><div class="sg-side l">${SG_CANDLE}</div>
+  let frame = SG_ARCH, side = SG_CANDLE, sides = '';
+  if (v === 'v3') frame = SG_STONE;
+  if (v === 'v4') { frame = SG_SCROLL; side = SG_CANDLE_SILVER; }
+  if (v === 'v5') {
+    frame = SG_STAR;
+    const left = times.find((t) => t[0] === 'צאת השבת');
+    const right = times.find((t) => t[0] === 'הדלקת נרות');
+    sides = `<div class="sg-side r">${right ? medal(right[0], right[1], 'ערב שבת') : medal('שבת קודש', sh.date ? renderHeb(sh.date).replace(/ תש\S+$/, '') : '', '')}</div><div class="sg-side l">${left ? medal(left[0], left[1], 'הבדלה') : ''}</div>`;
+  } else sides = `<div class="sg-side r">${side}</div><div class="sg-side l">${side}</div>`;
+  const showTimes = v !== 'v5' && times.length;
+  return `<div class="sg2 sg-${v}${chips.length ? ' has-chips' : ''}">
+    ${frame}
+    ${sides}
     <div class="sg-mid">
       <div class="sg-k">לכבוד שבת קודש</div>
       <div class="sg-t">${esc(gr.title)}</div>
       ${SG_VINE}
       <div class="sg-ribbon"><span>${esc(gr.sub || '')}</span></div>
       ${chips.length ? `<div class="sg-chips">${chips.map((c) => `<span>${esc(c)}</span>`).join('')}</div>` : ''}
-      ${times.length ? `<div class="sg-times">${times.map(([k, v]) => `<div><span>${k}</span><b>${v}</b></div>`).join('<i></i>')}</div>` : ''}
+      ${showTimes ? `<div class="sg-times">${times.map(([k, val]) => `<div><span>${k}</span><b>${val}</b></div>`).join('<i></i>')}</div>` : ''}
       ${s.name ? `<div class="sg-n">${esc(s.name)}</div>` : ''}
     </div>
   </div>`;
@@ -264,7 +304,7 @@ export const SCREENS = {
     let img = '';
     // ספר התורה במסך הכניסה – תמונה אמיתית (img/torah.webp); בחגים – האיורים המצוירים
     if (gr.kind === 'torah') return welcomeHtml(ctx, gr);
-    if (gr.kind === 'shabbat' && (GREET_V === 'v2' || ctx.display.shabbatGreet === 'v2')) return shabbatGreetV2(ctx, gr); // ימים רגילים: מסך כניסה בלי איור – מסגרת מעוטרת ומידע להיום
+    { const gv = GREET_V || ctx.display.shabbatGreet; if (gr.kind === 'shabbat' && /^v[2-5]$/.test(gv || '')) return shabbatGreetV2(ctx, gr, gv); } // ימים רגילים: מסך כניסה בלי איור – מסגרת מעוטרת ומידע להיום
     try { img = greetingArt(gr.kind, { lit: gr.lit }); } catch { /* */ }
     return `<div class="greet">
       ${img ? `<img class="art" src="${img}" alt="">` : ''}

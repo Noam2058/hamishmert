@@ -668,3 +668,30 @@ footer.ticker { isolation: isolate; transform: translateZ(0); }
 .lite .sg2 .sg-fl, .lite .sg2 .sg-halo { animation: none; }
 .lite .sg2 .sg-arch, .lite .sg2 .sg-candle { filter: none; }
 .lite .sg2 .sg-t { filter: drop-shadow(0 4px 0 rgba(60,30,0,.45)); }
+
+/* וריאציה 3 – אבן ירושלמית */
+.sg-v3 .sg-arch { filter: drop-shadow(0 30px 50px rgba(0,0,0,.6)); }
+.sg-v3 .sg-k { color: #f6e3ae; }
+/* וריאציה 4 – מגילה */
+.sg-v4 .sg-arch.scroll { inset: -6px 150px -30px; height: calc(100% + 36px); }
+.sg-v4 .sg-mid { padding-top: 70px; }
+.sg-v4 .sg-k { color: #7a5a1e; text-shadow: none; }
+.sg-v4 .sg-t { background: linear-gradient(180deg, #1c2f63, #0f1a3d 60%, #2a3f78); -webkit-background-clip: text; background-clip: text; filter: drop-shadow(0 3px 0 rgba(201,168,92,.55)); }
+.sg-v4 .sg-ribbon { color: #fff4d6; background: linear-gradient(180deg, #7a1d35, #561326); box-shadow: 0 8px 18px rgba(80,30,10,.35), inset 0 2px 0 rgba(255,255,255,.25); }
+.sg-v4 .sg-ribbon::before, .sg-v4 .sg-ribbon::after { background: #3d0c1b; }
+.sg-v4 .sg-times { background: #0f1a3d; border-color: #c9a85c; }
+.sg-v4 .sg-chips span { color: #561326; border-color: #b8923f; background: rgba(255,255,255,.4); }
+.sg-v4 .sg-n { color: #6b5530; }
+/* וריאציה 5 – מדליונים ומגן דוד */
+.sg-v5 .sg-star { position: absolute; top: 50%; left: 50%; width: 820px; height: 820px; transform: translate(-50%, -50%); }
+.sg-v5 .sg-mid { padding-top: 20px; }
+.sg-v5 .sg-mid::before { content: ""; position: absolute; inset: 10% -12%; background: radial-gradient(closest-side, rgba(10,16,40,.75), transparent); z-index: -1; }
+.sg-v5 .sg-side { width: 330px; height: auto; top: 50%; bottom: auto; transform: translateY(-50%); }
+.sg-v5 .sg-side.r { right: 20px; } .sg-v5 .sg-side.l { left: 20px; }
+.sg-medal { position: relative; width: 320px; height: 320px; filter: drop-shadow(0 20px 30px rgba(0,0,0,.55)); }
+.sg-medal svg { width: 100%; height: 100%; }
+.sg-medal .sg-mt { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; text-align: center; }
+.sg-medal span { font: 700 30px var(--body); color: #f1dca4; }
+.sg-medal b { font: 800 78px/1 var(--display); color: #fff; }
+.sg-medal small { font: 600 24px var(--body); color: rgba(241,220,164,.75); }
+.lite .sg-medal { filter: none; }

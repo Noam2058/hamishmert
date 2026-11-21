@@ -3,6 +3,8 @@
 @page { size: A4 portrait; margin: 0; }
 .tb-info { font-size: 12.5px; color: #c8cfe0; }
 * { box-sizing: border-box; }
+/* אייפון מגדיל לבד טקסט בבלוקים רחבים (text autosizing) – זה מה שגרם לכותרות ענקיות. מבטלים */
+html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
 :root { --ink: #16223b; --soft: #5b6475; --gold: #a8822f; --gold-l: #f4ead0; --line: #e2d8bf; --navy: #1b3a6b; }
 body { margin: 0; background: #e9e4d8; color: var(--ink); font: 500 11pt/1.4 "Assistant", Arial, sans-serif; direction: rtl; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
 .toolbar { position: sticky; top: 0; z-index: 5; display: flex; flex-wrap: wrap; align-items: center; gap: 8px; padding: 10px 16px; background: #14213d; color: #f3ecd9; font: 700 14px "Assistant", sans-serif; }

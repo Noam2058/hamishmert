@@ -1,0 +1,22 @@
+name: fetch
+on:
+  workflow_dispatch:
+    inputs:
+      cmd: { description: "bash commands; save files into out/", required: true }
+permissions:
+  contents: write
+jobs:
+  f:
+    runs-on: ubuntu-latest
+    steps:
+      - run: mkdir -p out && cd out && bash -c "$CMD" > log.txt 2>&1 || true
+        env:
+          CMD: ${{ inputs.cmd }}
+      - name: push
+        if: always()
+        run: |
+          cd out
+          git init -q && git checkout -q -b test-results
+          git config user.email "actions@github.com" && git config user.name "actions"
+          git add -A && git commit -qm "fetch"
+          git push -f "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}" test-results

@@ -90,10 +90,10 @@ function upcomingFirst(list, nowMin, max) {
   return list.slice(start, start + max);
 }
 
-/** זמני היום להצגה: אחרי השקיעה – כבר של מחר (היום העברי התחלף) */
+/** זמני היום להצגה: אחרי צאת הכוכבים – כבר של מחר */
 function shownZmanim(ctx) {
   const { day, s } = ctx;
-  if (!day.afterSunset) return day.zmanim;
+  if (!day.night) return day.zmanim;
   if (!day._zmNext) { const d = new Date(day.civil); d.setDate(d.getDate() + 1); d.setHours(12, 0, 0, 0); day._zmNext = zmanimFor(d, s); }
   return day._zmNext;
 }
@@ -103,7 +103,7 @@ function zmanimRows(ctx, keys, compact) {
   const zm = shownZmanim(ctx);
   return `<div class="rows${compact ? ' compact' : ''}">${keys.map((k) => {
     const t = zm[k];
-    const past = !day.afterSunset && t && minutesOf(t, s.tz) < nowMin && !(k === 'chatzotNight');
+    const past = !day.night && t && minutesOf(t, s.tz) < nowMin && !(k === 'chatzotNight');
     return `<div class="row ${past ? 'past' : ''}"><div class="k">${esc(ZMAN_LABEL[k])}</div><div class="v">${secSmall(fmtTime(t, s.tz, zmanRound(k, s)))}</div></div>`;
   }).join('')}</div>`;
 }
@@ -363,7 +363,7 @@ export const SCREENS = {
     const { day, s } = ctx;
     const keys = s.zmanimShown || [];
     const half = Math.ceil(keys.length / 2);
-    return `${title(day.afterSunset ? `זמני מחר – ${weekdayHe((day.civil.getDay() + 1) % 7)}` : 'זמני היום')}
+    return `${title(day.night ? `זמני מחר – ${weekdayHe((day.civil.getDay() + 1) % 7)}` : 'זמני היום')}
       <div class="grid" style="grid-template-columns:1fr 1fr ${day.changes.length + day.fast.length > 3 ? '1.25fr' : '1fr'}">
         <section class="card">${zmanimRows(ctx, keys.slice(0, half))}</section>
         <section class="card">${zmanimRows(ctx, keys.slice(half))}</section>
@@ -662,7 +662,7 @@ export function tickerItems(ctx) {
   const items = [];
   const keys = ['sunrise', 'shmaGRA', 'sunset', 'tzeit'];
   const zm = shownZmanim(ctx);
-  for (const k of keys) items.push(`${day.afterSunset && k === 'sunrise' ? 'הנץ מחר' : ZMAN_LABEL[k]} <b>${fmtTime(zm[k], s.tz, zmanRound(k, s))}</b>`);
+  for (const k of keys) items.push(`${day.night && k === 'sunrise' ? 'הנץ מחר' : ZMAN_LABEL[k]} <b>${fmtTime(zm[k], s.tz, zmanRound(k, s))}</b>`);
   if (day.shabbat.candles) items.push(`${day.shabbat.candlesLabel} <b>${fmtTime(day.shabbat.candles, s.tz, 'floor')}</b>`);
   // פרשת השבוע מוצגת תמיד בכותרת העליונה – לא חוזרים עליה בפס
   for (const c of day.changes.slice(0, 3)) items.push(esc(c));

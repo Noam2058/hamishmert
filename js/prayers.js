@@ -115,7 +115,8 @@ export function weeklyPrayers(day, data, s, fridayMorning = false) {
   const friday = addDays(sunday, 5);
   const saturday = addDays(sunday, 6);
   // ימות החול: היום (א׳–ה׳), ובשישי/שבת – יום ראשון הקרוב (ולא ראשון שעבר, שזמני הנץ שלו כבר לא רלוונטיים)
-  const weekdayCivil = civil.getDay() <= 4 ? civil : addDays(civil, 7 - civil.getDay());
+  // אחרי השקיעה (א׳–ה׳) – כבר הזמנים של מחר בבוקר, כמו התאריך העברי והשינויים בתפילה
+  const weekdayCivil = civil.getDay() <= 4 ? (day.afterSunset ? addDays(civil, 1) : civil) : addDays(civil, 7 - civil.getDay());
   return {
     weekday: prayersForDay(day, data, s, weekdayCivil, ['weekday']),
     friday: prayersForDay(day, data, s, friday, ['friday'], fridayMorning),

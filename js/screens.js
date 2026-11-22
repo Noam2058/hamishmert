@@ -1,6 +1,6 @@
 // המסכים של הלוח. כל מסך מחזיר HTML, מערך של שקפים, או null כשאין מה להציג.
 import { cachedHalacha, DEFAULT_START } from './halacha-sa.js';
-import { zmanimFor, moladInfo, computeDay, minToHhmm, fmtTime, minutesOf, ZMAN_LABEL, ZMANIM, inHebrewRange, yahrzeitIn, birthdayIn, renderHeb, hhmmToMin, zmanRound } from './jewish.js';
+import { zmanimFor, moladInfo, computeDay, minToHhmm, fmtTime, minutesOf, ZMAN_LABEL, ZMANIM, inHebrewRange, yahrzeitIn, birthdayIn, renderHeb, hhmmToMin, zmanRound , weekdayHe } from './jewish.js';
 import { HDate } from './lib.js';
 import { daysLabel, resolveTime } from './prayers.js';
 import { cachedMishna } from './mishna.js';
@@ -90,13 +90,20 @@ function upcomingFirst(list, nowMin, max) {
   return list.slice(start, start + max);
 }
 
+/** זמני היום להצגה: אחרי השקיעה – כבר של מחר (היום העברי התחלף) */
+function shownZmanim(ctx) {
+  const { day, s } = ctx;
+  if (!day.afterSunset) return day.zmanim;
+  if (!day._zmNext) { const d = new Date(day.civil); d.setDate(d.getDate() + 1); d.setHours(12, 0, 0, 0); day._zmNext = zmanimFor(d, s); }
+  return day._zmNext;
+}
 function zmanimRows(ctx, keys, compact) {
   const { day, s } = ctx;
   const nowMin = minutesOf(ctx.now, s.tz);
-  const meta = Object.fromEntries(ZMANIM.map((z) => [z.key, z]));
+  const zm = shownZmanim(ctx);
   return `<div class="rows${compact ? ' compact' : ''}">${keys.map((k) => {
-    const t = day.zmanim[k];
-    const past = t && minutesOf(t, s.tz) < nowMin && !(k === 'chatzotNight');
+    const t = zm[k];
+    const past = !day.afterSunset && t && minutesOf(t, s.tz) < nowMin && !(k === 'chatzotNight');
     return `<div class="row ${past ? 'past' : ''}"><div class="k">${esc(ZMAN_LABEL[k])}</div><div class="v">${secSmall(fmtTime(t, s.tz, zmanRound(k, s)))}</div></div>`;
   }).join('')}</div>`;
 }
@@ -356,7 +363,7 @@ export const SCREENS = {
     const { day, s } = ctx;
     const keys = s.zmanimShown || [];
     const half = Math.ceil(keys.length / 2);
-    return `${title('זמני היום')}
+    return `${title(day.afterSunset ? `זמני מחר – ${weekdayHe((day.civil.getDay() + 1) % 7)}` : 'זמני היום')}
       <div class="grid" style="grid-template-columns:1fr 1fr ${day.changes.length + day.fast.length > 3 ? '1.25fr' : '1fr'}">
         <section class="card">${zmanimRows(ctx, keys.slice(0, half))}</section>
         <section class="card">${zmanimRows(ctx, keys.slice(half))}</section>
@@ -478,7 +485,9 @@ export const SCREENS = {
       target = t; label = `סוף זמן קריאת שמע (${t === mga ? 'מג"א' : 'גר"א'}) בעוד`; sub = shmaSub;
     } else return null;
     const ms = Math.max(0, target - now);
-    const h = Math.floor(ms / 3600000), m = Math.floor(ms / 60000) % 60, sec = Math.floor(ms / 1000) % 60;
+    // ספירה מדויקת לשנייה של הנץ (לפי לוח חי – כולל שניות): מעגלים כלפי מעלה, כך ש-00:00 מגיע בדיוק ברגע הנץ
+    const tot = Math.ceil(ms / 1000);
+    const h = Math.floor(tot / 3600), m = Math.floor(tot / 60) % 60, sec = tot % 60;
     const pad = (n) => String(n).padStart(2, '0');
     return `<section class="card netz"><div class="lbl">${label}</div><div class="count">${h ? h + ':' : ''}${pad(m)}:${pad(sec)}</div><div class="sub">${sub}</div></section>`;
   },
@@ -652,7 +661,8 @@ export function tickerItems(ctx) {
   const { day, s, prayersToday, lessonsToday } = ctx;
   const items = [];
   const keys = ['sunrise', 'shmaGRA', 'sunset', 'tzeit'];
-  for (const k of keys) items.push(`${ZMAN_LABEL[k]} <b>${fmtTime(day.zmanim[k], s.tz, zmanRound(k, s))}</b>`);
+  const zm = shownZmanim(ctx);
+  for (const k of keys) items.push(`${day.afterSunset && k === 'sunrise' ? 'הנץ מחר' : ZMAN_LABEL[k]} <b>${fmtTime(zm[k], s.tz, zmanRound(k, s))}</b>`);
   if (day.shabbat.candles) items.push(`${day.shabbat.candlesLabel} <b>${fmtTime(day.shabbat.candles, s.tz, 'floor')}</b>`);
   // פרשת השבוע מוצגת תמיד בכותרת העליונה – לא חוזרים עליה בפס
   for (const c of day.changes.slice(0, 3)) items.push(esc(c));

@@ -23,12 +23,12 @@ a { color: var(--accent); }
 .hero { position: relative; color: var(--hero-ink); background: linear-gradient(160deg, var(--hero-2), var(--hero)); overflow: hidden; border-bottom: 3px solid #c9a24a; }
 .hero::before { content: ""; position: absolute; inset: 0; background: var(--scene, none) center 70% / cover no-repeat; opacity: .55; }
 .hero::after { content: ""; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(10,16,32,.15), rgba(10,16,32,.78)); }
-.hero-in { position: relative; z-index: 1; max-width: 720px; margin: 0 auto; padding: max(22px, env(safe-area-inset-top)) max(18px, env(safe-area-inset-right)) 22px max(18px, env(safe-area-inset-left)); display: flex; flex-direction: column; gap: 6px; }
+.hero-in { position: relative; z-index: 1; max-width: 720px; margin: 0 auto; padding: max(22px, env(safe-area-inset-top)) max(18px, env(safe-area-inset-right)) 22px max(18px, env(safe-area-inset-left)); display: flex; flex-direction: column; align-items: center; text-align: center; gap: 6px; }
 .hero .shul { font: 900 27px/1.15 var(--display); text-wrap: balance; }
-.hero .ded { display: inline-block; align-self: flex-start; font: 700 13px var(--body); color: #14213d; background: #e3c475; padding: 3px 12px; border-radius: 999px; }
+.hero .ded { display: inline-block; align-self: center; font: 700 13px var(--body); color: #14213d; background: #e3c475; padding: 3px 12px; border-radius: 999px; }
 .hero .hd { font: 900 34px/1.1 var(--display); margin-top: 6px; }
 .hero .sub { color: var(--hero-soft); font-size: 15px; }
-.hero .tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; }
+.hero .tags { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; margin-top: 4px; }
 .hero .tag { font: 700 13px var(--body); background: rgba(255,255,255,.12); border: 1px solid rgba(227,196,117,.4); color: var(--hero-ink); padding: 3px 10px; border-radius: 999px; }
 
 /* ---------- ניווט מהיר ---------- */

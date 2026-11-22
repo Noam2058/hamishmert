@@ -98,7 +98,7 @@ export function upcomingHolidaySchedules(data, s, now, daysAhead = 7) {
     try { day = computeDay(g.dates[0], s); } catch { /* */ }
     const ctx = day ? { candles: day.shabbat.candles, havdalah: day.shabbat.havdalah } : {};
     const rows = list.filter((p) => p.holiday === g.key && (!p.weekdays?.length || p.weekdays.includes(g.dates[0].getDay())))
-      .map((p) => { let min = null; try { min = resolveTime(p.time, g.dates[0], s, ctx); } catch { /* */ } return { name: p.name, note: p.note || '', min, time: fmtItemMin(min, p.time) }; })
+      .map((p) => { let min = null; try { min = resolveTime(p.time, g.dates[0], s, ctx); } catch { /* */ } return { name: p.name, note: p.note || '', min, time: fmtItemMin(min, p.time, s) }; })
       .sort((a, b) => (a.min ?? 9999) - (b.min ?? 9999));
     const first = renderHeb(g.hds[0]), lastH = g.hds.length > 1 ? renderHeb(g.hds[g.hds.length - 1]) : '';
     const sameMonth = g.hds.length > 1 && g.hds[0].getMonth() === g.hds[g.hds.length - 1].getMonth();

@@ -118,7 +118,7 @@ function timeOf(item) {
   try {
     const day = sampleDay(item)?.day || todayDay();
     const m = resolveTime(item.time, day.civil, DATA.synagogue, { candles: day.shabbat.candles, havdalah: day.shabbat.havdalah });
-    return m == null ? '' : fmtItemMin(m, item.time);
+    return m == null ? '' : fmtItemMin(m, item.time, DATA.synagogue);
   } catch { return ''; }
 }
 function hebDateOf(item, fn) {

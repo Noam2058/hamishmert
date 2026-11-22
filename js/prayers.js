@@ -50,11 +50,13 @@ export function resolveTime(t, civil, s, ctx = {}) {
     if (min == null) return null;
   }
   min += +(t.offset || 0);
-  if (+t.round === -1) return min; // בדיוק לשנייה
+  if (isExact(t, s)) return min; // בדיוק לשנייה
   return roundMin(min, +(t.round || 0), t.dir || 'down');
 }
-/** תצוגת שעה של פריט: עם שניות אם נבחר "בדיוק לשנייה" */
-export const fmtItemMin = (min, t) => (min == null ? '--:--' : +t?.round === -1 ? minToHhmmss(min) : minToHhmm(min));
+/** "בדיוק לשנייה": כשנבחר במפורש, או אוטומטית לזמן לפי הנץ של לוח חי בלי עיגול (כמו בטבלה) */
+export const isExact = (t, s) => t?.type === 'zman' && (+t.round === -1 || (!+t.round && (t.zman === 'netzChai' || (t.zman === 'sunrise' && s?.netzSource === 'chai'))));
+/** תצוגת שעה של פריט: עם שניות כשהוא "בדיוק לשנייה" */
+export const fmtItemMin = (min, t, s) => (min == null ? '--:--' : isExact(t, s) ? minToHhmmss(min) : minToHhmm(min));
 
 export function describeTime(t) {
   if (!t) return '';
@@ -88,7 +90,7 @@ export function prayersForDay(day, data, s, civil = day.civil, tags = day.tags, 
   let hkeys = [];
   try { if ((data.prayers || []).some((p) => p.schedule === 'holiday')) hkeys = holidayKeysOn(civil, s.il !== false); } catch { /* */ }
   const rows = rowsFor(data.prayers || [], tags, civil.getDay(), hkeys);
-  const res = (r) => { const min = resolveTime(r.time, civil, s, ctx); return { id: r.id, name: r.name, note: r.note || '', min, time: fmtItemMin(min, r.time) }; };
+  const res = (r) => { const min = resolveTime(r.time, civil, s, ctx); return { id: r.id, name: r.name, note: r.note || '', min, time: fmtItemMin(min, r.time, s) }; };
   const out = rows.map(res);
   // ערב שבת: הבוקר הוא כמו יום חול – תפילות החול של הבוקר (לפני 12:00) נכנסות, אם לא הוגדרה בערב שבת תפילה באותו שם
   if (fridayMorning && tags.includes('friday') && !tags.includes('shabbat') && !tags.includes('yomtov')) {

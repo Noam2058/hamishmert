@@ -69,6 +69,7 @@ export const ZMANIM = [
   { key: 'alot', label: 'עלות השחר', fn: (z) => z.alotHaShachar(), round: 'ceil' },
   { key: 'misheyakir', label: 'טלית ותפילין', fn: (z) => z.misheyakir(), round: 'ceil' },
   { key: 'sunrise', label: 'הנץ החמה', fn: (z) => z.sunrise(), round: 'ceil' },
+  { key: 'netzChai', label: 'הנץ הנראה (לוח חי)', fn: () => null, round: 'ceil' }, // מחושב מטבלת לוחות חי – ראו chaiNetz
   { key: 'shmaMGA', label: 'סוף זמן ק"ש מג"א', fn: (z) => z.sofZmanShmaMGA(), round: 'floor' },
   { key: 'shmaGRA', label: 'סוף זמן ק"ש גר"א', fn: (z) => z.sofZmanShma(), round: 'floor' },
   { key: 'tfillaMGA', label: 'סוף זמן תפילה מג"א', fn: (z) => z.sofZmanTfillaMGA(), round: 'floor' },
@@ -96,7 +97,33 @@ export function zmanimFor(civilDate, s) {
   for (const item of ZMANIM) {
     try { out[item.key] = item.fn(z); } catch { out[item.key] = null; }
   }
+  out.netzChai = chaiNetz(civilDate, out.sunrise, s.tz);
+  out.sunriseCalc = out.sunrise;
+  // "לפי לוח חי": הנץ בלוח, בתפילות שתלויות בנץ ובספירה לאחור – לפי הנץ הנראה (אם יש נתון ליום הזה)
+  if (s.netzSource === 'chai' && out.netzChai) out.sunrise = out.netzChai;
   return out;
+}
+
+// ---------- לוחות חי: הנץ הנראה (data/netz-chai.json, מתעדכן אוטומטית מ-chaitables.com) ----------
+let CHAI = null;
+try {
+  CHAI = await Promise.race([
+    fetch(new URL('../data/netz-chai.json', import.meta.url)).then((r) => (r.ok ? r.json() : null)).catch(() => null),
+    new Promise((r) => setTimeout(() => r(null), 4000)),
+  ]);
+} catch { CHAI = null; }
+export const chaiInfo = () => (CHAI ? { label: CHAI.label, years: Object.keys(CHAI.years || {}) } : null);
+const secOf = (hms) => { const [h, m, x] = hms.split(':').map(Number); return h * 3600 + m * 60 + (x || 0); };
+function chaiNetz(civilDate, ref, tz) {
+  if (!CHAI || !ref) return null;
+  const hd = new HDate(civilDate);
+  const v = CHAI.years?.[hd.getFullYear()]?.[hd.getMonth()]?.[hd.getDate() - 1];
+  if (!v) return null;
+  // הזמן בטבלה הוא שעון מקומי: מזיזים את הזריחה המחושבת (רגע אמיתי) בהפרש בין השעות המקומיות
+  const p = new Intl.DateTimeFormat('en-GB', { timeZone: tz || 'Asia/Jerusalem', hour: '2-digit', minute: '2-digit', second: '2-digit', hourCycle: 'h23' }).format(ref);
+  const diff = secOf(v) - secOf(p);
+  if (Math.abs(diff) > 3 * 3600) return null;
+  return new Date(ref.getTime() + diff * 1000);
 }
 
 // ---------- המרות טקסט ----------
@@ -394,7 +421,7 @@ const cache = new Map();
 export function computeDay(now, s) {
   const tz = s.tz || 'Asia/Jerusalem';
   const civil = civilNoon(now, tz);
-  const key = civil.toDateString() + JSON.stringify([s.lat, s.lon, s.il, s.nusach, s.candleMins, s.havdalahDeg, s.useElevation, s.learning]);
+  const key = civil.toDateString() + JSON.stringify([s.lat, s.lon, s.il, s.nusach, s.candleMins, s.havdalahDeg, s.useElevation, s.learning, s.netzSource]);
   let base = cache.get(key) || buildDay(civil, s);
   if (!cache.has(key)) { cache.clear(); cache.set(key, base); }
 

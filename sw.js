@@ -1,5 +1,5 @@
 // Service Worker: שומר את קוד הלוח, הספריות והגופנים כדי שהלוח יעבוד גם בלי אינטרנט.
-const VERSION = 'shulboard-v14';
+const VERSION = 'shulboard-v15';
 // ספריות חיצוניות – נשמרות כבר בהתקנה, כדי שהלוח יעלה גם בלי אינטרנט
 const CDN = [
   'https://cdn.jsdelivr.net/npm/@hebcal/core@5.10.1/+esm',
@@ -12,7 +12,7 @@ const SHELL = [
   './', './index.html', './m.html', './config.js', './manifest.webmanifest', './m.webmanifest',
   './css/board.css', './css/mobile.css',
   './js/board.js', './js/build.js', './js/mobile.js', './js/jewish.js', './js/prayers.js', './js/screens.js',
-  './js/store.js', './js/defaults.js', './js/lib.js', './js/art.js', './js/scenes.js', './js/halacha-sa.js', './js/ann.js', './js/mishna.js', './js/holidays.js',
+  './js/store.js', './js/defaults.js', './js/lib.js', './js/art.js', './js/scenes.js', './js/halacha-sa.js', './js/ann.js', './js/mishna.js', './js/holidays.js', './data/netz-chai.json',
 ];
 
 self.addEventListener('install', (e) => {

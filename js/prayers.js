@@ -14,7 +14,7 @@ export const SCHEDULE_LABEL = Object.fromEntries(SCHEDULES);
 const SPECIAL_ORDER = ['chanuka', 'rosh-chodesh', 'chol-hamoed', 'erev-yomtov', 'fast', 'yomtov'];
 
 export const ZMAN_BASES = [
-  ['sunrise', 'הנץ'], ['sunset', 'השקיעה'], ['tzeit', 'צאת הכוכבים'], ['plag', 'פלג המנחה'],
+  ['sunrise', 'הנץ'], ['netzChai', 'הנץ הנראה (לוח חי)'], ['sunriseCalc', 'הנץ המחושב'], ['sunset', 'השקיעה'], ['tzeit', 'צאת הכוכבים'], ['plag', 'פלג המנחה'],
   ['minchaGedola', 'מנחה גדולה'], ['minchaKetana', 'מנחה קטנה'], ['chatzot', 'חצות'],
   ['alot', 'עלות השחר'], ['misheyakir', 'טלית ותפילין'], ['candles', 'הדלקת נרות'], ['havdalah', 'צאת השבת'],
 ];

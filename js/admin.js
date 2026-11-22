@@ -2,7 +2,7 @@
 import { load, save, mode, currentUser, signIn, signUp, signOut, exportJson, boardId, uploadMedia, deleteMedia } from './store.js';
 import { demoData, normalize, SCREEN_LABEL, THEMES, uid } from './defaults.js';
 import { SCHEDULES, ZMAN_BASES, resolveTime, describeTime, prayersForDay, lessonsForDay } from './prayers.js';
-import { ZMANIM, HEB_MONTHS, computeDay, minToHhmm, fmtTime, yahrzeitIn, birthdayIn, inHebrewRange, renderHeb } from './jewish.js';
+import { ZMANIM, HEB_MONTHS, computeDay, minToHhmm, fmtTime, yahrzeitIn, birthdayIn, inHebrewRange, renderHeb, chaiInfo } from './jewish.js';
 import { refForDate, heNum, DEFAULT_START } from './halacha-sa.js';
 import { SCENE_CHOICES } from './scenes.js';
 import { HOLIDAY_DAYS, HOLIDAY_LABEL, nextOccurrence, holidayOccurrences } from './holidays.js';
@@ -853,6 +853,7 @@ function renderShul() {
       ${f('city', 'עיר')}${f('lat', 'קו רוחב', 'number', 'step="0.0001"')}${f('lon', 'קו אורך', 'number', 'step="0.0001"')}
       ${f('elevation', 'גובה (מטרים)', 'number')}${c('useElevation', 'חישוב הנץ והשקיעה לפי גובה')}${c('il', 'בארץ ישראל')}
       ${f('tz', 'אזור זמן')}
+      <label class="fld"><span>זמן הנץ החמה</span><select data-s="netzSource">${[['calc', 'חישוב לפי המיקום'], ['chai', `לוח חי – הנץ הנראה${chaiInfo() ? ` (${esc(chaiInfo().label)})` : ''}`]].map(([k, l]) => `<option value="${k}" ${(s.netzSource || 'calc') === k ? 'selected' : ''}>${l}</option>`).join('')}</select><small class="muted">משפיע על הנץ בלוח, על תפילות שנקבעו לפי הנץ ועל הספירה לאחור. "הנץ הנראה (לוח חי)" זמין תמיד גם כזמן נפרד לתפילה.</small></label>
       <div class="fld" style="justify-content:end"><button type="button" class="btn" id="geo">קח מיקום מהמכשיר</button></div>
     </div><p class="note">כדאי ללחוץ "קח מיקום" כשאתה בתוך בית הכנסת. אפשר גם להעתיק קו רוחב ואורך מ-Google Maps.</p></section>
     <section class="card"><h2>${icon('memorials')}שבת</h2><div class="form-grid">

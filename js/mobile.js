@@ -123,6 +123,61 @@ function render() {
   document.title = s.name || 'בית הכנסת';
   const nav = [['t-today', 'היום'], ['t-shabbat', isShabbat ? 'שבת' : 'חג'], hols.length && ['t-hol', 'החג'], anns.length && ['t-ann', 'הודעות'], slides.length && ['t-img', 'תמונות'], ['t-zmanim', 'זמנים'], ['t-week', 'השבוע'], (hal || custom) && ['t-hal', 'הלכה'], mish && ['t-mish', 'משנה'], lessons.length && ['t-les', 'שיעורים']].filter(Boolean);
 
+  const B = {
+    today: `<section class="card" id="t-today"><h2>${icon('prayer')}תפילות היום</h2>
+        ${today.length ? `<div class="rows">${today.map((p, i) => row(p.name, esc(p.time), p.note, i === nextIdx ? 'next' : p.min != null && p.min < nowMin ? 'past' : '')).join('')}</div>` : '<div class="muted">לא הוגדרו תפילות להיום.</div>'}
+        ${day.changes.length ? `<div class="chips">${day.changes.map((c) => `<span class="chip">${esc(c)}</span>`).join('')}</div>` : ''}
+        ${day.omer ? `<div class="muted">${esc(day.afterSunset && day.omerTonight ? `הלילה: ${day.omerTonight.text}` : day.omer.text)}</div>` : ''}
+        ${lessonsToday.length ? `<div class="sub-h">שיעורים היום</div><div class="rows">${lessons.filter((l) => lessonsToday.some((x) => x.id === l.id)).map((l) => row(l.title, esc(l.timeStr), [l.teacher, l.note].filter(Boolean).join(' · '))).join('')}</div>` : ''}
+      </section>`,
+    shabbat: `<section class="card shabbat" id="t-shabbat"><h2>${icon('candle')}${isShabbat ? 'שבת קודש' : 'חג'}</h2>
+        ${sh.parsha ? `<div class="parsha">${sh.parshaIsChag ? esc(sh.parsha) : `פרשת ${esc(sh.parsha)}`}</div>` : ''}
+        ${sh.haftarah && !sh.parshaIsChag ? `<div class="haft">הפטרה: ${esc(sh.haftarah)}</div>` : ''}
+        ${specials.length ? `<div class="chips center">${specials.map((x) => `<span class="chip">${esc(x)}</span>`).join('')}</div>` : ''}
+        <div class="two"><div><small>${esc(sh.candlesLabel || 'הדלקת נרות')}</small><b>${fmtTime(sh.candles, s.tz, 'floor')}</b></div><div><small>צאת ${isShabbat ? 'השבת' : 'החג'}</small><b>${fmtTime(sh.havdalah, s.tz, 'ceil')}</b></div></div>
+        ${(() => { if (!sh.mevarchim?.length || !sh.date) return ''; try { const m = moladInfo(sh.date); return `<div class="molad-box"><div class="sub-h">שבת מברכים – חודש ${esc(m.month)}</div>
+          <div class="rows">${row('המולד', `<span style="font:700 16px var(--body);direction:rtl">יום ${esc(m.dayName)} ${esc(m.time)}${m.chalakim ? ` ו־${esc(m.chalakimHe)} חלקים` : ''}</span>`)}
+          ${row('ראש חודש', `<span style="font:700 16px var(--body);direction:rtl">${m.rc.map((r) => `${r.dayName} (${r.heb})`).join(' ו')}</span>`)}</div></div>`; } catch { return ''; } })()}
+        ${weekly.friday.length || weekly.shabbat.length ? `<div class="sub-h">ערב שבת</div><div class="rows">${weekly.friday.map((p) => row(p.name, esc(p.time), p.note)).join('')}</div>
+          <div class="sub-h">שבת</div><div class="rows">${weekly.shabbat.map((p) => row(p.name, esc(p.time), p.note)).join('')}</div>` : ''}
+        <a class="btn wa" id="wa-shabbat" target="_blank" rel="noopener" href="https://wa.me/?text=${encodeURIComponent(shabbatText(s, sh, weekly, isShabbat))}">${icon('whatsapp')}שלח את זמני השבת בוואטסאפ</a>
+      </section>`,
+    hol: `${hols.length ? `<section class="card" id="t-hol"><h2>${icon('calendar')}תפילות החג</h2>
+        ${hols.map((g) => `<div class="sub-h">${esc(g.label)} · ${esc(g.heb)}</div><div class="rows">${g.rows.map((r) => row(r.name, esc(r.time), r.note)).join('')}</div>`).join('')}</section>` : ''}`,
+    ded: `${deds.length ? `<section class="card" id="t-ded"><h2>${icon('candle')}לעילוי נשמת</h2>
+        ${deds.map((a) => `<div class="ann ${esc(a.style || '')} ${annClasses(a)}"${annStyle(a)}>${a.title ? `<h3>${esc(a.title)}</h3>` : ''}<p>${annBody(a.body)}</p></div>`).join('')}</section>` : ''}`,
+    ann: `${anns.length ? `<section class="card" id="t-ann"><h2>${icon('megaphone')}הודעות <span class="pill">${anns.length}</span></h2>
+        ${anns.map((a) => `<div class="ann ${esc(a.style || '')} ${annClasses(a)}"${annStyle(a)}>${a.title ? `<h3>${esc(a.title)}</h3>` : ''}<p>${annBody(a.body)}</p>${a.dateMode !== 'hebrew' && a.to ? `<div class="when">עד ${esc(a.to.split('-').reverse().join('.'))}</div>` : ''}</div>`).join('')}</section>` : ''}`,
+    img: `${slides.length ? `<section class="card" id="t-img"><h2>${icon('image')}מודעות ותמונות</h2>
+        <div class="gallery">${slides.map((x, i) => `<button type="button" data-img="${i}" aria-label="הגדל: ${esc(x.title || x.caption || 'תמונה')}"><img src="${esc(x.url)}" alt="" loading="lazy">${x.title || x.caption ? `<span>${esc(x.title || x.caption)}</span>` : ''}</button>`).join('')}</div></section>` : ''}`,
+    zmanim: `<section class="card" id="t-zmanim"><details class="fold" ${(first ? localStorage.getItem('m:z') === '1' : openNow.has('t-zmanim')) ? 'open' : ''}><summary>${icon('sun')}זמני היום</summary>
+        <div class="rows" style="margin-top:6px">${showZ.map((k) => row(ZMAN_LABEL[k], fmtTime(day.zmanim[k], s.tz, zmanRound(k, s)))).join('')}</div>
+        <div class="muted" style="font-size:13px">לפי מיקום בית הכנסת${s.city ? ` (${esc(s.city)})` : ''}</div></details></section>`,
+    week: `<section class="card" id="t-week"><details class="fold" ${openNow.has('t-week') ? 'open' : ''}><summary>${icon('calendar')}תפילות השבוע</summary>
+        <div class="sub-h">ימות החול</div><div class="rows">${weekly.weekday.map((p) => row(p.name, esc(p.time), p.note)).join('') || '<div class="muted">—</div>'}</div>
+        <div class="sub-h">ערב שבת</div><div class="rows">${weekly.friday.map((p) => row(p.name, esc(p.time), p.note)).join('') || '<div class="muted">—</div>'}</div>
+        <div class="sub-h">שבת</div><div class="rows">${weekly.shabbat.map((p) => row(p.name, esc(p.time), p.note)).join('') || '<div class="muted">—</div>'}</div>
+      </details></section>`,
+    hal: `${hal ? `<section class="card halacha" id="t-hal"><h2>${icon('scroll')}הלכה יומית</h2>${hal.title ? `<div class="t">${esc(hal.title)}</div>` : ''}
+        <div class="x">${hal.parts.map((p) => (p.rema ? `<span class="rema"><b>הגה:</b> ${esc(p.text)}</span>` : esc(p.text))).join(' ')}</div><div class="src">${esc(hal.source)}</div></section>`
+        : custom ? `<section class="card halacha" id="t-hal"><h2>${icon('scroll')}הלכה יומית</h2><div class="t">${esc(custom.title)}</div><div class="x">${esc(custom.text)}</div>${custom.source ? `<div class="src">${esc(custom.source)}</div>` : ''}</section>` : ''}`,
+    mish: `${mish ? `<section class="card halacha" id="t-mish"><h2>${icon('book')}משנה יומית</h2><div class="t">${mish.seder ? `סדר ${esc(mish.seder)} · ` : ''}מסכת ${esc(mish.tractate)}</div>
+        ${mish.items.map((x) => `<div class="x"><span class="ml">פרק ${esc(x.perekHe)} משנה ${esc(x.mishnaHe)}</span> ${esc(x.text)}</div>`).join('')}<div class="src">${esc(mish.source)}</div></section>` : ''}`,
+    learning: `${day.learning?.length ? `<section class="card"><h2>${icon('book')}הלימוד היומי</h2><div class="rows">${day.learning.map((l) => row(l.label, `<span style="font:700 17px var(--body);direction:rtl">${esc(l.text)}</span>`)).join('')}</div></section>` : ''}`,
+    les: `${lessons.length ? `<section class="card" id="t-les"><h2>${icon('book')}שיעורים קבועים</h2><div class="rows">${lessons.map((l, i) => row(l.title, `${esc(l.timeStr)}<button type="button" class="ics" data-ics="${i}" title="הוסף ליומן" aria-label="הוסף את ${esc(l.title)} ליומן">${icon('calplus')}</button>`, [daysLabel(l.weekdays), l.teacher, l.note].filter(Boolean).join(' · '))).join('')}</div>
+        <div class="muted" style="font-size:13px">לחיצה על סמל היומן ליד השעה מוסיפה את השיעור ליומן בטלפון, עם תזכורת רבע שעה לפני.</div></section>` : ''}`,
+    people: `${mem.length || bdays.length || hil.length ? `<section class="card people"><h2>${icon('people')}השבוע בקהילה</h2><div class="rows">
+        ${mem.map((m) => row(`${m.name} ז״ל`, esc(renderHeb(m.hdate)), m.by ? `אזכרה · ${m.by}` : 'אזכרה')).join('')}
+        ${bdays.map((b) => row(b.name, esc(renderHeb(b.hdate)), 'יום הולדת – מזל טוב!')).join('')}
+        ${hil.map((h) => row(h.name, esc(renderHeb(h.hdate)), 'הילולא')).join('')}</div></section>` : ''}`,
+  };
+  // סדר הקטעים – כמו סדר המסכים בלוח הראשי (מה שלא מופיע ברשימה – בסוף, בסדר הרגיל)
+  const BY_SCREEN = { combined: ['today', 'week'], prayers: ['today', 'week'], shabbat: ['shabbat'], holidays: ['hol'], announcements: ['ann'], neshama: ['ded'], zmanim: ['zmanim'], memorials: ['people'], birthdays: ['people'], lessons: ['les'], learning: ['learning'], halacha: ['hal'], mishna: ['mish'], images: ['img'] };
+  const order = [];
+  for (const sc of (DATA.display?.screens || []).filter((x) => x.enabled !== false)) for (const k of BY_SCREEN[sc.type] || []) if (!order.includes(k)) order.push(k);
+  for (const k of Object.keys(B)) if (!order.includes(k)) order.push(k);
+  const navOrder = Object.fromEntries(order.map((k, n) => [`t-${k}`, n]));
+  nav.sort((x, y) => (navOrder[x[0]] ?? 99) - (navOrder[y[0]] ?? 99));
   $('#app').innerHTML = `
     <header class="hero"><div class="hero-in">
       <div class="shul">${esc(s.name || 'בית הכנסת')}</div>
@@ -134,65 +189,7 @@ function render() {
     <nav class="quick" aria-label="קיצורים"><div class="quick-in">${nav.map(([id, l]) => `<a href="#${id}">${l}</a>`).join('')}</div></nav>
     <main class="wrap">
       ${next ? `<section class="card next" aria-live="polite"><div><div class="lbl">התפילה הבאה${nextDay ? ` · ${nextDay}` : ''}</div><div class="name">${esc(next.name)}</div><div class="in">${inText(next.min - nowMin)}</div></div><div class="time">${esc(next.time)}</div></section>` : ''}
-
-      <section class="card" id="t-today"><h2>${icon('prayer')}תפילות היום</h2>
-        ${today.length ? `<div class="rows">${today.map((p, i) => row(p.name, esc(p.time), p.note, i === nextIdx ? 'next' : p.min != null && p.min < nowMin ? 'past' : '')).join('')}</div>` : '<div class="muted">לא הוגדרו תפילות להיום.</div>'}
-        ${day.changes.length ? `<div class="chips">${day.changes.map((c) => `<span class="chip">${esc(c)}</span>`).join('')}</div>` : ''}
-        ${day.omer ? `<div class="muted">${esc(day.afterSunset && day.omerTonight ? `הלילה: ${day.omerTonight.text}` : day.omer.text)}</div>` : ''}
-        ${lessonsToday.length ? `<div class="sub-h">שיעורים היום</div><div class="rows">${lessons.filter((l) => lessonsToday.some((x) => x.id === l.id)).map((l) => row(l.title, esc(l.timeStr), [l.teacher, l.note].filter(Boolean).join(' · '))).join('')}</div>` : ''}
-      </section>
-
-      <section class="card shabbat" id="t-shabbat"><h2>${icon('candle')}${isShabbat ? 'שבת קודש' : 'חג'}</h2>
-        ${sh.parsha ? `<div class="parsha">${sh.parshaIsChag ? esc(sh.parsha) : `פרשת ${esc(sh.parsha)}`}</div>` : ''}
-        ${sh.haftarah && !sh.parshaIsChag ? `<div class="haft">הפטרה: ${esc(sh.haftarah)}</div>` : ''}
-        ${specials.length ? `<div class="chips center">${specials.map((x) => `<span class="chip">${esc(x)}</span>`).join('')}</div>` : ''}
-        <div class="two"><div><small>${esc(sh.candlesLabel || 'הדלקת נרות')}</small><b>${fmtTime(sh.candles, s.tz, 'floor')}</b></div><div><small>צאת ${isShabbat ? 'השבת' : 'החג'}</small><b>${fmtTime(sh.havdalah, s.tz, 'ceil')}</b></div></div>
-        ${(() => { if (!sh.mevarchim?.length || !sh.date) return ''; try { const m = moladInfo(sh.date); return `<div class="molad-box"><div class="sub-h">שבת מברכים – חודש ${esc(m.month)}</div>
-          <div class="rows">${row('המולד', `<span style="font:700 16px var(--body);direction:rtl">יום ${esc(m.dayName)} ${esc(m.time)}${m.chalakim ? ` ו־${esc(m.chalakimHe)} חלקים` : ''}</span>`)}
-          ${row('ראש חודש', `<span style="font:700 16px var(--body);direction:rtl">${m.rc.map((r) => `${r.dayName} (${r.heb})`).join(' ו')}</span>`)}</div></div>`; } catch { return ''; } })()}
-        ${weekly.friday.length || weekly.shabbat.length ? `<div class="sub-h">ערב שבת</div><div class="rows">${weekly.friday.map((p) => row(p.name, esc(p.time), p.note)).join('')}</div>
-          <div class="sub-h">שבת</div><div class="rows">${weekly.shabbat.map((p) => row(p.name, esc(p.time), p.note)).join('')}</div>` : ''}
-        <a class="btn wa" id="wa-shabbat" target="_blank" rel="noopener" href="https://wa.me/?text=${encodeURIComponent(shabbatText(s, sh, weekly, isShabbat))}">${icon('whatsapp')}שלח את זמני השבת בוואטסאפ</a>
-      </section>
-
-      ${hols.length ? `<section class="card" id="t-hol"><h2>${icon('calendar')}תפילות החג</h2>
-        ${hols.map((g) => `<div class="sub-h">${esc(g.label)} · ${esc(g.heb)}</div><div class="rows">${g.rows.map((r) => row(r.name, esc(r.time), r.note)).join('')}</div>`).join('')}</section>` : ''}
-
-      ${deds.length ? `<section class="card" id="t-ded"><h2>${icon('candle')}לעילוי נשמת</h2>
-        ${deds.map((a) => `<div class="ann ${esc(a.style || '')} ${annClasses(a)}"${annStyle(a)}>${a.title ? `<h3>${esc(a.title)}</h3>` : ''}<p>${annBody(a.body)}</p></div>`).join('')}</section>` : ''}
-
-      ${anns.length ? `<section class="card" id="t-ann"><h2>${icon('megaphone')}הודעות <span class="pill">${anns.length}</span></h2>
-        ${anns.map((a) => `<div class="ann ${esc(a.style || '')} ${annClasses(a)}"${annStyle(a)}>${a.title ? `<h3>${esc(a.title)}</h3>` : ''}<p>${annBody(a.body)}</p>${a.dateMode !== 'hebrew' && a.to ? `<div class="when">עד ${esc(a.to.split('-').reverse().join('.'))}</div>` : ''}</div>`).join('')}</section>` : ''}
-
-      ${slides.length ? `<section class="card" id="t-img"><h2>${icon('image')}מודעות ותמונות</h2>
-        <div class="gallery">${slides.map((x, i) => `<button type="button" data-img="${i}" aria-label="הגדל: ${esc(x.title || x.caption || 'תמונה')}"><img src="${esc(x.url)}" alt="" loading="lazy">${x.title || x.caption ? `<span>${esc(x.title || x.caption)}</span>` : ''}</button>`).join('')}</div></section>` : ''}
-
-      <section class="card" id="t-zmanim"><details class="fold" ${(first ? localStorage.getItem('m:z') === '1' : openNow.has('t-zmanim')) ? 'open' : ''}><summary>${icon('sun')}זמני היום</summary>
-        <div class="rows" style="margin-top:6px">${showZ.map((k) => row(ZMAN_LABEL[k], fmtTime(day.zmanim[k], s.tz, zmanRound(k, s)))).join('')}</div>
-        <div class="muted" style="font-size:13px">לפי מיקום בית הכנסת${s.city ? ` (${esc(s.city)})` : ''}</div></details></section>
-
-      <section class="card" id="t-week"><details class="fold" ${openNow.has('t-week') ? 'open' : ''}><summary>${icon('calendar')}תפילות השבוע</summary>
-        <div class="sub-h">ימות החול</div><div class="rows">${weekly.weekday.map((p) => row(p.name, esc(p.time), p.note)).join('') || '<div class="muted">—</div>'}</div>
-        <div class="sub-h">ערב שבת</div><div class="rows">${weekly.friday.map((p) => row(p.name, esc(p.time), p.note)).join('') || '<div class="muted">—</div>'}</div>
-        <div class="sub-h">שבת</div><div class="rows">${weekly.shabbat.map((p) => row(p.name, esc(p.time), p.note)).join('') || '<div class="muted">—</div>'}</div>
-      </details></section>
-
-      ${hal ? `<section class="card halacha" id="t-hal"><h2>${icon('scroll')}הלכה יומית</h2>${hal.title ? `<div class="t">${esc(hal.title)}</div>` : ''}
-        <div class="x">${hal.parts.map((p) => (p.rema ? `<span class="rema"><b>הגה:</b> ${esc(p.text)}</span>` : esc(p.text))).join(' ')}</div><div class="src">${esc(hal.source)}</div></section>`
-        : custom ? `<section class="card halacha" id="t-hal"><h2>${icon('scroll')}הלכה יומית</h2><div class="t">${esc(custom.title)}</div><div class="x">${esc(custom.text)}</div>${custom.source ? `<div class="src">${esc(custom.source)}</div>` : ''}</section>` : ''}
-
-      ${mish ? `<section class="card halacha" id="t-mish"><h2>${icon('book')}משנה יומית</h2><div class="t">${mish.seder ? `סדר ${esc(mish.seder)} · ` : ''}מסכת ${esc(mish.tractate)}</div>
-        ${mish.items.map((x) => `<div class="x"><span class="ml">פרק ${esc(x.perekHe)} משנה ${esc(x.mishnaHe)}</span> ${esc(x.text)}</div>`).join('')}<div class="src">${esc(mish.source)}</div></section>` : ''}
-
-      ${day.learning?.length ? `<section class="card"><h2>${icon('book')}הלימוד היומי</h2><div class="rows">${day.learning.map((l) => row(l.label, `<span style="font:700 17px var(--body);direction:rtl">${esc(l.text)}</span>`)).join('')}</div></section>` : ''}
-
-      ${lessons.length ? `<section class="card" id="t-les"><h2>${icon('book')}שיעורים קבועים</h2><div class="rows">${lessons.map((l, i) => row(l.title, `${esc(l.timeStr)}<button type="button" class="ics" data-ics="${i}" title="הוסף ליומן" aria-label="הוסף את ${esc(l.title)} ליומן">${icon('calplus')}</button>`, [daysLabel(l.weekdays), l.teacher, l.note].filter(Boolean).join(' · '))).join('')}</div>
-        <div class="muted" style="font-size:13px">לחיצה על סמל היומן ליד השעה מוסיפה את השיעור ליומן בטלפון, עם תזכורת רבע שעה לפני.</div></section>` : ''}
-
-      ${mem.length || bdays.length || hil.length ? `<section class="card people"><h2>${icon('people')}השבוע בקהילה</h2><div class="rows">
-        ${mem.map((m) => row(`${m.name} ז״ל`, esc(renderHeb(m.hdate)), m.by ? `אזכרה · ${m.by}` : 'אזכרה')).join('')}
-        ${bdays.map((b) => row(b.name, esc(renderHeb(b.hdate)), 'יום הולדת – מזל טוב!')).join('')}
-        ${hil.map((h) => row(h.name, esc(renderHeb(h.hdate)), 'הילולא')).join('')}</div></section>` : ''}
+      ${order.map((k) => B[k]).filter((x) => x && x.trim()).join('\n')}
 
       <div class="actions">
         <button class="btn primary" type="button" id="share">${icon('share')}שתף</button>

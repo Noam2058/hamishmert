@@ -1,5 +1,5 @@
 // דף המתפללים: כל מה שבלוח, מסודר לטלפון.
-import { moladInfo, computeDay, fmtTime, minutesOf, ZMAN_LABEL, ZMANIM, inHebrewRange, yahrzeitIn, birthdayIn, renderHeb, minToHhmm, zmanRound } from './jewish.js';
+import { moladInfo, computeDay, fmtTime, minutesOf, ZMAN_LABEL, ZMANIM, inHebrewRange, yahrzeitIn, birthdayIn, renderHeb, minToHhmm, zmanRound, zmanimFor, weekdayHe } from './jewish.js';
 import { prayersForDay, weeklyPrayers, resolveTime, daysLabel } from './prayers.js';
 import { HDate } from './lib.js';
 import { load, subscribe } from './store.js';
@@ -87,22 +87,26 @@ function render() {
   const day = computeDay(now, s);
   const nowMin = minutesOf(now, s.tz);
   const iso = isoOf(now, s.tz);
-  const today = prayersForDay(day, DATA, s);
+  // אחרי צאת הכוכבים – כבר התפילות והזמנים של מחר (כמו בלוח הראשי)
+  const dayT = day.night ? computeDay(new Date(now.getTime() + 86400000), s) : day;
+  const today = prayersForDay(dayT, DATA, s);
+  const zmShow = day.night ? zmanimFor(dayT.civil, s) : day.zmanim;
   const weekly = weeklyPrayers(day, DATA, s);
   const sh = day.shabbat;
   const meta = Object.fromEntries(ZMANIM.map((z) => [z.key, z]));
   const lctx = { candles: sh.candles, havdalah: sh.havdalah };
 
   // התפילה הבאה – היום, ואם אין – מחר
-  let next = today.find((p) => p.min != null && p.min >= nowMin);
-  let nextDay = '';
+  let next = day.night ? today.find((p) => p.min != null) : today.find((p) => p.min != null && p.min >= nowMin);
+  let nextDay = day.night && next ? 'מחר' : '';
+  if (next && day.night) next = { ...next, min: next.min + 1440 };
   if (!next) {
     const t = new Date(now.getTime() + 86400000);
     const d2 = computeDay(t, s);
     const p2 = prayersForDay(d2, DATA, s).find((p) => p.min != null);
     if (p2) { next = { ...p2, min: p2.min + 1440 }; nextDay = 'מחר'; }
   }
-  const nextIdx = today.indexOf(today.find((p) => p.min != null && p.min >= nowMin));
+  const nextIdx = today.indexOf(today.find((p) => p.min != null && (day.night || p.min >= nowMin)));
 
   const lessonsToday = (DATA.lessons || []).filter((l) => !l.weekdays?.length || l.weekdays.includes(day.civil.getDay()));
   const lessons = (DATA.lessons || []).map((l) => { const m = resolveTime(l.time, day.civil, s, lctx); return { ...l, timeStr: m == null ? '' : minToHhmm(m) }; });
@@ -124,8 +128,8 @@ function render() {
   const nav = [['t-today', 'היום'], ['t-shabbat', isShabbat ? 'שבת' : 'חג'], hols.length && ['t-hol', 'החג'], anns.length && ['t-ann', 'הודעות'], slides.length && ['t-img', 'תמונות'], ['t-zmanim', 'זמנים'], ['t-week', 'השבוע'], (hal || custom) && ['t-hal', 'הלכה'], mish && ['t-mish', 'משנה'], lessons.length && ['t-les', 'שיעורים']].filter(Boolean);
 
   const B = {
-    today: `<section class="card" id="t-today"><h2>${icon('prayer')}תפילות היום</h2>
-        ${today.length ? `<div class="rows">${today.map((p, i) => row(p.name, esc(p.time), p.note, i === nextIdx ? 'next' : p.min != null && p.min < nowMin ? 'past' : '')).join('')}</div>` : '<div class="muted">לא הוגדרו תפילות להיום.</div>'}
+    today: `<section class="card" id="t-today"><h2>${icon('prayer')}${day.night ? `תפילות מחר · ${esc(weekdayHe(dayT.civil.getDay()))}` : 'תפילות היום'}</h2>
+        ${today.length ? `<div class="rows">${today.map((p, i) => row(p.name, esc(p.time), p.note, i === nextIdx ? 'next' : !day.night && p.min != null && p.min < nowMin ? 'past' : '')).join('')}</div>` : `<div class="muted">לא הוגדרו תפילות ל${day.night ? 'מחר' : 'היום'}.</div>`}
         ${day.changes.length ? `<div class="chips">${day.changes.map((c) => `<span class="chip">${esc(c)}</span>`).join('')}</div>` : ''}
         ${day.omer ? `<div class="muted">${esc(day.afterSunset && day.omerTonight ? `הלילה: ${day.omerTonight.text}` : day.omer.text)}</div>` : ''}
         ${lessonsToday.length ? `<div class="sub-h">שיעורים היום</div><div class="rows">${lessons.filter((l) => lessonsToday.some((x) => x.id === l.id)).map((l) => row(l.title, esc(l.timeStr), [l.teacher, l.note].filter(Boolean).join(' · '))).join('')}</div>` : ''}
@@ -150,8 +154,8 @@ function render() {
         ${anns.map((a) => `<div class="ann ${esc(a.style || '')} ${annClasses(a)}"${annStyle(a)}>${a.title ? `<h3>${esc(a.title)}</h3>` : ''}<p>${annBody(a.body)}</p>${a.dateMode !== 'hebrew' && a.to ? `<div class="when">עד ${esc(a.to.split('-').reverse().join('.'))}</div>` : ''}</div>`).join('')}</section>` : ''}`,
     img: `${slides.length ? `<section class="card" id="t-img"><h2>${icon('image')}מודעות ותמונות</h2>
         <div class="gallery">${slides.map((x, i) => `<button type="button" data-img="${i}" aria-label="הגדל: ${esc(x.title || x.caption || 'תמונה')}"><img src="${esc(x.url)}" alt="" loading="lazy">${x.title || x.caption ? `<span>${esc(x.title || x.caption)}</span>` : ''}</button>`).join('')}</div></section>` : ''}`,
-    zmanim: `<section class="card" id="t-zmanim"><details class="fold" ${(first ? localStorage.getItem('m:z') === '1' : openNow.has('t-zmanim')) ? 'open' : ''}><summary>${icon('sun')}זמני היום</summary>
-        <div class="rows" style="margin-top:6px">${showZ.map((k) => row(ZMAN_LABEL[k], fmtTime(day.zmanim[k], s.tz, zmanRound(k, s)))).join('')}</div>
+    zmanim: `<section class="card" id="t-zmanim"><details class="fold" ${(first ? localStorage.getItem('m:z') === '1' : openNow.has('t-zmanim')) ? 'open' : ''}><summary>${icon('sun')}${day.night ? 'זמני מחר' : 'זמני היום'}</summary>
+        <div class="rows" style="margin-top:6px">${showZ.map((k) => row(ZMAN_LABEL[k], fmtTime(zmShow[k], s.tz, zmanRound(k, s)))).join('')}</div>
         <div class="muted" style="font-size:13px">לפי מיקום בית הכנסת${s.city ? ` (${esc(s.city)})` : ''}</div></details></section>`,
     week: `<section class="card" id="t-week"><details class="fold" ${openNow.has('t-week') ? 'open' : ''}><summary>${icon('calendar')}תפילות השבוע</summary>
         <div class="sub-h">ימות החול</div><div class="rows">${weekly.weekday.map((p) => row(p.name, esc(p.time), p.note)).join('') || '<div class="muted">—</div>'}</div>

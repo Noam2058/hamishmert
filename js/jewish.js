@@ -40,6 +40,7 @@ export function fmtTime(date, tz, mode = 'nearest') {
   if (!date || isNaN(date)) return '--:--';
   let t = date.getTime();
   const sec = tzParts(date, tz).ss;
+  if (mode === 'sec') { const p = tzParts(date, tz); return `${String(p.hh).padStart(2, '0')}:${String(p.mm).padStart(2, '0')}:${String(p.ss).padStart(2, '0')}`; }
   if (mode === 'ceil' && sec > 0) t += (60 - sec) * 1000;
   else if (mode === 'nearest' && sec >= 30) t += (60 - sec) * 1000;
   const p = tzParts(new Date(t), tz);
@@ -55,6 +56,14 @@ export const hhmmToMin = (s) => {
   const [h, m] = String(s || '0:0').split(':').map(Number);
   return (h || 0) * 60 + (m || 0);
 };
+/** שעה עם שניות (מדקות עשרוניות) – לזמנים לפי לוח חי */
+export const minToHhmmss = (min) => {
+  const tot = ((Math.round(min * 60) % 86400) + 86400) % 86400;
+  const p = (n) => String(n).padStart(2, '0');
+  return `${p(Math.floor(tot / 3600))}:${p(Math.floor(tot / 60) % 60)}:${p(tot % 60)}`;
+};
+/** איך לעגל זמן מזמני היום בתצוגה: הנץ לפי לוח חי – בשניות, כמו בטבלה */
+export const zmanRound = (key, s) => (key === 'netzChai' || (key === 'sunrise' && s?.netzSource === 'chai') ? 'sec' : (ZMANIM.find((z) => z.key === key)?.round || 'nearest'));
 export const minToHhmm = (min) => {
   const m = ((Math.round(min) % 1440) + 1440) % 1440;
   return `${String(Math.floor(m / 60)).padStart(2, '0')}:${String(m % 60).padStart(2, '0')}`;

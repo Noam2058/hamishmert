@@ -1,6 +1,6 @@
 // דף שבועי להדפסה (A4): זמני השבת, תפילות השבוע, טבלת זמני היום, שיעורים והודעות.
 import { load } from './store.js';
-import { computeDay, zmanimFor, fmtTime, ZMANIM, ZMAN_LABEL, renderHeb, moladInfo, minToHhmm } from './jewish.js';
+import { computeDay, zmanimFor, fmtTime, ZMANIM, ZMAN_LABEL, renderHeb, moladInfo, minToHhmm, zmanRound } from './jewish.js';
 import { weeklyPrayers, prayersForDay, resolveTime, daysLabel, describeTime } from './prayers.js';
 import { annActive, annBody } from './ann.js';
 import { upcomingHolidaySchedules } from './holidays.js';
@@ -87,7 +87,7 @@ function render() {
     ${hols.length ? `<div class="cols3">${hols.slice(0, 3).map((g) => `<section class="box"><h3>${esc(g.label)} <span class="sub">${esc(g.heb)}</span></h3><table class="pt">${g.rows.map(prow).join('')}</table></section>`).join('')}</div>` : ''}
 
     ${$('#opt-zmanim').checked ? `<section class="box"><h3>${vcols.length ? 'תפילות וזמני היום – לפי יום' : 'זמני היום'}</h3><table class="zt"><thead><tr><th></th>${vcols.map((n) => `<th class="pr">${esc(n)}</th>`).join('')}${zkeys.map((k) => `<th>${esc(ZMAN_LABEL[k])}</th>`).join('')}</tr></thead><tbody>
-      ${dayInfo.map(({ d, cd, z }, i) => `<tr${d.getDay() === 6 ? ' class="sat"' : ''}><th>${esc(DAYS[d.getDay()])}<small>${esc(renderHeb(cd.hd))}</small></th>${vcols.map((n) => `<td class="pr">${esc(perDay[i].find((p) => p.name === n)?.time || '—')}</td>`).join('')}${zkeys.map((k) => `<td>${fmtTime(z[k], s.tz, zround[k])}</td>`).join('')}</tr>`).join('')}
+      ${dayInfo.map(({ d, cd, z }, i) => `<tr${d.getDay() === 6 ? ' class="sat"' : ''}><th>${esc(DAYS[d.getDay()])}<small>${esc(renderHeb(cd.hd))}</small></th>${vcols.map((n) => `<td class="pr">${esc(perDay[i].find((p) => p.name === n)?.time || '—')}</td>`).join('')}${zkeys.map((k) => `<td>${fmtTime(z[k], s.tz, zmanRound(k, s))}</td>`).join('')}</tr>`).join('')}
     </tbody></table></section>` : ''}
 
     <div class="cols2">

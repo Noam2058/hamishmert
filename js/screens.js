@@ -1,6 +1,6 @@
 // המסכים של הלוח. כל מסך מחזיר HTML, מערך של שקפים, או null כשאין מה להציג.
 import { cachedHalacha, DEFAULT_START } from './halacha-sa.js';
-import { zmanimFor, moladInfo, computeDay, minToHhmm, fmtTime, minutesOf, ZMAN_LABEL, ZMANIM, inHebrewRange, yahrzeitIn, birthdayIn, renderHeb, hhmmToMin } from './jewish.js';
+import { zmanimFor, moladInfo, computeDay, minToHhmm, fmtTime, minutesOf, ZMAN_LABEL, ZMANIM, inHebrewRange, yahrzeitIn, birthdayIn, renderHeb, hhmmToMin, zmanRound } from './jewish.js';
 import { HDate } from './lib.js';
 import { daysLabel, resolveTime } from './prayers.js';
 import { cachedMishna } from './mishna.js';
@@ -63,6 +63,8 @@ const changesHtml = (changes, extra = []) => {
 };
 const candle = '<div class="candle" aria-hidden="true"><div class="flame"></div><div class="wax"></div></div>';
 
+/** 06:01:10 → השניות בגודל קטן יותר */
+const secSmall = (t) => String(t).replace(/^(\d\d:\d\d)(:\d\d)$/, '$1<span class="ss">$2</span>');
 function prayerRows(list, nowMin, markNext = true, compact = false) {
   if (!list.length) return '<div class="empty">לא הוגדרו תפילות</div>';
   let nextMarked = !markNext;
@@ -75,7 +77,7 @@ function prayerRows(list, nowMin, markNext = true, compact = false) {
     // "ערבית (צאת הכוכבים)" → שם ראשי + תגית קטנה, כדי שהסוגריים לא יישברו לשורות
     const m = /^(.*?)\s*\(([^)]+)\)\s*$/.exec(p.name.trim());
     const nm = m && m[1] ? m[1] : p.name, tag = m && m[1] ? m[2] : '';
-    return `<div class="row ${cls}"><div class="k"><span class="nm">${esc(nm)}</span>${tag ? `<span class="pq">${esc(tag)}</span>` : ''}${p.note ? `<small>${esc(p.note)}</small>` : ''}</div><div class="v">${p.time}</div></div>`;
+    return `<div class="row ${cls}"><div class="k"><span class="nm">${esc(nm)}</span>${tag ? `<span class="pq">${esc(tag)}</span>` : ''}${p.note ? `<small>${esc(p.note)}</small>` : ''}</div><div class="v">${secSmall(p.time)}</div></div>`;
   });
   return `<div class="rows${compact ? ' compact' : ''}">${rows.join('')}</div>`;
 }
@@ -95,7 +97,7 @@ function zmanimRows(ctx, keys, compact) {
   return `<div class="rows${compact ? ' compact' : ''}">${keys.map((k) => {
     const t = day.zmanim[k];
     const past = t && minutesOf(t, s.tz) < nowMin && !(k === 'chatzotNight');
-    return `<div class="row ${past ? 'past' : ''}"><div class="k">${esc(ZMAN_LABEL[k])}</div><div class="v">${fmtTime(t, s.tz, meta[k]?.round)}</div></div>`;
+    return `<div class="row ${past ? 'past' : ''}"><div class="k">${esc(ZMAN_LABEL[k])}</div><div class="v">${secSmall(fmtTime(t, s.tz, zmanRound(k, s)))}</div></div>`;
   }).join('')}</div>`;
 }
 
@@ -468,7 +470,7 @@ export const SCREENS = {
     const shmaWin = +(display.shmaWindowMin || 0) * 60000; // 0 = מהנץ ועד סוף הזמן
     let target, label, sub;
     const shmaSub = `מג"א: <b>${fmtTime(mga, s.tz, 'floor')}</b> · גר"א: <b>${fmtTime(gra, s.tz, 'floor')}</b>`;
-    if (display.netzCountdown !== false && now < sr && sr - now <= win) { target = sr; label = 'הנץ החמה בעוד'; sub = `הנץ היום: <b>${fmtTime(sr, s.tz, 'ceil')}</b>`; }
+    if (display.netzCountdown !== false && now < sr && sr - now <= win) { target = sr; label = 'הנץ החמה בעוד'; sub = `הנץ היום: <b>${fmtTime(sr, s.tz, zmanRound('sunrise', s))}</b>`; }
     else if (display.shmaCountdown !== false) {
       const list = (which === 'mga' ? [mga] : which === 'both' ? [mga, gra] : [gra]).filter(Boolean);
       const t = list.find((x) => now < x);
@@ -650,7 +652,7 @@ export function tickerItems(ctx) {
   const { day, s, prayersToday, lessonsToday } = ctx;
   const items = [];
   const keys = ['sunrise', 'shmaGRA', 'sunset', 'tzeit'];
-  for (const k of keys) items.push(`${ZMAN_LABEL[k]} <b>${fmtTime(day.zmanim[k], s.tz, ZMANIM.find((z) => z.key === k).round)}</b>`);
+  for (const k of keys) items.push(`${ZMAN_LABEL[k]} <b>${fmtTime(day.zmanim[k], s.tz, zmanRound(k, s))}</b>`);
   if (day.shabbat.candles) items.push(`${day.shabbat.candlesLabel} <b>${fmtTime(day.shabbat.candles, s.tz, 'floor')}</b>`);
   // פרשת השבוע מוצגת תמיד בכותרת העליונה – לא חוזרים עליה בפס
   for (const c of day.changes.slice(0, 3)) items.push(esc(c));

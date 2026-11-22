@@ -1,5 +1,5 @@
 // דף המתפללים: כל מה שבלוח, מסודר לטלפון.
-import { moladInfo, computeDay, fmtTime, minutesOf, ZMAN_LABEL, ZMANIM, inHebrewRange, yahrzeitIn, birthdayIn, renderHeb, minToHhmm } from './jewish.js';
+import { moladInfo, computeDay, fmtTime, minutesOf, ZMAN_LABEL, ZMANIM, inHebrewRange, yahrzeitIn, birthdayIn, renderHeb, minToHhmm, zmanRound } from './jewish.js';
 import { prayersForDay, weeklyPrayers, resolveTime, daysLabel } from './prayers.js';
 import { HDate } from './lib.js';
 import { load, subscribe } from './store.js';
@@ -168,7 +168,7 @@ function render() {
         <div class="gallery">${slides.map((x, i) => `<button type="button" data-img="${i}" aria-label="הגדל: ${esc(x.title || x.caption || 'תמונה')}"><img src="${esc(x.url)}" alt="" loading="lazy">${x.title || x.caption ? `<span>${esc(x.title || x.caption)}</span>` : ''}</button>`).join('')}</div></section>` : ''}
 
       <section class="card" id="t-zmanim"><details class="fold" ${(first ? localStorage.getItem('m:z') === '1' : openNow.has('t-zmanim')) ? 'open' : ''}><summary>${icon('sun')}זמני היום</summary>
-        <div class="rows" style="margin-top:6px">${showZ.map((k) => row(ZMAN_LABEL[k], fmtTime(day.zmanim[k], s.tz, meta[k]?.round))).join('')}</div>
+        <div class="rows" style="margin-top:6px">${showZ.map((k) => row(ZMAN_LABEL[k], fmtTime(day.zmanim[k], s.tz, zmanRound(k, s)))).join('')}</div>
         <div class="muted" style="font-size:13px">לפי מיקום בית הכנסת${s.city ? ` (${esc(s.city)})` : ''}</div></details></section>
 
       <section class="card" id="t-week"><details class="fold" ${openNow.has('t-week') ? 'open' : ''}><summary>${icon('calendar')}תפילות השבוע</summary>

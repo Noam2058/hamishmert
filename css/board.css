@@ -697,3 +697,6 @@ footer.ticker { isolation: isolate; transform: translateZ(0); }
 .sg-medal.txt b { font-size: 60px; }
 .sg-v5 .sg-mid::before { inset: 0 -8%; background: radial-gradient(closest-side, rgba(10,14,36,.88), rgba(10,14,36,.55) 70%, transparent); }
 .lite .sg-medal { filter: none; }
+
+/* שניות (לוח חי) – קטנות יותר ליד השעה */
+.v .ss { font-size: .6em; opacity: .78; margin-inline-start: 1px; }

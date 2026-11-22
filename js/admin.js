@@ -1,7 +1,7 @@
 // ממשק הגבאי: עריכת כל הנתונים של הלוח.
 import { load, save, mode, currentUser, signIn, signUp, signOut, exportJson, boardId, uploadMedia, deleteMedia } from './store.js';
 import { demoData, normalize, SCREEN_LABEL, THEMES, uid } from './defaults.js';
-import { SCHEDULES, ZMAN_BASES, resolveTime, describeTime, prayersForDay, lessonsForDay } from './prayers.js';
+import { SCHEDULES, ZMAN_BASES, resolveTime, describeTime, prayersForDay, lessonsForDay, fmtItemMin } from './prayers.js';
 import { ZMANIM, HEB_MONTHS, computeDay, minToHhmm, fmtTime, yahrzeitIn, birthdayIn, inHebrewRange, renderHeb, chaiInfo } from './jewish.js';
 import { refForDate, heNum, DEFAULT_START } from './halacha-sa.js';
 import { SCENE_CHOICES } from './scenes.js';
@@ -118,7 +118,7 @@ function timeOf(item) {
   try {
     const day = sampleDay(item)?.day || todayDay();
     const m = resolveTime(item.time, day.civil, DATA.synagogue, { candles: day.shabbat.candles, havdalah: day.shabbat.havdalah });
-    return m == null ? '' : minToHhmm(m);
+    return m == null ? '' : fmtItemMin(m, item.time);
   } catch { return ''; }
 }
 function hebDateOf(item, fn) {
@@ -376,7 +376,7 @@ function fieldHtml(item, [key, label, type, opts], path) {
     const opt = (list, cur) => list.map(([k, l]) => `<option value="${k}" ${String(cur) === String(k) ? 'selected' : ''}>${l}</option>`).join('');
     const weekly = !['friday', 'shabbat'].includes(item.schedule);
     const ex = (dir) => { const m = 5 * 60 + 38, st = round || 5; const r = dir === 'up' ? Math.ceil(m / st) * st : dir === 'nearest' ? Math.round(m / st) * st : Math.floor(m / st) * st; return `05:38 יהיה ${minToHhmm(r)}`; };
-    const advOpen = advIds.has(item.id) || round > 0 || (weekly && basis !== 'day');
+    const advOpen = advIds.has(item.id) || round !== 0 || (weekly && basis !== 'day');
     input = `<div class="timebox" data-k="${key}" data-type="time">
       <div class="tb-main">
         <select data-t="type" aria-label="סוג השעה">${opt([['fixed', 'שעה קבועה'], ['zman', 'לפי זמן היום (משתנה)']], t.type === 'zman' ? 'zman' : 'fixed')}</select>
@@ -387,9 +387,9 @@ function fieldHtml(item, [key, label, type, opts], path) {
       </div>
       ${t.type === 'zman' ? `<details class="adv" ${advOpen ? 'open' : ''}><summary>אפשרויות מתקדמות – עיגול${weekly ? ' ושעה קבועה לכל השבוע' : ''}</summary>
         <div class="adv-grid">
-          <label class="fld"><span>עיגול השעה</span><select data-t="round">${opt([[0, 'בלי עיגול – בדיוק לפי החישוב'], [5, 'לעגל ל-5 דקות'], [10, 'לעגל ל-10 דקות'], [15, 'לעגל לרבע שעה']], round)}</select>
+          <label class="fld"><span>עיגול השעה</span><select data-t="round">${opt([[-1, 'בדיוק לשנייה (כמו בלוח חי) – למשל 06:01:10'], [0, 'בלי עיגול – בדיוק לפי החישוב'], [5, 'לעגל ל-5 דקות'], [10, 'לעגל ל-10 דקות'], [15, 'לעגל לרבע שעה']], round)}</select>
             <small class="muted">שעה "עגולה" נוחה יותר לזכור (למשל 05:35 במקום 05:38).</small></label>
-          ${round ? `<label class="fld"><span>לאיזה כיוון לעגל</span><select data-t="dir">${opt([['down', `להקדים · ${ex('down')}`], ['up', `לאחר · ${ex('up')}`], ['nearest', `לקרוב ביותר · ${ex('nearest')}`]], t.dir || 'down')}</select>
+          ${round > 0 ? `<label class="fld"><span>לאיזה כיוון לעגל</span><select data-t="dir">${opt([['down', `להקדים · ${ex('down')}`], ['up', `לאחר · ${ex('up')}`], ['nearest', `לקרוב ביותר · ${ex('nearest')}`]], t.dir || 'down')}</select>
             <small class="muted">לתפילה שצריכה להיות לפני זמן מסוים (למשל לפני השקיעה) – בחר "להקדים".</small></label>` : ''}
           ${weekly ? `<label class="fld"><span>שעה אחידה לכל השבוע?</span><select data-t="basis">${opt([['day', 'לא – כל יום לפי הזמן של אותו יום'], ['week-min', 'כן – שעה אחת לא׳–ה׳, לפי היום המוקדם'], ['week-max', 'כן – שעה אחת לא׳–ה׳, לפי היום המאוחר']], basis)}</select>
             <small class="muted">זמני היום זזים בדקה-שתיים מיום ליום. "שעה אחת" נותנת אותה שעה כל ימות החול. "המוקדם" שומר שהתפילה לא תאחר את הזמן באף יום.</small></label>` : ''}

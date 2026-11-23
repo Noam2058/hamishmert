@@ -204,8 +204,8 @@ main#screens { position: relative; z-index: 1; padding: 54px 64px 26px; }
 .netz { flex: 1; justify-content: center; align-items: center; text-align: center; gap: 8px; }
 .netz .lbl { font: 800 52px var(--display); }
 .netz .count { font: 900 300px/1 var(--display); font-variant-numeric: tabular-nums; direction: ltr; letter-spacing: 6px; color: var(--ink); }
-.netz .sub { font: 700 46px var(--display); color: var(--ink-soft); }
-.netz .sub b { color: var(--ink); font-variant-numeric: tabular-nums; }
+.netz .sub { font: 700 66px var(--display); color: var(--ink-soft); margin-top: 6px; }
+.netz .sub b { color: var(--ink); font-variant-numeric: tabular-nums; font-size: 1.12em; direction: ltr; unicode-bidi: isolate; }
 
 /* עומר */
 .omer { flex: 1; justify-content: center; align-items: center; text-align: center; gap: 24px; }

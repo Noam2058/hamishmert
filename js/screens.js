@@ -476,7 +476,8 @@ export const SCREENS = {
     const which = display.shmaZman || 'gra';
     const shmaWin = +(display.shmaWindowMin || 0) * 60000; // 0 = מהנץ ועד סוף הזמן
     let target, label, sub;
-    const shmaSub = `מג"א: <b>${fmtTime(mga, s.tz, 'floor')}</b> · גר"א: <b>${fmtTime(gra, s.tz, 'floor')}</b>`;
+    // הספירה מדויקת לשנייה – אז גם השעה מוצגת עם שניות, כדי שהספירה והשעה יתאימו
+    const shmaSub = `מג"א: <b>${fmtTime(mga, s.tz, 'sec')}</b> · גר"א: <b>${fmtTime(gra, s.tz, 'sec')}</b>`;
     if (display.netzCountdown !== false && now < sr && sr - now <= win) { target = sr; label = 'הנץ החמה בעוד'; sub = `הנץ היום: <b>${fmtTime(sr, s.tz, zmanRound('sunrise', s))}</b>`; }
     else if (display.shmaCountdown !== false) {
       const list = (which === 'mga' ? [mga] : which === 'both' ? [mga, gra] : [gra]).filter(Boolean);

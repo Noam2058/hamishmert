@@ -76,7 +76,8 @@ function prayerRows(list, nowMin, markNext = true, compact = false) {
     }
     // "ערבית (צאת הכוכבים)" → שם ראשי + תגית קטנה, כדי שהסוגריים לא יישברו לשורות
     const m = /^(.*?)\s*\(([^)]+)\)\s*$/.exec(p.name.trim());
-    const nm = m && m[1] ? m[1] : p.name, tag = m && m[1] ? m[2] : '';
+    // השם מוצג בדיוק כמו שנכתב; טקסט קטן מתחת לשם – רק מ"הערה" (בלי להפוך סוגריים בשם לתגית)
+    const nm = p.name, tag = '';
     return `<div class="row ${cls}"><div class="k"><span class="nm">${esc(nm)}</span>${tag ? `<span class="pq">${esc(tag)}</span>` : ''}${p.note ? `<small>${esc(p.note)}</small>` : ''}</div><div class="v">${secSmall(p.time)}</div></div>`;
   });
   return `<div class="rows${compact ? ' compact' : ''}">${rows.join('')}</div>`;

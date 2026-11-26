@@ -571,8 +571,8 @@ html, body, #viewport { touch-action: pan-x pan-y; }
 .row .k .pq { font: 700 calc(21px * var(--rz, 1))/1 var(--body); color: color-mix(in srgb, var(--gold) 72%, var(--ink)); padding: calc(5px * var(--rz, 1)) calc(12px * var(--rz, 1));
   border-radius: 999px; background: color-mix(in srgb, var(--gold) 14%, transparent); border: 1px solid color-mix(in srgb, var(--gold) 45%, transparent); white-space: nowrap; }
 /* הערה מתחת לשם התפילה: שורה עדינה בזהב-חום, עם קו זהב קצר לפניה */
-.row .k small { margin-top: calc(2px * var(--rz, 1)); display: flex; gap: calc(10px * var(--rz, 1)); align-items: center; font: 600 calc(24px * var(--rz, 1))/1.3 var(--body); color: color-mix(in srgb, var(--gold) 55%, var(--ink) 45%); letter-spacing: .01em; text-wrap: balance; }
-.row .k small::before { content: ""; width: calc(22px * var(--rz, 1)); height: 2px; border-radius: 2px; background: linear-gradient(90deg, transparent, var(--gold)); flex-shrink: 0; }
+.row .k small { margin-top: calc(2px * var(--rz, 1)); display: flex; gap: calc(10px * var(--rz, 1)); align-items: center; font: 600 calc(26px * var(--rz, 1))/1.3 var(--body); color: color-mix(in srgb, var(--gold) 50%, var(--ink) 50%); letter-spacing: .01em; text-wrap: balance; }
+.row .k small::before { content: ""; width: calc(26px * var(--rz, 1)); height: 2.5px; border-radius: 2px; background: linear-gradient(270deg, transparent, var(--gold)); flex-shrink: 0; }
 .row.next .k::after { align-self: flex-start; }
 /* כרטיסים צרים (4 טורים): זמן וגופן קצת קטנים יותר כדי שהשם לא יישבר לשורות */
 .rows { container-type: inline-size; }

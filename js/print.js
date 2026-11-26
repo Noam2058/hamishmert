@@ -64,8 +64,8 @@ function render() {
   $('#sheet').innerHTML = `
     <header class="head">
       <div class="h-main"><div class="shul">${esc(s.name || 'בית הכנסת')}</div>${s.dedication ? `<div class="ded">${esc(s.dedication)}</div>` : ''}
-        <div class="range">${esc(range)} · ${civ(days[0])}–${civ(days[6])}.${days[6].getFullYear()}</div></div>
-      <div class="qr" id="qr" title="סרקו לזמנים בטלפון"></div>
+        <div class="range">${esc(range)} · <bdi dir="ltr">${civ(days[0])}–${civ(days[6])}.${days[6].getFullYear()}</bdi></div></div>
+      <a class="qrlink" href="${esc(mUrl)}" target="_blank" rel="noopener"><div class="qr" id="qr" title="סרקו לזמנים בטלפון"></div><span>לזמנים בטלפון – סרקו או לחצו</span></a>
     </header>
 
     <section class="shab">
@@ -87,7 +87,7 @@ function render() {
     ${hols.length ? `<div class="cols3">${hols.slice(0, 3).map((g) => `<section class="box"><h3>${esc(g.label)} <span class="sub">${esc(g.heb)}</span></h3><table class="pt">${g.rows.map(prow).join('')}</table></section>`).join('')}</div>` : ''}
 
     ${$('#opt-zmanim').checked ? `<section class="box"><h3>${vcols.length ? 'תפילות וזמני היום – לפי יום' : 'זמני היום'}</h3><table class="zt"><thead><tr><th></th>${vcols.map((n) => `<th class="pr">${esc(n)}</th>`).join('')}${zkeys.map((k) => `<th>${esc(ZMAN_LABEL[k])}</th>`).join('')}</tr></thead><tbody>
-      ${dayInfo.map(({ d, cd, z }, i) => `<tr${d.getDay() === 6 ? ' class="sat"' : ''}><th>${esc(DAYS[d.getDay()])}<small>${esc(renderHeb(cd.hd))}</small></th>${vcols.map((n) => `<td class="pr">${esc(perDay[i].find((p) => p.name === n)?.time || '—')}</td>`).join('')}${zkeys.map((k) => `<td>${fmtTime(z[k], s.tz, zmanRound(k, s))}</td>`).join('')}</tr>`).join('')}
+      ${dayInfo.map(({ d, cd, z }, i) => `<tr${d.getDay() === 6 ? ' class="sat"' : ''}><th>${esc(DAYS[d.getDay()])}<small>${esc(renderHeb(cd.hd).replace(/ תש\S+$/, ''))} · <bdi dir="ltr">${civ(d)}</bdi></small></th>${vcols.map((n) => `<td class="pr">${esc(perDay[i].find((p) => p.name === n)?.time || '—')}</td>`).join('')}${zkeys.map((k) => `<td>${fmtTime(z[k], s.tz, zmanRound(k, s))}</td>`).join('')}</tr>`).join('')}
     </tbody></table></section>` : ''}
 
     <div class="cols2">

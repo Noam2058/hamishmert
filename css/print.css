@@ -62,3 +62,7 @@ table { width: 100%; border-collapse: collapse; }
 .zt th.pr { color: var(--navy); background: var(--gold-l); font-weight: 800; }
 .zt td.pr { font-weight: 900; color: var(--navy); background: color-mix(in srgb, var(--gold-l) 55%, #fff); }
 .pt .see { font: 700 8.5pt "Assistant"; color: var(--gold); }
+
+/* קישור לאתר: הברקוד לחיץ (גם ב-PDF) */
+.qrlink { display: flex; flex-direction: column; align-items: center; gap: 1.5mm; text-decoration: none; color: inherit; }
+.qrlink span { font-size: 2.6mm; color: var(--soft, #667); white-space: nowrap; text-decoration: underline; text-underline-offset: 2px; }

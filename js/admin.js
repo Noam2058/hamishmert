@@ -301,7 +301,7 @@ const LISTS = {
     },
     onDelete: (it) => { if (it.path) pendingDeletes.push(it.path); },
     blank: () => ({ id: uid(), url: '', title: '', caption: '', seconds: 12, fit: 'contain', enabled: true }),
-    fields: [['fit', 'איך להציג את התמונה', 'fit'],
+    fields: [['url', 'התמונה', 'replace'], ['fit', 'איך להציג את התמונה', 'fit'],
       ['size', 'גודל התמונה', 'select', [[100, 'גדול (100%)'], [90, '90%'], [80, '80%'], [70, '70%'], [60, 'קטן (60%)']]],
       ['stretch', 'מתיחה לרוחב (ב"כל התמונה" וב"מסך מלא")', 'range', { min: 100, max: 250, step: 5, unit: '%', zero: 'בלי מתיחה' }],
       ['bg', 'רקע מאחורי התמונה', 'select', [['board', 'הרקע של הלוח'], ['dark', 'כהה'], ['light', 'לבן']]],
@@ -368,6 +368,7 @@ function fieldHtml(item, [key, label, type, opts], path) {
   else if (type === 'textarea') input = `<textarea id="${id}" data-k="${key}">${esc(v)}</textarea>`;
   else if (type === 'check') return `<label class="fld check"><input id="${id}" data-k="${key}" type="checkbox" ${v ? 'checked' : ''}><span>${esc(label)}</span></label>`;
   else if (type === 'select') input = `<select id="${id}" data-k="${key}">${opts.map(([val, lab]) => `<option value="${esc(val)}" ${String(v ?? '') === String(val) ? 'selected' : ''}>${esc(lab)}</option>`).join('')}</select>`;
+  else if (type === 'replace') input = `<div class="replbox">${v ? `<img src="${esc(v)}" alt="">` : ''}<label class="btn">${icon('upload')}החלף תמונה<input type="file" accept="image/*" hidden data-replace="${esc(item.id)}"></label><small class="muted">ההגדרות (תאריכים, זמן, מתיחה) נשמרות – רק התמונה מתחלפת</small></div>`;
   else if (type === 'fit') input = `<div class="fitpick" data-k="${key}" data-type="fit" role="radiogroup">${FITS.map(([val, lab, sub, svg]) => `<label class="fitopt"><input type="radio" name="${id}" value="${val}" ${(v || 'contain') === val ? 'checked' : ''}>${svg}<b>${lab}</b><small>${sub}</small></label>`).join('')}</div>`;
   else if (type === 'weekdays') input = `<div class="days" data-k="${key}" data-type="weekdays">${WEEKDAY_OPTS.map((d, i) => `<label><input type="checkbox" value="${i}" ${(v || []).includes(i) ? 'checked' : ''}>${d}׳</label>`).join('')}</div>`;
   else if (type === 'time') {
@@ -609,6 +610,20 @@ function renderList(key, opts = null) {
     const it = def.blank(); arr.push(it); openIds.add(it.id); filters[key] = ''; setDirty(); renderList(key, { focusId: it.id }); updateCounts();
   });
   def.bindHead?.(() => renderList(key));
+  // החלפת תמונה קיימת – בלי למחוק ולהעלות מחדש (כל ההגדרות נשמרות)
+  p.querySelectorAll('input[data-replace]').forEach((inp) => inp.onchange = async () => {
+    const f = inp.files?.[0]; if (!f) return;
+    const it = (DATA.slides || []).find((x) => x.id === inp.dataset.replace); if (!it) return;
+    if (!f.type.startsWith('image/')) return flash('אפשר להעלות רק קובץ תמונה', true);
+    flash('מעלה את התמונה החדשה…');
+    try {
+      const { blob, ext, w, h } = await shrinkImage(f);
+      const { url, path } = await uploadMedia(blob, ext);
+      if (it.path) pendingDeletes.push(it.path);
+      Object.assign(it, { url, path, w, h, name: f.name });
+      openIds.add(it.id); setDirty(); renderList(key); await doSave(); flash('התמונה הוחלפה');
+    } catch (e) { flash(`ההחלפה נכשלה: ${e.message}`, true); }
+  });
   const flt = $('#flt');
   if (flt) flt.oninput = () => { filters[key] = flt.value; clearTimeout(flt.t); flt.t = setTimeout(() => { renderList(key); const n = $('#flt'); n.focus(); n.setSelectionRange(n.value.length, n.value.length); }, 250); };
 

@@ -595,3 +595,8 @@ html[dir="rtl"] .group-title::after { background: linear-gradient(270deg, color-
 .rangebox { display: flex; align-items: center; gap: 12px; }
 .rangebox input[type=range] { flex: 1; accent-color: var(--gold); padding: 0; height: 32px; border: 0; background: none; }
 .rangebox output { min-width: 86px; font-weight: 800; color: var(--gold); text-align: center; }
+
+/* החלפת תמונה בפריט */
+.replbox { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.replbox img { width: 120px; height: 68px; object-fit: cover; border-radius: 8px; border: 1px solid var(--line, #ddd); }
+.replbox .btn { cursor: pointer; }

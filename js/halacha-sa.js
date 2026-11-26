@@ -10,19 +10,53 @@ export const BOOKS = [
   { key: 'oc', ref: 'Shulchan_Arukh,_Orach_Chayim', he: 'אורח חיים', shape: OC, nikud: 'Torat Emet 363' },
   { key: 'yd', ref: "Shulchan_Arukh,_Yoreh_De'ah", he: 'יורה דעה', shape: YD, nikud: 'Torat Emet 357' },
 ];
+// סימנים שמדלגים עליהם (לא נלמדים בבית הכנסת). CUT – מהיום הזה הדילוג בתוקף; עד אז הלוח נשאר כמו שהיה,
+// וביום הזה ממשיכים מהסעיף הראשון שאחרי הסימן המדולג (בלי "לקפוץ קדימה" בגלל הימים שעברו)
+const SKIP = { oc: new Set([3]) }; // אורח חיים ג׳ – הנהגת בית הכסא
+const SKIP_CUT = '2026-11-26';
+const skipped = (b, siman) => !!SKIP[b.key]?.has(siman);
 const TOTAL = BOOKS.reduce((a, b) => a + b.shape.reduce((x, y) => x + y, 0), 0);
+const TOTAL2 = BOOKS.reduce((a, b) => a + b.shape.reduce((x, y, i) => x + (skipped(b, i + 1) ? 0 : y), 0), 0);
 export const DEFAULT_START = '2026-11-05'; // ביום הזה – אורח חיים סימן א סעיף א
 
 const dayNum = (iso) => Math.floor(Date.parse(`${iso}T12:00:00Z`) / 86400000);
+const mod = (n, m) => ((n % m) + m) % m;
 
-/** איזה סעיף לומדים בתאריך (yyyy-mm-dd) */
-export function refForDate(iso, startIso = DEFAULT_START) {
-  let n = ((dayNum(iso) - dayNum(startIso)) % TOTAL + TOTAL) % TOTAL;
+/** הסדר המקורי (בלי דילוגים) */
+function refOld(iso, startIso) {
+  let n = mod(dayNum(iso) - dayNum(startIso), TOTAL);
   for (const b of BOOKS) for (let i = 0; i < b.shape.length; i++) {
     if (n < b.shape[i]) return { book: b, siman: i + 1, seif: n + 1 };
     n -= b.shape[i];
   }
   return { book: BOOKS[0], siman: 1, seif: 1 };
+}
+/** מיקום סעיף ברצף שבלי הסימנים המדולגים; סעיף בסימן מדולג → הסעיף הראשון שאחריו */
+function idx2(r) {
+  let n = 0;
+  for (const b of BOOKS) for (let i = 0; i < b.shape.length; i++) {
+    const sim = i + 1;
+    if (b === r.book && sim === r.siman) return skipped(b, sim) ? n : n + r.seif - 1;
+    if (!skipped(b, sim)) n += b.shape[i];
+  }
+  return 0;
+}
+function at2(n) {
+  n = mod(n, TOTAL2);
+  for (const b of BOOKS) for (let i = 0; i < b.shape.length; i++) {
+    if (skipped(b, i + 1)) continue;
+    if (n < b.shape[i]) return { book: b, siman: i + 1, seif: n + 1 };
+    n -= b.shape[i];
+  }
+  return { book: BOOKS[0], siman: 1, seif: 1 };
+}
+
+/** איזה סעיף לומדים בתאריך (yyyy-mm-dd) */
+export function refForDate(iso, startIso = DEFAULT_START) {
+  const cutBase = dayNum(SKIP_CUT) < dayNum(startIso) ? startIso : SKIP_CUT; // תאריך התחלה חדש אחרי ה-CUT – הדילוג מתחילת הסבב
+  if (dayNum(iso) < dayNum(cutBase)) return refOld(iso, startIso);
+  const anchor = idx2(refOld(cutBase, startIso));
+  return at2(anchor + dayNum(iso) - dayNum(cutBase));
 }
 
 const ONES = ['', 'א', 'ב', 'ג', 'ד', 'ה', 'ו', 'ז', 'ח', 'ט'], TENS = ['', 'י', 'כ', 'ל', 'מ', 'נ', 'ס', 'ע', 'פ', 'צ'], HUNDREDS = ['', 'ק', 'ר', 'ש', 'ת'];

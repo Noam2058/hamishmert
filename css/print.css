@@ -43,7 +43,7 @@ body { margin: 0; background: #e9e4d8; color: var(--ink); font: 500 11pt/1.4 "As
 .shab { display: grid; grid-template-columns: 1fr 1.6fr 1fr; gap: 3mm; }
 .sb { border: 0.35mm solid var(--line); border-radius: 3mm; padding: 2.5mm; text-align: center; display: flex; flex-direction: column; justify-content: center; gap: 0.6mm; background: linear-gradient(180deg, #fffdf6, #faf4e4); }
 .sb small { color: var(--soft); font-weight: 700; font-size: 9.5pt; }
-.sb b { font: 800 25pt/1 "Assistant", sans-serif; font-variant-numeric: tabular-nums; direction: ltr; unicode-bidi: isolate; }
+.sb b { font: 700 26pt/1 "Lora", serif; color: var(--navy, #1c2f63); font-variant-numeric: tabular-nums; direction: ltr; unicode-bidi: isolate; }
 .sb .parsha { font: 900 19pt/1.15 "Frank Ruhl Libre", serif; color: var(--navy); }
 .tags { display: flex; flex-wrap: wrap; gap: 1.5mm; justify-content: center; margin-top: 1mm; } .tags span { font: 700 8.5pt "Assistant"; background: var(--gold-l); color: #6b4e14; padding: 0.3mm 2.5mm; border-radius: 99px; }
 .cols3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 3mm; } .cols2 { display: grid; grid-template-columns: 1fr 1fr; gap: 3mm; }
@@ -55,11 +55,11 @@ table { width: 100%; border-collapse: collapse; }
 .pt td { padding: 0.9mm 0; border-bottom: 0.2mm dashed var(--line); vertical-align: top; }
 .pt tr:last-child td { border-bottom: 0; }
 .pt td small { display: block; color: var(--soft); font-size: 8.5pt; font-weight: 500; }
-.pt td.t { text-align: left; font: 800 11.5pt "Assistant", sans-serif; font-variant-numeric: tabular-nums; direction: ltr; white-space: nowrap; }
+.pt td.t { text-align: left; font: 700 11.5pt "Lora", serif; color: var(--navy, #1c2f63); font-variant-numeric: tabular-nums; direction: ltr; white-space: nowrap; }
 .zt { font-size: 9pt; text-align: center; }
 .zt thead th { font: 700 8pt "Assistant"; color: var(--soft); padding: 0.8mm 0.5mm; border-bottom: 0.3mm solid var(--gold); line-height: 1.15; }
 .zt tbody th { text-align: right; font: 800 9.5pt "Assistant"; padding: 0.9mm 1mm; white-space: nowrap; } .zt tbody th small { display: block; font-weight: 600; font-size: 7.5pt; color: var(--soft); }
-.zt td { font: 700 10.5pt "Assistant", sans-serif; font-variant-numeric: tabular-nums; direction: ltr; unicode-bidi: isolate; border-bottom: 0.2mm dashed var(--line); }
+.zt td { font: 600 10.5pt "Lora", serif; font-variant-numeric: tabular-nums; direction: ltr; unicode-bidi: isolate; border-bottom: 0.2mm dashed var(--line); }
 .zt tr.sat th, .zt tr.sat td { background: var(--gold-l); }
 .molad p { margin: 0; font-weight: 700; }
 .anns .ann { padding: 1mm 0; border-bottom: 0.2mm dashed var(--line); } .anns .ann:last-child { border-bottom: 0; }
@@ -76,7 +76,7 @@ table { width: 100%; border-collapse: collapse; }
 }
 
 .zt th.pr { color: var(--navy); background: var(--gold-l); font-weight: 800; }
-.zt td.pr { font-weight: 800; color: var(--navy); background: color-mix(in srgb, var(--gold-l) 55%, #fff); }
+.zt td.pr { font-weight: 700; color: var(--navy); background: color-mix(in srgb, var(--gold-l) 55%, #fff); }
 .pt .see { font: 700 8.5pt "Assistant"; color: var(--gold); }
 
 /* קישור לאתר: הברקוד לחיץ (גם ב-PDF) */

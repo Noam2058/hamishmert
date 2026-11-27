@@ -457,10 +457,10 @@ async function watchVersion() {
       try { localStorage.setItem('shulboard:verReload', JSON.stringify({ v, t: Date.now() })); } catch { /* */ }
       try { (await navigator.serviceWorker?.getRegistration())?.update(); } catch {}
       location.reload();
-    }, 90 * 1000);
+    }, 45 * 1000);
   };
   setTimeout(check, 20000);
-  setInterval(check, 5 * 60 * 1000);
+  setInterval(check, 2 * 60 * 1000); // בדיקת גרסה חדשה כל 2 דקות
   addEventListener('online', () => setTimeout(check, 15000));
 }
 

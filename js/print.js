@@ -49,6 +49,8 @@ function render() {
   const cnt = {};
   perDay.forEach((list) => list.forEach((p) => { if (varies(p)) cnt[p.name] = (cnt[p.name] || 0) + 1; }));
   const vcols = Object.keys(cnt).filter((n) => cnt[n] >= 2).slice(0, 3);
+  // זמן יום שזהה לעמודת תפילה (למשל "הנץ החמה" שהוגדר "בהנץ") – לא מציגים פעמיים
+  const zkeysShown = zkeys.filter((k) => !vcols.some((n) => dayInfo.every(({ z }, i) => { const t = perDay[i].find((p) => p.name === n)?.time; return !t || t === fmtTime(z[k], s.tz, zmanRound(k, s)); })));
   // fixed=true: מציגים את השעה של היום הזה עצמו (ולא "לפי היום") – לשבת שלמעלה במצב "שבת + השבוע הבא"
   const prow = (p, fixed = false) => {
     const v = !fixed && varies(p) && vcols.includes(p.name) && $('#opt-zmanim').checked;
@@ -93,8 +95,8 @@ function render() {
 
     ${hols.length ? `<div class="cols3">${hols.slice(0, 3).map((g) => `<section class="box"><h3>${esc(g.label)} <span class="sub">${esc(g.heb)}</span></h3><table class="pt">${g.rows.map(prow).join('')}</table></section>`).join('')}</div>` : ''}
 
-    ${$('#opt-zmanim').checked ? `<section class="box"><h3>${vcols.length ? 'תפילות וזמני היום – לפי יום' : 'זמני היום'}${split ? ' · השבוע הבא' : ''}</h3><table class="zt"><thead><tr><th></th>${vcols.map((n) => `<th class="pr">${esc(n)}</th>`).join('')}${zkeys.map((k) => `<th>${esc(ZMAN_LABEL[k])}</th>`).join('')}</tr></thead><tbody>
-      ${dayInfo.map(({ d, cd, z }, i) => `<tr${d.getDay() === 6 ? ' class="sat"' : ''}><th>${esc(DAYS[d.getDay()])}${split && d.getDay() === 6 && cd.shabbat?.parsha ? ` <span class="pn">(${esc(cd.shabbat.parsha)})</span>` : ''}<small>${esc(renderHeb(cd.hd).replace(/ תש\S+$/, ''))} · <bdi dir="ltr">${civ(d)}</bdi></small></th>${vcols.map((n) => `<td class="pr">${ss(esc(perDay[i].find((p) => p.name === n)?.time || '—'))}</td>`).join('')}${zkeys.map((k) => `<td>${ss(fmtTime(z[k], s.tz, zmanRound(k, s)))}</td>`).join('')}</tr>`).join('')}
+    ${$('#opt-zmanim').checked ? `<section class="box"><h3>${vcols.length ? 'תפילות וזמני היום – לפי יום' : 'זמני היום'}${split ? ' · השבוע הבא' : ''}</h3><table class="zt"><thead><tr><th></th>${vcols.map((n) => `<th class="pr">${esc(n)}</th>`).join('')}${zkeysShown.map((k) => `<th>${esc(ZMAN_LABEL[k])}</th>`).join('')}</tr></thead><tbody>
+      ${dayInfo.map(({ d, cd, z }, i) => `<tr${d.getDay() === 6 ? ' class="sat"' : ''}><th>${esc(DAYS[d.getDay()])}${split && d.getDay() === 6 && cd.shabbat?.parsha ? ` <span class="pn">(${esc(cd.shabbat.parsha)})</span>` : ''}<small>${esc(renderHeb(cd.hd).replace(/ תש\S+$/, ''))} · <bdi dir="ltr">${civ(d)}</bdi></small></th>${vcols.map((n) => `<td class="pr">${ss(esc(perDay[i].find((p) => p.name === n)?.time || '—'))}</td>`).join('')}${zkeysShown.map((k) => `<td>${ss(fmtTime(z[k], s.tz, zmanRound(k, s)))}</td>`).join('')}</tr>`).join('')}
     </tbody></table></section>` : ''}
 
     <div class="cols2">

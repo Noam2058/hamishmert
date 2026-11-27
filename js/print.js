@@ -83,7 +83,7 @@ function render() {
 
     <div class="cols3">
       ${ptable('ערב שבת', split ? weekly.friday.filter((p) => !varies(p)) : weekly.friday)}
-      ${ptable('שבת קודש', weekly.shabbat, split)}
+      ${ptable(split && sh.date ? `שבת קודש <span class="sub">${esc(renderHeb(sh.date).replace(/ תש\S+$/, ''))} · <bdi dir="ltr">${civ(sh.date.greg ? sh.date.greg() : sh.date)}</bdi></span>` : 'שבת קודש', weekly.shabbat, split)}
       ${ptable('ימות החול', weekly.weekday)}
     </div>
 
@@ -92,7 +92,7 @@ function render() {
     ${hols.length ? `<div class="cols3">${hols.slice(0, 3).map((g) => `<section class="box"><h3>${esc(g.label)} <span class="sub">${esc(g.heb)}</span></h3><table class="pt">${g.rows.map(prow).join('')}</table></section>`).join('')}</div>` : ''}
 
     ${$('#opt-zmanim').checked ? `<section class="box"><h3>${vcols.length ? 'תפילות וזמני היום – לפי יום' : 'זמני היום'}${split ? ' · השבוע הבא' : ''}</h3><table class="zt"><thead><tr><th></th>${vcols.map((n) => `<th class="pr">${esc(n)}</th>`).join('')}${zkeys.map((k) => `<th>${esc(ZMAN_LABEL[k])}</th>`).join('')}</tr></thead><tbody>
-      ${dayInfo.map(({ d, cd, z }, i) => `<tr${d.getDay() === 6 ? ' class="sat"' : ''}><th>${esc(DAYS[d.getDay()])}<small>${esc(renderHeb(cd.hd).replace(/ תש\S+$/, ''))} · <bdi dir="ltr">${civ(d)}</bdi></small></th>${vcols.map((n) => `<td class="pr">${esc(perDay[i].find((p) => p.name === n)?.time || '—')}</td>`).join('')}${zkeys.map((k) => `<td>${fmtTime(z[k], s.tz, zmanRound(k, s))}</td>`).join('')}</tr>`).join('')}
+      ${dayInfo.map(({ d, cd, z }, i) => `<tr${d.getDay() === 6 ? ' class="sat"' : ''}><th>${esc(DAYS[d.getDay()])}${split && d.getDay() === 6 && cd.shabbat?.parsha ? ` <span class="pn">(${esc(cd.shabbat.parsha)})</span>` : ''}<small>${esc(renderHeb(cd.hd).replace(/ תש\S+$/, ''))} · <bdi dir="ltr">${civ(d)}</bdi></small></th>${vcols.map((n) => `<td class="pr">${esc(perDay[i].find((p) => p.name === n)?.time || '—')}</td>`).join('')}${zkeys.map((k) => `<td>${fmtTime(z[k], s.tz, zmanRound(k, s))}</td>`).join('')}</tr>`).join('')}
     </tbody></table></section>` : ''}
 
     <div class="cols2">
@@ -137,6 +137,34 @@ addEventListener('resize', () => { if (DATA) fitScreen(); });
 addEventListener('afterprint', () => { if (DATA) fitScreen(); });
 addEventListener('beforeprint', fitPage);
 document.fonts?.ready.then(() => { if (DATA) fitPage(); });
+
+/* ---------- PDF ישירות מהדף, עם קישור לחיץ לברקוד (הדפסה ל-PDF באייפון לא שומרת קישורים) ---------- */
+const loadScript = (src) => new Promise((ok, bad) => { if ([...document.scripts].some((x) => x.src === src)) return ok(); const el = document.createElement('script'); el.src = src; el.onload = ok; el.onerror = bad; document.head.appendChild(el); });
+async function makePdf() {
+  const btn = $('#pdfbtn'); const label = btn.textContent; btn.disabled = true; btn.textContent = 'מכין PDF…';
+  const wrap = $('#sheetwrap'), sheet = $('#sheet');
+  const prevWrap = wrap.style.zoom, prevZoom = sheet.style.zoom, prevShadow = sheet.style.boxShadow, prevMargin = sheet.style.margin;
+  try {
+    await loadScript('https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js');
+    await loadScript('https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js');
+    // צילום בגודל אמיתי (html2canvas לא מכיר zoom) – אחר כך מקטינים לעמוד A4
+    wrap.style.zoom = '1'; sheet.style.zoom = '1'; sheet.style.boxShadow = 'none'; sheet.style.margin = '0';
+    await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
+    const r = sheet.getBoundingClientRect();
+    const a = sheet.querySelector('.qrlink')?.getBoundingClientRect();
+    const canvas = await window.html2canvas(sheet, { scale: 2, backgroundColor: '#ffffff', useCORS: true, logging: false });
+    const pdf = new window.jspdf.jsPDF({ unit: 'mm', format: 'a4', orientation: 'portrait' });
+    const W = 210, H = 297; let w = W, h = (canvas.height / canvas.width) * W;
+    if (h > H) { h = H; w = (canvas.width / canvas.height) * H; }
+    const x = (W - w) / 2, k = w / r.width;
+    pdf.addImage(canvas.toDataURL('image/jpeg', 0.93), 'JPEG', x, 0, w, h);
+    const url = sheet.querySelector('.qrlink')?.href;
+    if (a && url) pdf.link(x + (a.left - r.left) * k, (a.top - r.top) * k, a.width * k, a.height * k, { url });
+    pdf.save(`${document.title || 'דף שבועי'}.pdf`);
+  } catch (e) { alert('לא הצלחתי להכין PDF – אפשר להשתמש ב"הדפסה"'); console.warn(e); }
+  finally { sheet.style.boxShadow = prevShadow; sheet.style.margin = prevMargin; sheet.style.zoom = prevZoom; wrap.style.zoom = prevWrap; fitScreen(); btn.disabled = false; btn.textContent = label; }
+}
+$('#pdfbtn')?.addEventListener('click', makePdf);
 
 document.querySelectorAll('[data-week]').forEach((b) => b.onclick = () => { week = +b.dataset.week; render(); });
 $('#opt-anns').onchange = render; $('#opt-zmanim').onchange = render;

@@ -21,7 +21,7 @@ body { margin: 0; background: #e9e4d8; color: var(--ink); font: 500 11pt/1.4 "As
 .tb-seg { display: flex; gap: 6px; } .tb-checks { display: flex; gap: 14px; }
 /* טלפון: סרגל מסודר – חזרה + התאמה, בורר שבועות כ"מתג", אפשרויות, וכפתור הדפסה ברוחב מלא */
 @media screen and (max-width: 860px) {
-  .toolbar { display: grid; grid-template-columns: auto 1fr; grid-template-areas: "back info" "seg seg" "chk chk" "prn prn"; gap: 10px; padding: 10px 12px 12px; }
+  .toolbar { display: grid; grid-template-columns: 1fr auto; grid-template-areas: "back info" "seg seg" "chk chk" "prn prn" "pr2 pr2"; gap: 10px; padding: 10px 12px 12px; }
   .tb-sep, .tb-grow { display: none; }
   #back { grid-area: back; padding: 7px 12px; }
   .tb-info { grid-area: info; justify-self: end; font-size: 12px; }
@@ -31,6 +31,8 @@ body { margin: 0; background: #e9e4d8; color: var(--ink); font: 500 11pt/1.4 "As
   .tb-seg .tb-btn.on { background: #e3c475; color: #14213d; }
   .tb-checks { grid-area: chk; justify-content: center; gap: 22px; font-size: 14px; }
   .toolbar > .tb-btn.primary { grid-area: prn; width: 100%; padding: 11px; font-size: 15px; }
+  .toolbar > button.tb-btn:not(.primary) { grid-area: pr2; width: 100%; padding: 8px; }
+  #back { justify-self: start; }
   .sheet { margin: 8px auto; }
 }
 .head { display: flex; align-items: center; justify-content: space-between; gap: 6mm; border-bottom: 0.6mm solid var(--gold); padding: 3mm 3mm 3mm; }
@@ -80,3 +82,5 @@ table { width: 100%; border-collapse: collapse; }
 /* קישור לאתר: הברקוד לחיץ (גם ב-PDF) */
 .qrlink { display: flex; flex-direction: column; align-items: center; gap: 1.5mm; text-decoration: none; color: inherit; }
 .qrlink span { font-size: 3.6mm; font-weight: 700; color: var(--navy, #1c2f63); white-space: nowrap; text-decoration: underline; text-decoration-color: var(--gold, #b8923f); text-decoration-thickness: .35mm; text-underline-offset: 1mm; padding: .8mm 2.5mm; border: .3mm solid var(--gold, #b8923f); border-radius: 2mm; background: #fffaf0; }
+
+.zt th .pn { font-size: .78em; font-weight: 700; color: var(--gold-d, #8a6420); }

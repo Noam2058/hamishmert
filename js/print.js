@@ -8,7 +8,7 @@ import { upcomingHolidaySchedules } from './holidays.js';
 const $ = (s) => document.querySelector(s);
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const params = new URLSearchParams(location.search);
-let week = +(params.get('week') || 0);
+let week = +(params.get('week') ?? 2); // ברירת מחדל: "שבת + השבוע הבא"
 let DATA = null;
 const DAYS = ['ראשון', 'שני', 'שלישי', 'רביעי', 'חמישי', 'שישי', 'שבת'];
 const PRINT_Z = ['alot', 'sunrise', 'shmaGRA', 'tfillaGRA', 'chatzot', 'minchaGedola', 'plag', 'sunset', 'tzeit'];

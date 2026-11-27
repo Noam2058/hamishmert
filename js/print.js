@@ -75,7 +75,7 @@ function render() {
 
     <section class="shab">
       <div class="sb side"><small>${esc(sh.candlesLabel || 'הדלקת נרות')}</small><b>${fmtTime(sh.candles, s.tz, 'floor')}</b><small>${sh.candlesDate ? esc(DAYS[sh.candlesDate.getDay()]) : ''}</small></div>
-      <div class="sb mid"><small>${isShabbat ? 'שבת קודש' : 'חג'}</small><div class="parsha">${sh.parsha ? (sh.parshaIsChag ? esc(sh.parsha) : `פרשת ${esc(sh.parsha)}`) : ''}</div>
+      <div class="sb mid"><small>${isShabbat ? 'שבת קודש' : 'חג'}${sh.date ? ` · ${esc(renderHeb(sh.date))} · <bdi dir="ltr">${civ(sh.date.greg())}</bdi>` : ''}</small><div class="parsha">${sh.parsha ? (sh.parshaIsChag ? esc(sh.parsha) : `פרשת ${esc(sh.parsha)}`) : ''}</div>
         ${sh.haftarah && !sh.parshaIsChag ? `<small>הפטרה: ${esc(sh.haftarah)}</small>` : ''}
         ${[...(sh.specialShabbat || []), ...(sh.mevarchim || [])].length ? `<div class="tags">${[...(sh.specialShabbat || []), ...(sh.mevarchim || [])].map((x) => `<span>${esc(x)}</span>`).join('')}</div>` : ''}</div>
       <div class="sb side"><small>צאת ${isShabbat ? 'השבת' : 'החג'}</small><b>${fmtTime(sh.havdalah, s.tz, 'ceil')}</b><small>${s.havdalahMins ? `${s.havdalahMins} דק' אחרי השקיעה` : 'צאת הכוכבים'}</small></div>

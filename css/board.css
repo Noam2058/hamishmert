@@ -258,11 +258,15 @@ body.night #night { display: grid; }
 
 /* מצב בלי חיבור */
 /* חיווי סנכרון – קטן ושקוף בפינה השמאלית התחתונה */
-.sync { position: absolute; left: 18px; bottom: 6px; z-index: 4; display: flex; align-items: center; gap: 8px; pointer-events: none;
-  font: 700 19px/1 var(--body); color: var(--on-field); opacity: .55; white-space: nowrap; }
-.sync i { width: 10px; height: 10px; border-radius: 50%; background: #5fbf86; flex: none; }
-body.offline .sync { opacity: .8; }
-body.offline .sync i { background: #e0605a; }
+/* מצב סנכרון – בקצה הפס התחתון, במקום נקודות השקופיות */
+.ticker .dots { display: none !important; }
+.sync { flex: none; display: flex; align-items: center; gap: 10px; pointer-events: none; white-space: nowrap;
+  font: 700 22px/1 var(--body); color: var(--on-field); padding: 9px 18px; border-radius: 999px;
+  background: color-mix(in srgb, var(--on-field) 8%, transparent); border: 1.5px solid color-mix(in srgb, var(--gold-2) 45%, transparent); }
+.sync span:empty { display: none; }
+.sync i { width: 11px; height: 11px; border-radius: 50%; background: #5fbf86; flex: none; box-shadow: 0 0 0 3px color-mix(in srgb, #5fbf86 25%, transparent); }
+body.offline .sync { border-color: color-mix(in srgb, #e0605a 60%, transparent); }
+body.offline .sync i { background: #e0605a; box-shadow: 0 0 0 3px color-mix(in srgb, #e0605a 25%, transparent); }
 #stage.fullslide .sync { visibility: hidden; }
 
 /* טעינה */

@@ -151,7 +151,7 @@ function render() {
     ded: `${deds.length ? `<section class="card" id="t-ded"><h2>${icon('candle')}לעילוי נשמת</h2>
         ${deds.map((a) => `<div class="ann ${esc(a.style || '')} ${annClasses(a)}"${annStyle(a)}>${a.title ? `<h3>${esc(a.title)}</h3>` : ''}<p>${annBody(a.body)}</p></div>`).join('')}</section>` : ''}`,
     ann: `${anns.length ? `<section class="card" id="t-ann"><h2>${icon('megaphone')}הודעות <span class="pill">${anns.length}</span></h2>
-        ${anns.map((a) => `<div class="ann ${esc(a.style || '')} ${annClasses(a)}"${annStyle(a)}>${a.title ? `<h3>${esc(a.title)}</h3>` : ''}<p>${annBody(a.body)}</p>${a.dateMode !== 'hebrew' && a.to ? `<div class="when">עד ${esc(a.to.split('-').reverse().join('.'))}</div>` : ''}</div>`).join('')}</section>` : ''}`,
+        ${anns.map((a) => `<div class="ann ${esc(a.style || '')} ${annClasses(a)}"${annStyle(a)}>${a.title ? `<h3>${esc(a.title)}</h3>` : ''}<p>${annBody(a.body)}</p></div>`).join('')}</section>` : ''}`,
     img: `${slides.length ? `<section class="card" id="t-img"><h2>${icon('image')}מודעות ותמונות</h2>
         <div class="gallery">${slides.map((x, i) => `<button type="button" data-img="${i}" aria-label="הגדל: ${esc(x.title || x.caption || 'תמונה')}"><img src="${esc(x.url)}" alt="" loading="lazy">${x.title || x.caption ? `<span>${esc(x.title || x.caption)}</span>` : ''}</button>`).join('')}</div></section>` : ''}`,
     zmanim: `<section class="card" id="t-zmanim"><details class="fold" ${(first ? localStorage.getItem('m:z') === '1' : openNow.has('t-zmanim')) ? 'open' : ''}><summary>${icon('sun')}${day.night ? 'זמני מחר' : 'זמני היום'}</summary>

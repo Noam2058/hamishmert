@@ -13,12 +13,16 @@
 <div class="toolbar no-print">
   <a class="tb-btn" id="back" href="admin.html">→ חזרה לממשק</a>
   <span class="tb-sep"></span>
-  <button class="tb-btn" data-week="0">השבוע</button>
-  <button class="tb-btn" data-week="1">השבוע הבא</button>
-  <button class="tb-btn" data-week="2">שבת + השבוע הבא</button>
+  <div class="tb-seg">
+    <button class="tb-btn" data-week="0">השבוע</button>
+    <button class="tb-btn" data-week="1">השבוע הבא</button>
+    <button class="tb-btn" data-week="2">שבת + השבוע הבא</button>
+  </div>
   <span class="tb-sep"></span>
-  <label class="tb-check"><input type="checkbox" id="opt-anns" checked> הודעות</label>
-  <label class="tb-check"><input type="checkbox" id="opt-zmanim" checked> טבלת זמנים</label>
+  <div class="tb-checks">
+    <label class="tb-check"><input type="checkbox" id="opt-anns" checked> הודעות</label>
+    <label class="tb-check"><input type="checkbox" id="opt-zmanim" checked> טבלת זמנים</label>
+  </div>
   <span class="tb-grow"></span>
   <span class="tb-info" id="fitinfo"></span>
   <button class="tb-btn primary" onclick="print()">🖨 הדפס / שמור כ-PDF</button>

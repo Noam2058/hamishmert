@@ -18,7 +18,21 @@ body { margin: 0; background: #e9e4d8; color: var(--ink); font: 500 11pt/1.4 "As
 .loading { text-align: center; color: var(--soft); }
 /* בטלפון: הדף כולו מוקטן לרוחב המסך (רק בתצוגה – בהדפסה הוא A4 מלא) */
 .sheet-wrap { width: max-content; margin: 0 auto; }
-@media screen and (max-width: 860px) { .toolbar { padding: 8px 10px; gap: 6px; } .tb-sep, .tb-grow { display: none; } .sheet { margin: 8px auto; } }
+.tb-seg { display: flex; gap: 6px; } .tb-checks { display: flex; gap: 14px; }
+/* טלפון: סרגל מסודר – חזרה + התאמה, בורר שבועות כ"מתג", אפשרויות, וכפתור הדפסה ברוחב מלא */
+@media screen and (max-width: 860px) {
+  .toolbar { display: grid; grid-template-columns: auto 1fr; grid-template-areas: "back info" "seg seg" "chk chk" "prn prn"; gap: 10px; padding: 10px 12px 12px; }
+  .tb-sep, .tb-grow { display: none; }
+  #back { grid-area: back; padding: 7px 12px; }
+  .tb-info { grid-area: info; justify-self: end; font-size: 12px; }
+  .tb-seg { grid-area: seg; display: grid; grid-template-columns: 1fr 1fr 1.35fr; gap: 0; border: 1px solid rgba(227,196,117,.5); border-radius: 12px; overflow: hidden; }
+  .tb-seg .tb-btn { border: 0; border-radius: 0; padding: 10px 4px; font-size: 14px; white-space: nowrap; }
+  .tb-seg .tb-btn + .tb-btn { border-inline-start: 1px solid rgba(227,196,117,.35); }
+  .tb-seg .tb-btn.on { background: #e3c475; color: #14213d; }
+  .tb-checks { grid-area: chk; justify-content: center; gap: 22px; font-size: 14px; }
+  .toolbar > .tb-btn.primary { grid-area: prn; width: 100%; padding: 11px; font-size: 15px; }
+  .sheet { margin: 8px auto; }
+}
 .head { display: flex; align-items: center; justify-content: space-between; gap: 6mm; border-bottom: 0.6mm solid var(--gold); padding: 3mm 3mm 3mm; }
 .shul { font: 900 22pt/1.1 "Frank Ruhl Libre", serif; color: var(--navy); }
 .ded { display: inline-block; font: 700 9.5pt "Assistant"; background: var(--gold-l); color: #6b4e14; padding: 0.5mm 3mm; border-radius: 99px; margin-top: 1mm; }

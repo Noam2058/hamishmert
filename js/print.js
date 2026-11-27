@@ -47,11 +47,12 @@ function render() {
   const cnt = {};
   perDay.forEach((list) => list.forEach((p) => { if (varies(p)) cnt[p.name] = (cnt[p.name] || 0) + 1; }));
   const vcols = Object.keys(cnt).filter((n) => cnt[n] >= 2).slice(0, 3);
-  const prow = (p) => {
-    const v = varies(p) && vcols.includes(p.name) && $('#opt-zmanim').checked;
+  // fixed=true: מציגים את השעה של היום הזה עצמו (ולא "לפי היום") – לשבת שלמעלה במצב "שבת + השבוע הבא"
+  const prow = (p, fixed = false) => {
+    const v = !fixed && varies(p) && vcols.includes(p.name) && $('#opt-zmanim').checked;
     return `<tr><td>${esc(p.name)}${p.note || v ? `<small>${esc([p.note, v && describeTime(byId[p.id].time)].filter(Boolean).join(' · '))}</small>` : ''}</td><td class="t">${v ? '<span class="see">לפי היום ↓</span>' : esc(p.time)}</td></tr>`;
   };
-  const ptable = (title, list) => list.length ? `<section class="box"><h3>${title}</h3><table class="pt">${list.map(prow).join('')}</table></section>` : '';
+  const ptable = (title, list, fixed = false) => list.length ? `<section class="box"><h3>${title}</h3><table class="pt">${list.map((p) => prow(p, fixed)).join('')}</table></section>` : '';
 
   // שיעורים – השעה לפי היום הקרוב שבו מתקיימים
   const lessons = (DATA.lessons || []).map((l) => {
@@ -81,8 +82,8 @@ function render() {
     </section>
 
     <div class="cols3">
-      ${ptable('ערב שבת', weekly.friday)}
-      ${ptable('שבת קודש', weekly.shabbat)}
+      ${ptable('ערב שבת', split ? weekly.friday.filter((p) => !varies(p)) : weekly.friday)}
+      ${ptable('שבת קודש', weekly.shabbat, split)}
       ${ptable('ימות החול', weekly.weekday)}
     </div>
 

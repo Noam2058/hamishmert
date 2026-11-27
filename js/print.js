@@ -60,7 +60,7 @@ function render() {
     let min = null; try { min = resolveTime(l.time, info.d, s, { candles: info.cd.shabbat.candles, havdalah: info.cd.shabbat.havdalah }); } catch {}
     return { ...l, timeStr: min == null ? '' : minToHhmm(min), days: daysLabel(l.weekdays) };
   });
-  const anns = $('#opt-anns').checked ? (DATA.announcements || []).filter((a) => (a.title || a.body) && days.some((d) => annActive(a, iso(d), computeDay(d, s).hd))) : [];
+  const anns = $('#opt-anns').checked ? (DATA.announcements || []).filter((a) => (a.title || a.body) && [...days, ...(split ? Array.from({ length: 7 }, (_, i) => new Date(sunday.getTime() + i * 86400000)) : [])].some((d) => annActive(a, iso(d), computeDay(d, s).hd))) : [];
   let hols = []; try { hols = upcomingHolidaySchedules(DATA, s, base, 7); } catch {}
   let molad = null; if (sh.mevarchim?.length && sh.date) { try { molad = moladInfo(sh.date); } catch {} }
   const mUrl = new URL('m.html', location.href).href.replace(/\?.*$/, '');

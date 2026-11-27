@@ -1,5 +1,5 @@
 // חישוב זמני תפילות ושיעורים: שעה קבועה או יחסית לזמן הלכתי.
-import { zmanimFor, tzParts, minutesOf, hhmmToMin, minToHhmm , minToHhmmss } from './jewish.js';
+import { zmanimFor, tzParts, minutesOf, hhmmToMin, minToHhmm , minToHhmmss, computeDay } from './jewish.js';
 import { holidayKeysOn } from './holidays.js';
 
 export const SCHEDULES = [
@@ -115,8 +115,12 @@ export function weeklyPrayers(day, data, s, fridayMorning = false) {
   const friday = addDays(sunday, 5);
   const saturday = addDays(sunday, 6);
   // ימות החול: היום (א׳–ה׳), ובשישי/שבת – יום ראשון הקרוב (ולא ראשון שעבר, שזמני הנץ שלו כבר לא רלוונטיים)
-  // אחרי צאת הכוכבים (א׳–ה׳) – כבר הזמנים של מחר בבוקר
-  const weekdayCivil = civil.getDay() <= 4 ? (day.night ? addDays(civil, 1) : civil) : addDays(civil, 7 - civil.getDay());
+  // ימות החול: היום (כולל שישי). אחרי צאת הכוכבים – מחר, אם מחר יום חול.
+  // ערב שבת/חג נשאר על היום עד הבוקר של השבת/החג, ורק אז עוברים ליום החול הבא (בדילוג על שבת וחג)
+  const holy = (d) => d.getDay() === 6 || !!computeDay(new Date(d.getFullYear(), d.getMonth(), d.getDate(), 12), s).tags?.includes('yomtov');
+  let weekdayCivil = civil;
+  if (day.night && !holy(addDays(civil, 1))) weekdayCivil = addDays(civil, 1);
+  for (let k = 0; k < 4 && holy(weekdayCivil); k++) weekdayCivil = addDays(weekdayCivil, 1);
   return {
     weekday: prayersForDay(day, data, s, weekdayCivil, ['weekday']),
     friday: prayersForDay(day, data, s, friday, ['friday'], fridayMorning),

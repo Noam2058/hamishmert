@@ -477,14 +477,15 @@ export const SCREENS = {
     const which = display.shmaZman || 'gra';
     const shmaWin = +(display.shmaWindowMin || 0) * 60000; // 0 = מהנץ ועד סוף הזמן
     let target, label, sub;
-    // הספירה מדויקת לשנייה – אז גם השעה מוצגת עם שניות, כדי שהספירה והשעה יתאימו
-    const shmaSub = `מג"א: <b>${fmtTime(mga, s.tz, 'sec')}</b> · גר"א: <b>${fmtTime(gra, s.tz, 'sec')}</b>`;
+    // סוף זמן ק"ש: מעוגל כלפי מטה לדקה שלמה (לחומרה), והספירה – עד הדקה הזו בדיוק, כך שהשניות מתואמות עם השעון
+    const floorMin = (d) => (d ? new Date(Math.floor(d.getTime() / 60000) * 60000) : d);
     if (display.netzCountdown !== false && now < sr && sr - now <= win) { target = sr; label = 'הנץ החמה בעוד'; sub = `הנץ היום: <b>${fmtTime(sr, s.tz, zmanRound('sunrise', s))}</b>`; }
     else if (display.shmaCountdown !== false) {
-      const list = (which === 'mga' ? [mga] : which === 'both' ? [mga, gra] : [gra]).filter(Boolean);
+      const list = (which === 'mga' ? [mga] : which === 'both' ? [mga, gra] : [gra]).filter(Boolean).map(floorMin);
+      const isMga = (x) => mga && x.getTime() === floorMin(mga).getTime();
       const t = list.find((x) => now < x);
       if (!t || now < (shmaWin ? t - shmaWin : sr)) return null;
-      target = t; label = `סוף זמן קריאת שמע (${t === mga ? 'מג"א' : 'גר"א'}) בעוד`; sub = shmaSub;
+      target = t; label = `סוף זמן קריאת שמע (${isMga(t) ? 'מג"א' : 'גר"א'}) בעוד`; sub = `סוף הזמן: <b>${fmtTime(t, s.tz, 'floor')}</b>`;
     } else return null;
     const ms = Math.max(0, target - now);
     // ספירה מדויקת לשנייה של הנץ (לפי לוח חי – כולל שניות): מעגלים כלפי מעלה, כך ש-00:00 מגיע בדיוק ברגע הנץ

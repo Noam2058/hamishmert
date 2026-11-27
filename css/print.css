@@ -84,3 +84,6 @@ table { width: 100%; border-collapse: collapse; }
 .qrlink span { font-size: 3.6mm; font-weight: 700; color: var(--navy, #1c2f63); white-space: nowrap; text-decoration: underline; text-decoration-color: var(--gold, #b8923f); text-decoration-thickness: .35mm; text-underline-offset: 1mm; padding: .8mm 2.5mm; border: .3mm solid var(--gold, #b8923f); border-radius: 2mm; background: #fffaf0; }
 
 .zt th .pn { font-size: .78em; font-weight: 700; color: var(--gold-d, #8a6420); }
+
+/* בזמן יצירת PDF: בלי ריווח אותיות (מצייר רווח מוזר בספרות) */
+.sheet.pdfcap, .sheet.pdfcap * { letter-spacing: 0 !important; font-variant-numeric: normal !important; }

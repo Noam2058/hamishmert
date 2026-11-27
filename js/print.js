@@ -149,6 +149,7 @@ async function makePdf() {
     await loadScript('https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js');
     // צילום בגודל אמיתי (html2canvas לא מכיר zoom) – אחר כך מקטינים לעמוד A4
     wrap.style.zoom = '1'; sheet.style.zoom = '1'; sheet.style.boxShadow = 'none'; sheet.style.margin = '0';
+    sheet.classList.add('pdfcap');
     await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
     const r = sheet.getBoundingClientRect();
     const a = sheet.querySelector('.qrlink')?.getBoundingClientRect();
@@ -162,7 +163,7 @@ async function makePdf() {
     if (a && url) pdf.link(x + (a.left - r.left) * k, (a.top - r.top) * k, a.width * k, a.height * k, { url });
     pdf.save(`${document.title || 'דף שבועי'}.pdf`);
   } catch (e) { alert('לא הצלחתי להכין PDF – אפשר להשתמש ב"הדפסה"'); console.warn(e); }
-  finally { sheet.style.boxShadow = prevShadow; sheet.style.margin = prevMargin; sheet.style.zoom = prevZoom; wrap.style.zoom = prevWrap; fitScreen(); btn.disabled = false; btn.textContent = label; }
+  finally { sheet.classList.remove('pdfcap'); sheet.style.boxShadow = prevShadow; sheet.style.margin = prevMargin; sheet.style.zoom = prevZoom; wrap.style.zoom = prevWrap; fitScreen(); btn.disabled = false; btn.textContent = label; }
 }
 $('#pdfbtn')?.addEventListener('click', makePdf);
 

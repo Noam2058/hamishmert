@@ -145,7 +145,7 @@ async function makePdf() {
   const wrap = $('#sheetwrap'), sheet = $('#sheet');
   const prevWrap = wrap.style.zoom, prevZoom = sheet.style.zoom, prevShadow = sheet.style.boxShadow, prevMargin = sheet.style.margin;
   try {
-    await loadScript('https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js');
+    await loadScript('https://cdn.jsdelivr.net/npm/html2canvas-pro@1.5.8/dist/html2canvas-pro.min.js');
     await loadScript('https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js');
     // צילום בגודל אמיתי (html2canvas לא מכיר zoom) – אחר כך מקטינים לעמוד A4
     wrap.style.zoom = '1'; sheet.style.zoom = '1'; sheet.style.boxShadow = 'none'; sheet.style.margin = '0';

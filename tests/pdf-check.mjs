@@ -1,0 +1,12 @@
+import { chromium } from 'playwright';
+import { mkdirSync, writeFileSync, readFileSync } from 'node:fs';
+mkdirSync('out', { recursive: true });
+const browser = await chromium.launch(); const page = await browser.newPage();
+await page.goto('https://noam2058.github.io/hamishmert/print.html?week=2'); await page.waitForTimeout(6000);
+await page.emulateMedia({ media: 'print' });
+await page.pdf({ path: 'out/sheet.pdf', format: 'A4', printBackground: true, preferCSSPageSize: true });
+const buf = readFileSync('out/sheet.pdf').toString('latin1');
+const uris = [...buf.matchAll(/\/URI\s*\(([^)]*)\)/g)].map((m) => m[1]);
+const rects = [...buf.matchAll(/\/Subtype\s*\/Link[^>]*?\/Rect\s*\[([^\]]*)\]/g)].map((m) => m[1]);
+writeFileSync('out/log.txt', `uris: ${JSON.stringify(uris)}\nrects: ${JSON.stringify(rects)}\nlinkcount: ${(buf.match(/\/Subtype\s*\/Link/g) || []).length}`);
+await browser.close();

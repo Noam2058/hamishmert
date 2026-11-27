@@ -13,6 +13,8 @@ let DATA = null;
 const DAYS = ['ראשון', 'שני', 'שלישי', 'רביעי', 'חמישי', 'שישי', 'שבת'];
 const PRINT_Z = ['alot', 'sunrise', 'shmaGRA', 'tfillaGRA', 'chatzot', 'minchaGedola', 'plag', 'sunset', 'tzeit'];
 
+/** 06:28:30 → השניות קטנות יותר (פחות צפוף) */
+const ss = (t) => String(t).replace(/^(\d\d:\d\d)(:\d\d)$/, '$1<small class="ss">$2</small>');
 function render() {
   const s = DATA.synagogue;
   const now = new Date();
@@ -50,7 +52,7 @@ function render() {
   // fixed=true: מציגים את השעה של היום הזה עצמו (ולא "לפי היום") – לשבת שלמעלה במצב "שבת + השבוע הבא"
   const prow = (p, fixed = false) => {
     const v = !fixed && varies(p) && vcols.includes(p.name) && $('#opt-zmanim').checked;
-    return `<tr><td>${esc(p.name)}${p.note || v ? `<small>${esc([p.note, v && describeTime(byId[p.id].time)].filter(Boolean).join(' · '))}</small>` : ''}</td><td class="t">${v ? '<span class="see">לפי היום ↓</span>' : esc(p.time)}</td></tr>`;
+    return `<tr><td>${esc(p.name)}${p.note || v ? `<small>${esc([p.note, v && describeTime(byId[p.id].time)].filter(Boolean).join(' · '))}</small>` : ''}</td><td class="t">${v ? '<span class="see">לפי היום ↓</span>' : ss(esc(p.time))}</td></tr>`;
   };
   const ptable = (title, list, fixed = false) => list.length ? `<section class="box"><h3>${title}</h3><table class="pt">${list.map((p) => prow(p, fixed)).join('')}</table></section>` : '';
 
@@ -92,7 +94,7 @@ function render() {
     ${hols.length ? `<div class="cols3">${hols.slice(0, 3).map((g) => `<section class="box"><h3>${esc(g.label)} <span class="sub">${esc(g.heb)}</span></h3><table class="pt">${g.rows.map(prow).join('')}</table></section>`).join('')}</div>` : ''}
 
     ${$('#opt-zmanim').checked ? `<section class="box"><h3>${vcols.length ? 'תפילות וזמני היום – לפי יום' : 'זמני היום'}${split ? ' · השבוע הבא' : ''}</h3><table class="zt"><thead><tr><th></th>${vcols.map((n) => `<th class="pr">${esc(n)}</th>`).join('')}${zkeys.map((k) => `<th>${esc(ZMAN_LABEL[k])}</th>`).join('')}</tr></thead><tbody>
-      ${dayInfo.map(({ d, cd, z }, i) => `<tr${d.getDay() === 6 ? ' class="sat"' : ''}><th>${esc(DAYS[d.getDay()])}${split && d.getDay() === 6 && cd.shabbat?.parsha ? ` <span class="pn">(${esc(cd.shabbat.parsha)})</span>` : ''}<small>${esc(renderHeb(cd.hd).replace(/ תש\S+$/, ''))} · <bdi dir="ltr">${civ(d)}</bdi></small></th>${vcols.map((n) => `<td class="pr">${esc(perDay[i].find((p) => p.name === n)?.time || '—')}</td>`).join('')}${zkeys.map((k) => `<td>${fmtTime(z[k], s.tz, zmanRound(k, s))}</td>`).join('')}</tr>`).join('')}
+      ${dayInfo.map(({ d, cd, z }, i) => `<tr${d.getDay() === 6 ? ' class="sat"' : ''}><th>${esc(DAYS[d.getDay()])}${split && d.getDay() === 6 && cd.shabbat?.parsha ? ` <span class="pn">(${esc(cd.shabbat.parsha)})</span>` : ''}<small>${esc(renderHeb(cd.hd).replace(/ תש\S+$/, ''))} · <bdi dir="ltr">${civ(d)}</bdi></small></th>${vcols.map((n) => `<td class="pr">${ss(esc(perDay[i].find((p) => p.name === n)?.time || '—'))}</td>`).join('')}${zkeys.map((k) => `<td>${ss(fmtTime(z[k], s.tz, zmanRound(k, s)))}</td>`).join('')}</tr>`).join('')}
     </tbody></table></section>` : ''}
 
     <div class="cols2">

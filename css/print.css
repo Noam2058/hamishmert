@@ -87,3 +87,6 @@ table { width: 100%; border-collapse: collapse; }
 
 /* בזמן יצירת PDF: בלי ריווח אותיות (מצייר רווח מוזר בספרות) */
 .sheet.pdfcap, .sheet.pdfcap * { letter-spacing: 0 !important; font-variant-numeric: normal !important; }
+
+/* שניות – קטנות ומעט שקופות, כדי שהשעה לא תיראה צפופה */
+.zt td small.ss, .pt td.t small.ss { display: inline; font-size: .68em; font-weight: 600; opacity: .72; margin: 0; letter-spacing: 0; }
